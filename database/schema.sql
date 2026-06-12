@@ -299,3 +299,40 @@ INSERT IGNORE INTO `bloglar` (`slug`, `sarlavha`, `qisqa`, `matn`, `kategoriya`,
 'Avto maktab imtihonidan birinchi urinishdan o''tish uchun amaliy maslahatlar.',
 '<p>Avto maktab nazariyasi imtihoni — har bir haydovchi uchun muhim qadam. Quyidagi maslahatlarga amal qiling:</p><h3>1. Har kuni mashq qiling</h3><p>Kuniga 1 soat test yechish — eng yaxshi natija.</p><h3>2. Xato qilgan savollarni qayta ko''ring</h3><p>Bizning platformada barcha xato javoblar saqlanadi.</p><h3>3. Yo''l belgilarini yodlang</h3><p>Belgilar imtihonning 30% ini tashkil qiladi.</p><h3>4. Sokin xonada mashq qiling</h3><p>Konsentratsiya muhim.</p><h3>5. Imtihondan oldin yaxshi uxlang</h3><p>Charchoqsiz aql aniqroq ishlaydi.</p>',
 'Maslahatlar', 'chop');
+
+
+
+-- ============================================================
+-- 15. CHAT XABARLAR — Foydalanuvchi va admin/AI suhbati
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `chat_xabarlar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED NOT NULL,
+    `admin_id` INT UNSIGNED DEFAULT NULL,
+    `kimdan` ENUM('user','admin','ai') NOT NULL,
+    `matn` TEXT NOT NULL,
+    `oqilgan` TINYINT(1) DEFAULT 0,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foydalanuvchi` (`foydalanuvchi_id`),
+    INDEX `idx_oqilgan` (`oqilgan`),
+    INDEX `idx_kimdan` (`kimdan`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`admin_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 16. BILDIRISHNOMALAR — Foydalanuvchi bildirishnomalari
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `bildirishnomalar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED NOT NULL,
+    `sarlavha` VARCHAR(255) NOT NULL,
+    `matn` TEXT DEFAULT NULL,
+    `link` VARCHAR(255) DEFAULT NULL,
+    `ikon` VARCHAR(20) DEFAULT '🔔',
+    `tur` ENUM('info','muvaffaqiyat','ogohlantirish','xato') DEFAULT 'info',
+    `oqilgan` TINYINT(1) DEFAULT 0,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foydalanuvchi_oqilgan` (`foydalanuvchi_id`, `oqilgan`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

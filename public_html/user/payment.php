@@ -86,6 +86,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 "✅ <b>To'lov muvaffaqiyatli!</b>\n\nTarif: <b>{$tarif['nomi']}</b>\nSumma: <b>" . pul($jami) . "</b>");
                         }
 
+                        bildirishnoma_yarat(
+                            $f['id'],
+                            "Bonus orqali to'lov amalga oshirildi 🎉",
+                            "Tarif: {$tarif['nomi']} · Summa: " . pul($jami) . "\nObuna faollashdi.",
+                            '/dashboard',
+                            'muvaffaqiyat',
+                            '🎁'
+                        );
+
                         flash_qoy('muvaffaqiyat', t('tolov_muvaffaqiyat'));
                         yonaltir(SAYT_URL . '/dashboard');
                     } catch (Exception $exc) {

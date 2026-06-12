@@ -134,6 +134,91 @@ $sayt_nomi_f = sozlama('sayt_nomi', 'VatanParvar Yaypan');
         }
     };
 
+    window.apiGet = async (url) => {
+        try {
+            const r = await fetch(url, { credentials: 'same-origin' });
+            return await r.json();
+        } catch (e) {
+            return { ok: false, xato: 'Tarmoq xatosi' };
+        }
+    };
+
+    // ----- Bildirishnoma paneli (Alpine.js komponenti) -----
+    window.bildirishnomaPanel = function () {
+        return {
+            menu: false,
+            ruyhat: [],
+            son: 0,
+            loading: false,
+            init() {
+                this.sonYangila();
+                setInterval(() => this.sonYangila(), 30000);
+            },
+            async sonYangila() {
+                const r = await window.apiGet('<?= e(SAYT_URL) ?>/api/bildirishnoma.php?action=ruyhat');
+                if (r.ok) this.son = r.oqilmagan || 0;
+            },
+            async yangila() {
+                this.loading = true;
+                const r = await window.apiGet('<?= e(SAYT_URL) ?>/api/bildirishnoma.php?action=ruyhat');
+                this.loading = false;
+                if (r.ok) {
+                    this.ruyhat = r.ruyhat;
+                    this.son = r.oqilmagan;
+                }
+            },
+            async oqildi(id) {
+                await window.apiPost('<?= e(SAYT_URL) ?>/api/bildirishnoma.php?action=oqildi', { id });
+                const b = this.ruyhat.find(x => x.id === id);
+                if (b) b.oqilgan = 1;
+                if (this.son > 0) this.son--;
+            },
+            async hammasiOqildi() {
+                await window.apiPost('<?= e(SAYT_URL) ?>/api/bildirishnoma.php?action=oqildi');
+                this.ruyhat.forEach(b => b.oqilgan = 1);
+                this.son = 0;
+            }
+        };
+    };
+
+    // ----- Browser Notification API yordamchisi -----
+    window.brauzerXabar = function (sarlavha, matn, ikon = '/favicon.ico') {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'granted') {
+            try { new Notification(sarlavha, { body: matn, icon: ikon }); } catch(e) {}
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+    };
+
+    // ----- localStorage yordamchisi -----
+    window.LS = {
+        olish: (k, def = null) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; } },
+        saqla: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
+        ochir: (k) => { try { localStorage.removeItem(k); } catch(e) {} },
+    };
+
+    // Browser notification ruxsatini bir marta so'rash (kirgan foydalanuvchilar uchun)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.csrfToken && 'Notification' in window
+            && Notification.permission === 'default'
+            && !window.LS.olish('notif_sorov_qilingan')) {
+            setTimeout(() => {
+                Notification.requestPermission();
+                window.LS.saqla('notif_sorov_qilingan', true);
+            }, 8000);
+        }
+    });
+
+    // ----- PWA Service Worker registratsiya -----
+    if ('serviceWorker' in navigator && location.protocol === 'https:' || location.hostname === 'localhost') {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(e => {
+                console.warn('SW xato:', e);
+            });
+        });
+    }
+
     // ----- Scroll-da fade-up animatsiyasi -----
     if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver(entries => {

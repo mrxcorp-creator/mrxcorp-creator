@@ -45,6 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     telegram_yubor($foydalanuvchi['telegram_id'],
                         "✅ <b>To'lovingiz tasdiqlandi!</b>\nTarif: <b>{$tarif['nomi']}</b>");
                 }
+                bildirishnoma_yarat(
+                    $foydalanuvchi['id'],
+                    "To'lovingiz admin tomonidan tasdiqlandi ✅",
+                    "Tarif: {$tarif['nomi']}\nEndi siz barcha imkoniyatlardan foydalanishingiz mumkin.",
+                    '/dashboard',
+                    'muvaffaqiyat',
+                    '✅'
+                );
                 db()->commit();
                 flash_qoy('muvaffaqiyat', 'To\'lov tasdiqlandi va obuna ochildi');
             } catch (Exception $exc) {

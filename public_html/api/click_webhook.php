@@ -132,6 +132,16 @@ if ($action === 1) {
                 "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>\nSumma: <b>" . pul($amount) . "</b>");
         }
 
+        // Sayt ichi bildirishnoma
+        bildirishnoma_yarat(
+            $foydalanuvchi['id'],
+            "To'lov muvaffaqiyatli amalga oshirildi 🎉",
+            "Tarif: {$tarif['nomi']} · Summa: " . pul($amount) . "\nObuna avtomatik faollashdi.",
+            '/dashboard',
+            'muvaffaqiyat',
+            '✅'
+        );
+
         db()->commit();
         click_javob($KOD['OK'], 'Success', [
             'click_trans_id'      => $click_trans_id,

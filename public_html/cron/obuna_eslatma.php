@@ -46,6 +46,16 @@ foreach ($obunalar as $o) {
         "Tarifingiz <b>{$o['nomi']}</b> {$kun} kun ichida tugaydi (" . date('d.m.Y', strtotime($o['tugash'])) . ").\n\n" .
         "Yangilash uchun: " . SAYT_URL . "/tolov"
     );
+
+    // Sayt ichi bildirishnoma
+    bildirishnoma_yarat(
+        $o['foydalanuvchi_id'],
+        "Obunangiz {$kun} kun ichida tugaydi ⏰",
+        "Tarif: {$o['nomi']}\nTugash sanasi: " . date('d.m.Y', strtotime($o['tugash'])) . "\nUzilishlar bo'lmasligi uchun yangilang.",
+        '/tolov',
+        'ogohlantirish',
+        '⏰'
+    );
     $jonatildi++;
 }
 

@@ -28,6 +28,8 @@ RewriteRule ^test/?$ user/test.php [L]
 RewriteRule ^profil/?$ user/profil.php [L]
 RewriteRule ^tolov/?$ user/payment.php [L]
 RewriteRule ^referal/?$ user/referal.php [L]
+RewriteRule ^chat/?$ user/chat.php [L]
+RewriteRule ^bildirishnomalar/?$ user/bildirishnomalar.php [L]
 
 # Yangi public sahifalar
 RewriteRule ^tariflar/?$ tariflar.php [L]

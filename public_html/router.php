@@ -24,6 +24,8 @@ $routes = [
     '/profil'          => '/user/profil.php',
     '/tolov'           => '/user/payment.php',
     '/referal'         => '/user/referal.php',
+    '/chat'            => '/user/chat.php',
+    '/bildirishnomalar'=> '/user/bildirishnomalar.php',
     // Yangi public sahifalar
     '/tariflar'        => '/tariflar.php',
     '/blog'            => '/blog.php',

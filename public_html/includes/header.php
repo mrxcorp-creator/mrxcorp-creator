@@ -112,6 +112,13 @@ $flash           = flash_ol();
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2338BDF8'/><stop offset='1' stop-color='%230284C7'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='50%25' y='54%25' text-anchor='middle' fill='white' font-family='Arial' font-size='34' font-weight='800'>V</text></svg>">
 
+    <!-- PWA -->
+    <link rel="manifest" href="<?= e(SAYT_URL) ?>/manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2338BDF8'/><stop offset='1' stop-color='%230284C7'/></linearGradient></defs><rect width='192' height='192' rx='42' fill='url(%23g)'/><text x='50%25' y='54%25' text-anchor='middle' fill='white' font-family='Arial' font-size='102' font-weight='800'>V</text></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <style>
         /* ============================================================
            DIZAYN TIZIMI — Yorqin (oq + havorang) tema

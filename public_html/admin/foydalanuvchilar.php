@@ -59,6 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     telegram_yubor($maqsad['telegram_id'],
                         "🎉 <b>Sizga obuna sovg'a qilindi!</b>\nTarif: <b>{$tarif['nomi']}</b>");
                 }
+                bildirishnoma_yarat(
+                    $maqsad['id'],
+                    "Sizga obuna sovg'a qilindi! 🎁",
+                    "Tarif: {$tarif['nomi']}\nAdmin tomonidan {$f['ism']} sovg'a qildi.",
+                    '/dashboard',
+                    'muvaffaqiyat',
+                    '🎁'
+                );
                 flash_qoy('muvaffaqiyat', 'Obuna qo\'shildi');
             }
         }

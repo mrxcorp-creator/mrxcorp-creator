@@ -172,6 +172,15 @@ switch ($method) {
                     "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>");
             }
 
+            bildirishnoma_yarat(
+                $foydalanuvchi['id'],
+                "To'lov muvaffaqiyatli amalga oshirildi 🎉",
+                "Tarif: {$tarif['nomi']}\nObuna avtomatik faollashdi.",
+                '/dashboard',
+                'muvaffaqiyat',
+                '✅'
+            );
+
             db()->commit();
         } catch (Exception $exc) {
             db()->rollBack();

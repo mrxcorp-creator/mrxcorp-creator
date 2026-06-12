@@ -72,6 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 tizimga_kirgan($yangi_id);
                 kirish_qayd($telefon, true);
 
+                // Xush kelibsiz bildirishnomasi
+                bildirishnoma_yarat(
+                    $yangi_id,
+                    "VatanParvar Yaypanga xush kelibsiz! 👋",
+                    "Bepul demo testni hoziroq boshlashingiz mumkin. Yordam kerak bo'lsa, AI yordamchimiz bilan suhbatlashing.",
+                    '/test',
+                    'muvaffaqiyat',
+                    '🎉'
+                );
+
                 flash_qoy('muvaffaqiyat', t('royxat_muvaffaqiyat'));
                 yonaltir(SAYT_URL . '/dashboard');
             }

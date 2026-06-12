@@ -59,18 +59,57 @@ $grafik = db_barcha(
     [$f['id']]
 );
 
+// ----- So'nggi bildirishnomalar (3 ta) -----
+$bildirishnomalar = db_barcha(
+    'SELECT * FROM bildirishnomalar
+     WHERE foydalanuvchi_id = ?
+     ORDER BY yaratilgan DESC LIMIT 3',
+    [$f['id']]
+);
+
+// ----- Streak (ketma-ket kunlar) — gamification -->
+$kunlar = db_barcha(
+    'SELECT DISTINCT DATE(tugagan) AS sana FROM natijalar
+     WHERE foydalanuvchi_id = ? AND holat = "tugagan"
+     ORDER BY sana DESC LIMIT 30',
+    [$f['id']]
+);
+$streak = 0;
+$bugun = strtotime('today');
+foreach ($kunlar as $k) {
+    $kun_ts = strtotime($k['sana']);
+    $farq = (int) (($bugun - $kun_ts) / 86400);
+    if ($farq === $streak) {
+        $streak++;
+    } else {
+        break;
+    }
+}
+
 $sahifa_sarlavha = t('boshqaruv_paneli');
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
 <main class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Salomlashish -->
-    <div class="mb-8 fade-up">
-        <h1 class="text-3xl md:text-4xl font-display font-bold text-brand-text mb-1">
-            <?= e(t('salom')) ?>, <span class="text-gradient"><?= e($f['ism']) ?></span> 👋
-        </h1>
-        <p class="text-brand-muted">Bugun nimani o'rganamiz?</p>
+    <!-- Salomlashish + Streak -->
+    <div class="mb-8 fade-up flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-display font-bold text-brand-text mb-1">
+                <?= e(t('salom')) ?>, <span class="text-gradient"><?= e($f['ism']) ?></span> 👋
+            </h1>
+            <p class="text-brand-muted">Bugun nimani o'rganamiz?</p>
+        </div>
+
+        <?php if ($streak > 0): ?>
+            <div class="flex items-center gap-3 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl px-4 py-2.5 border border-amber-200 shadow-soft">
+                <span class="text-3xl">🔥</span>
+                <div>
+                    <div class="text-2xl font-display font-bold text-amber-700"><?= $streak ?> kun</div>
+                    <div class="text-[11px] text-amber-600 font-semibold uppercase tracking-wider">Ketma-ket</div>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Statistika kartalar -->
@@ -237,29 +276,75 @@ require_once __DIR__ . '/../includes/navbar.php';
                         </div>
                         <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
+                    <a href="<?= e(SAYT_URL) ?>/chat" class="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition group">
+                        <div class="flex items-center gap-3 relative">
+                            <span class="w-9 h-9 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center text-base">💬</span>
+                            <span class="font-medium text-brand-text">Yordam (AI/Admin)</span>
+                            <?php $chat_oqilmagan = chat_oqilmagan_son($f['id']); if ($chat_oqilmagan > 0): ?>
+                                <span class="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold animate-pulse-soft"><?= $chat_oqilmagan ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                     <a href="<?= e(SAYT_URL) ?>/profil" class="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition group">
                         <div class="flex items-center gap-3">
-                            <span class="w-9 h-9 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center text-base">👤</span>
+                            <span class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-base">👤</span>
                             <span class="font-medium text-brand-text"><?= e(t('profil')) ?></span>
                         </div>
                         <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                     <a href="<?= e(SAYT_URL) ?>/referal" class="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition group">
                         <div class="flex items-center gap-3">
-                            <span class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-base">🎁</span>
+                            <span class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-base">🎁</span>
                             <span class="font-medium text-brand-text"><?= e(t('referal')) ?></span>
                         </div>
                         <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                     <a href="<?= e(SAYT_URL) ?>/tolov" class="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition group">
                         <div class="flex items-center gap-3">
-                            <span class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-base">💎</span>
+                            <span class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-base">💎</span>
                             <span class="font-medium text-brand-text"><?= e(t('tariflar')) ?></span>
                         </div>
                         <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>
+
+            <!-- So'nggi bildirishnomalar -->
+            <?php if (!empty($bildirishnomalar)): ?>
+            <div class="glass-card p-6 fade-up">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-display font-bold text-brand-text text-sm uppercase tracking-wider flex items-center gap-2">
+                        🔔 So'nggi bildirishnomalar
+                    </h3>
+                    <a href="<?= e(SAYT_URL) ?>/bildirishnomalar" class="text-xs text-sky-600 hover:underline font-semibold">Barchasi</a>
+                </div>
+                <div class="space-y-2">
+                    <?php foreach ($bildirishnomalar as $b):
+                        $rang = match ($b['tur']) {
+                            'muvaffaqiyat'  => 'bg-emerald-50 border-emerald-200',
+                            'ogohlantirish' => 'bg-amber-50 border-amber-200',
+                            'xato'          => 'bg-rose-50 border-rose-200',
+                            default         => 'bg-sky-50 border-sky-200',
+                        };
+                    ?>
+                        <a href="<?= e($b['link'] ?: '#') ?>"
+                           class="block p-3 rounded-xl border <?= $rang ?> hover:shadow-soft transition <?= !$b['oqilgan'] ? 'ring-1 ring-sky-300' : '' ?>">
+                            <div class="flex items-start gap-2">
+                                <span class="text-xl flex-shrink-0"><?= e($b['ikon'] ?: '🔔') ?></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-sm text-brand-text line-clamp-1"><?= e($b['sarlavha']) ?></div>
+                                    <?php if ($b['matn']): ?>
+                                        <div class="text-xs text-brand-muted line-clamp-2 mt-0.5"><?= e($b['matn']) ?></div>
+                                    <?php endif; ?>
+                                    <div class="text-[10px] text-brand-light mt-1"><?= e(vaqt_oldin($b['yaratilgan'])) ?></div>
+                                </div>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </main>

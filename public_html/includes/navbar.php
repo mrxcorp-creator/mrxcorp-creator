@@ -54,8 +54,88 @@ $sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
         </div>
 
         <!-- O'ng tomon -->
-        <div class="hidden md:flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2">
             <?php if ($f): ?>
+                <!-- Chat tugmasi -->
+                <a href="<?= e(SAYT_URL) ?>/chat"
+                   x-data="{son: 0, init() { this.yangila(); setInterval(() => this.yangila(), 20000); },
+                            async yangila() { try { const r = await fetch('<?= e(SAYT_URL) ?>/api/bildirishnoma.php?action=ruyhat', {credentials:'same-origin'}).then(r=>r.json()); this.son = r.chat_oqilmagan || 0; } catch(e) {} } }"
+                   class="relative p-2.5 rounded-xl hover:bg-sky-50 transition group" aria-label="Chat">
+                    <svg class="w-5 h-5 text-brand-body group-hover:text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <span x-show="son > 0" x-cloak
+                          class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse-soft"
+                          x-text="son > 9 ? '9+' : son"></span>
+                </a>
+
+                <!-- Bildirishnoma qo'ng'irog'i -->
+                <div x-data="bildirishnomaPanel()" class="relative">
+                    <button @click="menu=!menu; if (menu) yangila()"
+                            class="relative p-2.5 rounded-xl hover:bg-sky-50 transition group" aria-label="Bildirishnomalar">
+                        <svg class="w-5 h-5 text-brand-body group-hover:text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span x-show="son > 0" x-cloak
+                              class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse-soft"
+                              x-text="son > 9 ? '9+' : son"></span>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div x-show="menu" x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+                         @click.outside="menu=false"
+                         class="absolute right-0 top-full mt-2 w-80 max-h-[80vh] glass-card shadow-medium origin-top-right overflow-hidden flex flex-col">
+                        <div class="p-3 border-b border-brand-border flex items-center justify-between flex-shrink-0">
+                            <h3 class="font-display font-bold text-brand-text">Bildirishnomalar</h3>
+                            <button @click="hammasiOqildi()" x-show="son > 0" x-cloak
+                                    class="text-xs text-sky-600 hover:text-sky-700 font-semibold">
+                                Hammasini o'qildi
+                            </button>
+                        </div>
+                        <div class="overflow-y-auto flex-1">
+                            <template x-if="loading">
+                                <div class="p-8 text-center">
+                                    <svg class="w-6 h-6 animate-spin mx-auto text-sky-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                                    </svg>
+                                </div>
+                            </template>
+                            <template x-if="!loading && ruyhat.length === 0">
+                                <div class="p-8 text-center text-brand-muted text-sm">
+                                    <div class="text-4xl mb-2">🔕</div>
+                                    Bildirishnomalar yo'q
+                                </div>
+                            </template>
+                            <template x-for="b in ruyhat" :key="b.id">
+                                <a :href="b.link || '#'"
+                                   @click="b.link ? null : $event.preventDefault(); oqildi(b.id)"
+                                   class="block p-3 hover:bg-sky-50/50 border-b border-brand-border/50 transition"
+                                   :class="!b.oqilgan ? 'bg-sky-50/30' : ''">
+                                    <div class="flex gap-3">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                                             :class="{
+                                                 'bg-sky-100': b.tur === 'info',
+                                                 'bg-emerald-100': b.tur === 'muvaffaqiyat',
+                                                 'bg-amber-100': b.tur === 'ogohlantirish',
+                                                 'bg-rose-100': b.tur === 'xato'
+                                             }"
+                                             x-text="b.ikon"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-semibold text-sm text-brand-text" x-text="b.sarlavha"></div>
+                                            <div class="text-xs text-brand-muted line-clamp-2 mt-0.5" x-text="b.matn"></div>
+                                            <div class="text-[10px] text-brand-light mt-1" x-text="b.vaqt"></div>
+                                        </div>
+                                        <span x-show="!b.oqilgan" class="w-2 h-2 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
                 <div x-data="{menu:false}" class="relative">
                     <button @click="menu=!menu"
                             class="flex items-center gap-2.5 hover:bg-sky-50 rounded-xl pl-1.5 pr-3 py-1.5 transition-all duration-200 group">
@@ -154,6 +234,14 @@ $sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
             <a href="<?= e(SAYT_URL) ?>/profil" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
                 <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base">👤</span>
                 <?= e(t('profil')) ?>
+            </a>
+            <a href="<?= e(SAYT_URL) ?>/chat" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
+                <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base">💬</span>
+                Yordam (chat)
+            </a>
+            <a href="<?= e(SAYT_URL) ?>/bildirishnomalar" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
+                <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base">🔔</span>
+                Bildirishnomalar
             </a>
             <?php if (in_array($f['rol'], ['admin', 'developer'], true)): ?>
                 <a href="<?= e(SAYT_URL) ?>/admin/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 transition text-sm font-medium border border-sky-100 mt-2">

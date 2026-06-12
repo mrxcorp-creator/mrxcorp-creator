@@ -46,6 +46,7 @@ require_once __DIR__ . '/../includes/header.php';
 
             $menyu = [
                 'index'           => ['🏠', t('boshqaruv_paneli'), 'index.php', 0],
+                'chat'            => ['💬', 'Chat',                  'chat.php', (int) db_qiymat('SELECT COUNT(DISTINCT foydalanuvchi_id) FROM chat_xabarlar WHERE kimdan = "user" AND oqilgan = 0')],
                 'biletlar'        => ['🎫', 'Biletlar',            'biletlar.php', 0],
                 'savollar'        => ['❓', 'Savollar',             'savollar.php', 0],
                 'foydalanuvchilar'=> ['👥', 'Foydalanuvchilar',     'foydalanuvchilar.php', 0],

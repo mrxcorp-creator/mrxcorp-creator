@@ -170,3 +170,134 @@ function bosh_harflar(?array $f): string {
     $fa = mb_substr($f['familiya'] ?? '', 0, 1);
     return mb_strtoupper($i . $fa);
 }
+
+
+
+/**
+ * ============================================================
+ *  AI YORDAMCHI (Gemini)
+ * ============================================================
+ *
+ *  Foydalanuvchi xabariga AI javob qaytaradi.
+ *  Suhbat tarixi (oxirgi N xabar) kontekst sifatida yuboriladi.
+ *
+ * @param string $foydalanuvchi_xabari  yangi xabar
+ * @param array  $tarix                 oxirgi xabarlar [['kimdan'=>'user','matn'=>'...']]
+ * @return string|null                  AI javobi yoki null (xato bo'lsa)
+ */
+function ai_javob_olish(string $foydalanuvchi_xabari, array $tarix = []): ?string {
+    if (!defined('GEMINI_API_KEY') || !GEMINI_API_KEY || !defined('AI_AKTIV') || !AI_AKTIV) {
+        return null;
+    }
+
+    // Tarixni Gemini formatiga o'tkazamiz
+    $contents = [];
+    foreach ($tarix as $x) {
+        $rol = $x['kimdan'] === 'user' ? 'user' : 'model';
+        $contents[] = ['role' => $rol, 'parts' => [['text' => (string) $x['matn']]]];
+    }
+    // Joriy xabar
+    $contents[] = ['role' => 'user', 'parts' => [['text' => $foydalanuvchi_xabari]]];
+
+    $payload = [
+        'systemInstruction' => [
+            'parts' => [['text' => AI_SYSTEM_PROMPT]],
+        ],
+        'contents' => $contents,
+        'generationConfig' => [
+            'temperature'     => 0.7,
+            'maxOutputTokens' => 800,
+            'topP'            => 0.9,
+        ],
+        'safetySettings' => [
+            ['category' => 'HARM_CATEGORY_HARASSMENT',         'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_HATE_SPEECH',        'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',  'threshold' => 'BLOCK_ONLY_HIGH'],
+            ['category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',  'threshold' => 'BLOCK_ONLY_HIGH'],
+        ],
+    ];
+
+    $url = GEMINI_API_URL . '?key=' . GEMINI_API_KEY;
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_UNICODE),
+        CURLOPT_TIMEOUT        => 25,
+        CURLOPT_CONNECTTIMEOUT => 5,
+    ]);
+    $javob = curl_exec($ch);
+    $kod   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($kod !== 200 || !$javob) {
+        error_log("Gemini API xato: kod={$kod}, javob=" . substr((string) $javob, 0, 500));
+        return null;
+    }
+
+    $j = json_decode($javob, true);
+    $matn = $j['candidates'][0]['content']['parts'][0]['text'] ?? null;
+    return $matn ? trim($matn) : null;
+}
+
+/**
+ * Foydalanuvchi uchun bildirishnoma yaratish.
+ */
+function bildirishnoma_yarat(
+    int $foydalanuvchi_id,
+    string $sarlavha,
+    string $matn = '',
+    string $link = '',
+    string $tur = 'info',
+    string $ikon = ''
+): int {
+    if (!$ikon) {
+        $ikon = match ($tur) {
+            'muvaffaqiyat'    => '✅',
+            'ogohlantirish'   => '⚠️',
+            'xato'            => '❌',
+            default           => '🔔',
+        };
+    }
+    return db_bajar(
+        'INSERT INTO bildirishnomalar (foydalanuvchi_id, sarlavha, matn, link, tur, ikon)
+         VALUES (?, ?, ?, ?, ?, ?)',
+        [$foydalanuvchi_id, $sarlavha, $matn, $link, $tur, $ikon]
+    );
+}
+
+/**
+ * Foydalanuvchining o'qilmagan bildirishnomalari soni.
+ */
+function bildirishnoma_son(int $foydalanuvchi_id): int {
+    return (int) db_qiymat(
+        'SELECT COUNT(*) FROM bildirishnomalar WHERE foydalanuvchi_id = ? AND oqilgan = 0',
+        [$foydalanuvchi_id]
+    );
+}
+
+/**
+ * Foydalanuvchining o'qilmagan chat xabarlari soni
+ * (admin/AI tomonidan yuborilganlar).
+ */
+function chat_oqilmagan_son(int $foydalanuvchi_id): int {
+    return (int) db_qiymat(
+        'SELECT COUNT(*) FROM chat_xabarlar
+         WHERE foydalanuvchi_id = ? AND kimdan IN ("admin","ai") AND oqilgan = 0',
+        [$foydalanuvchi_id]
+    );
+}
+
+/**
+ * Suhbatda admin oxirgi N daqiqada yozganmi? (AI ni o'chirish uchun)
+ */
+function chat_admin_aktivmi(int $foydalanuvchi_id, int $daqiqa = 30): bool {
+    return (bool) db_qiymat(
+        'SELECT COUNT(*) FROM chat_xabarlar
+         WHERE foydalanuvchi_id = ? AND kimdan = "admin"
+           AND yaratilgan > DATE_SUB(NOW(), INTERVAL ? MINUTE)',
+        [$foydalanuvchi_id, $daqiqa]
+    );
+}
