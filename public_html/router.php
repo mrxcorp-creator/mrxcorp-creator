@@ -10,7 +10,7 @@
 
 // ----- URL ni olish -----
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = rtrim($uri, '/');
+$uri_trimmed = rtrim($uri, '/');
 
 // ----- Chiroyli URL'lar (.htaccess RewriteRule kabi) -----
 $routes = [
@@ -27,9 +27,9 @@ $routes = [
 ];
 
 // ----- Tegishli marshrutni topish -----
-if (isset($routes[$uri])) {
-    $_SERVER['SCRIPT_NAME'] = $routes[$uri];
-    require __DIR__ . $routes[$uri];
+if (isset($routes[$uri_trimmed])) {
+    $_SERVER['SCRIPT_NAME'] = $routes[$uri_trimmed];
+    require __DIR__ . $routes[$uri_trimmed];
     return true;
 }
 
@@ -38,9 +38,16 @@ if (preg_match('/\.(?:png|jpe?g|gif|webp|svg|css|js|ico|txt|xml|map|woff2?|ttf|e
     return false;
 }
 
-// ----- Mavjud PHP/HTML fayl bo'lsa, uni ishlatish -----
-$fayl_yoli = __DIR__ . $uri;
-if (file_exists($fayl_yoli) && !is_dir($fayl_yoli)) {
+// ----- Papkaning index.php fayli (masalan /admin/ -> /admin/index.php) -----
+$papka_yoli = __DIR__ . $uri_trimmed;
+if (is_dir($papka_yoli) && file_exists($papka_yoli . '/index.php')) {
+    $_SERVER['SCRIPT_NAME'] = $uri_trimmed . '/index.php';
+    require $papka_yoli . '/index.php';
+    return true;
+}
+
+// ----- Mavjud PHP fayl bo'lsa, uni ishlatish -----
+if (file_exists($papka_yoli) && !is_dir($papka_yoli)) {
     return false; // PHP serverning standart handler'iga topshirish
 }
 
