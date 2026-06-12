@@ -1,0 +1,10 @@
+# Faqat rasm fayllariga ruxsat
+<FilesMatch "\.(jpe?g|png|gif|webp|svg|ico)$">
+    Require all granted
+</FilesMatch>
+
+<FilesMatch "\.(php|phtml|phar|pl|py|sh|cgi)$">
+    Require all denied
+</FilesMatch>
+
+Options -Indexes

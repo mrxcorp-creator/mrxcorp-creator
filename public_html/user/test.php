@@ -18,7 +18,7 @@ $natija_id = (int) olish('natija');
 // ============================================================
 if ($natija_id) {
     $natija = db_qator(
-        'SELECT n.*, b.raqam, b.nomi FROM natijalar n
+        'SELECT n.*, b.raqam, b.nomi, b.nomi_cyrl FROM natijalar n
          JOIN biletlar b ON n.bilet_id = b.id
          WHERE n.id = ? AND n.foydalanuvchi_id = ?',
         [$natija_id, $f['id']]
@@ -46,7 +46,7 @@ if ($natija_id) {
                    ($foiz >= 50 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400')) ?>">
                 <?= $foiz ?>%
             </div>
-            <h1 class="text-2xl mb-2">№<?= (int)$natija['raqam'] ?> — <?= e($natija['nomi']) ?></h1>
+            <h1 class="text-2xl mb-2">№<?= (int)$natija['raqam'] ?> — <?= e(tk($natija, 'nomi')) ?></h1>
             <p class="text-brand-muted"><?= e(t('siz_togri')) ?>: <?= (int)$natija['togri_son'] ?> · <?= e(t('siz_xato')) ?>: <?= (int)$natija['xato_son'] ?></p>
             <div class="flex justify-center gap-3 mt-6">
                 <a href="<?= e(SAYT_URL) ?>/test?bilet=<?= (int)$natija['bilet_id'] ?>&qaytadan=1" class="btn-primary"><?= e(t('qaytadan_yechish')) ?></a>
@@ -66,7 +66,7 @@ if ($natija_id) {
                         <?= $i + 1 ?>
                     </span>
                     <div class="flex-1">
-                        <p class="font-medium"><?= e($s['matn']) ?></p>
+                        <p class="font-medium"><?= e(tk($s, 'matn')) ?></p>
                         <?php if ($s['rasm'] && is_file(UPLOAD_PATH . '/' . $s['rasm'])): ?>
                             <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($s['rasm']) ?>" class="mt-3 rounded-lg max-w-md w-full">
                         <?php endif; ?>
@@ -74,7 +74,7 @@ if ($natija_id) {
                 </div>
                 <div class="grid sm:grid-cols-2 gap-2 ml-11">
                     <?php foreach (['a', 'b', 'c', 'd'] as $v):
-                        $matn = $s['variant_' . $v] ?? null;
+                        $matn = tk($s, 'variant_' . $v);
                         if (!$matn) continue;
                         $bu_togri = $v === $s['togri_javob'];
                         $bu_javob = $v === $j;
@@ -89,7 +89,7 @@ if ($natija_id) {
                 </div>
                 <?php if (!empty($s['izoh'])): ?>
                     <div class="mt-3 ml-11 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm">
-                        <strong class="text-blue-400">💡 Izoh:</strong> <?= e($s['izoh']) ?>
+                        <strong class="text-blue-400">💡 Izoh:</strong> <?= e(tk($s, 'izoh')) ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -146,13 +146,37 @@ if ($bilet_id) {
     }
 
     $savollar = db_barcha(
-        'SELECT id, matn, rasm, variant_a, variant_b, variant_c, variant_d
+        'SELECT id, matn, matn_cyrl, rasm,
+                variant_a, variant_a_cyrl, variant_b, variant_b_cyrl,
+                variant_c, variant_c_cyrl, variant_d, variant_d_cyrl
          FROM savollar WHERE bilet_id = ? ORDER BY tartib, id',
         [$bilet_id]
     );
+
+    // Tilga qarab savollarni JS uchun qisqartirilgan formada tayyorlash
+    $til_cyrl = ($_SESSION['til'] ?? 'uz_latn') === 'uz_cyrl';
+    $savollar_js = array_map(function ($s) use ($til_cyrl) {
+        $tanla = function ($maydon) use ($s, $til_cyrl) {
+            if ($til_cyrl) {
+                $cyrl = $s[$maydon . '_cyrl'] ?? '';
+                if ($cyrl !== '') return $cyrl;
+                return $s[$maydon] ? lotin_dan_kirill($s[$maydon]) : '';
+            }
+            return $s[$maydon] ?? '';
+        };
+        return [
+            'id'        => (int) $s['id'],
+            'matn'      => $tanla('matn'),
+            'rasm'      => $s['rasm'],
+            'variant_a' => $tanla('variant_a'),
+            'variant_b' => $tanla('variant_b'),
+            'variant_c' => $tanla('variant_c'),
+            'variant_d' => $tanla('variant_d'),
+        ];
+    }, $savollar);
     $javoblar = json_decode($natija['javoblar_json'] ?? '{}', true) ?: [];
 
-    $sahifa_sarlavha = $bilet['nomi'];
+    $sahifa_sarlavha = tk($bilet, 'nomi');
     $body_class = 'test-page no-select';
     require_once __DIR__ . '/../includes/header.php';
     ?>
@@ -160,7 +184,7 @@ if ($bilet_id) {
     <div x-data="testIshlash(<?= htmlspecialchars(json_encode([
             'natija_id' => (int) $natija['id'],
             'qolgan'    => (int) $natija['qolgan_vaqt'],
-            'savollar'  => $savollar,
+            'savollar'  => $savollar_js,
             'javoblar'  => $javoblar,
         ], JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?>)" x-cloak>
 
@@ -169,7 +193,7 @@ if ($bilet_id) {
             <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 min-w-0">
                     <a href="<?= e(SAYT_URL) ?>/dashboard" class="text-brand-muted hover:text-white">←</a>
-                    <span class="font-display font-semibold truncate">№<?= (int)$bilet['raqam'] ?> — <?= e($bilet['nomi']) ?></span>
+                    <span class="font-display font-semibold truncate">№<?= (int)$bilet['raqam'] ?> — <?= e(tk($bilet, 'nomi')) ?></span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="text-xs text-brand-muted hidden sm:inline"><?= e(t('qolgan_vaqt')) ?>:</span>
@@ -408,7 +432,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">Bepul</span>
                 <?php endif; ?>
                 <div class="text-3xl font-display font-bold text-blue-400 mb-1">№<?= (int)$b['raqam'] ?></div>
-                <div class="font-medium mb-1 truncate"><?= e($b['nomi']) ?></div>
+                <div class="font-medium mb-1 truncate"><?= e(tk($b, 'nomi')) ?></div>
                 <div class="text-xs text-brand-muted mb-3"><?= (int)$b['savol_son'] ?> savol</div>
 
                 <?php if ($eng !== null): ?>

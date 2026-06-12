@@ -23,6 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $togri = post('togri_javob');
         $izoh = post('izoh');
 
+        // Avtomatik kirill versiyalari (admin yozganlari ustun, aks holda lotindan o'giriladi)
+        $matn_cyrl = trim((string) post('matn_cyrl')) ?: ($matn ? lotin_dan_kirill($matn) : '');
+        $a_cyrl    = trim((string) post('variant_a_cyrl')) ?: ($a ? lotin_dan_kirill($a) : '');
+        $b_cyrl    = trim((string) post('variant_b_cyrl')) ?: ($b ? lotin_dan_kirill($b) : '');
+        $c_cyrl    = trim((string) post('variant_c_cyrl')) ?: ($c ? lotin_dan_kirill($c) : '');
+        $d_cyrl    = trim((string) post('variant_d_cyrl')) ?: ($d ? lotin_dan_kirill($d) : '');
+        $izoh_cyrl = trim((string) post('izoh_cyrl')) ?: ($izoh ? lotin_dan_kirill($izoh) : '');
+
         if (!$bilet_id || !$matn || !$a || !$b || !in_array($togri, ['a','b','c','d'], true)) {
             flash_qoy('xato', t('kerakli_maydon'));
         } else {
@@ -35,14 +43,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id) {
                 db_bajar(
-                    'UPDATE savollar SET matn=?, rasm=?, variant_a=?, variant_b=?, variant_c=?, variant_d=?, togri_javob=?, izoh=? WHERE id=?',
-                    [$matn, $rasm, $a, $b, $c, $d, $togri, $izoh, $id]
+                    'UPDATE savollar SET matn=?, matn_cyrl=?, rasm=?,
+                        variant_a=?, variant_a_cyrl=?, variant_b=?, variant_b_cyrl=?,
+                        variant_c=?, variant_c_cyrl=?, variant_d=?, variant_d_cyrl=?,
+                        togri_javob=?, izoh=?, izoh_cyrl=? WHERE id=?',
+                    [$matn, $matn_cyrl, $rasm,
+                     $a, $a_cyrl, $b, $b_cyrl,
+                     $c, $c_cyrl, $d, $d_cyrl,
+                     $togri, $izoh, $izoh_cyrl, $id]
                 );
             } else {
                 db_bajar(
-                    'INSERT INTO savollar (bilet_id, matn, rasm, variant_a, variant_b, variant_c, variant_d, togri_javob, izoh)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [$bilet_id, $matn, $rasm, $a, $b, $c, $d, $togri, $izoh]
+                    'INSERT INTO savollar (bilet_id, matn, matn_cyrl, rasm,
+                        variant_a, variant_a_cyrl, variant_b, variant_b_cyrl,
+                        variant_c, variant_c_cyrl, variant_d, variant_d_cyrl,
+                        togri_javob, izoh, izoh_cyrl)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [$bilet_id, $matn, $matn_cyrl, $rasm,
+                     $a, $a_cyrl, $b, $b_cyrl,
+                     $c, $c_cyrl, $d, $d_cyrl,
+                     $togri, $izoh, $izoh_cyrl]
                 );
             }
             flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
@@ -77,7 +97,7 @@ require_once __DIR__ . '/_layout.php';
             <option value="">— tanlang —</option>
             <?php foreach ($biletlar as $b): ?>
                 <option value="<?= (int)$b['id'] ?>" <?= $bilet_id === (int)$b['id'] ? 'selected' : '' ?>>
-                    №<?= (int)$b['raqam'] ?> — <?= e($b['nomi']) ?>
+                    №<?= (int)$b['raqam'] ?> — <?= e(tk($b, 'nomi')) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -101,8 +121,12 @@ require_once __DIR__ . '/_layout.php';
 
         <div x-show="open" x-transition class="mt-4 space-y-4">
             <div>
-                <label class="field-label">Savol matni *</label>
-                <textarea name="matn" required rows="2" class="field"><?= e($tahrir['matn'] ?? '') ?></textarea>
+                <label class="field-label">Savol matni (lotin) *</label>
+                <textarea name="matn" required rows="2" class="field" data-translit="matn_cyrl"><?= e($tahrir['matn'] ?? '') ?></textarea>
+            </div>
+            <div>
+                <label class="field-label">Savol matni (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+                <textarea name="matn_cyrl" rows="2" class="field" placeholder="Bo'sh qoldirilsa avtomatik to'ldiriladi"><?= e($tahrir['matn_cyrl'] ?? '') ?></textarea>
             </div>
 
             <div>
@@ -120,9 +144,15 @@ require_once __DIR__ . '/_layout.php';
                 <?php foreach (['a','b','c','d'] as $v):
                     $req = in_array($v, ['a','b'], true);
                 ?>
-                    <div>
-                        <label class="field-label uppercase"><?= $v ?>) Variant <?= $req ? '*' : '' ?></label>
-                        <textarea name="variant_<?= $v ?>" rows="2" class="field" <?= $req ? 'required' : '' ?>><?= e($tahrir['variant_' . $v] ?? '') ?></textarea>
+                    <div class="space-y-2 p-3 rounded-lg bg-white/3 border border-white/5">
+                        <div>
+                            <label class="field-label uppercase"><?= $v ?>) Variant (lotin) <?= $req ? '*' : '' ?></label>
+                            <textarea name="variant_<?= $v ?>" rows="2" class="field" data-translit="variant_<?= $v ?>_cyrl" <?= $req ? 'required' : '' ?>><?= e($tahrir['variant_' . $v] ?? '') ?></textarea>
+                        </div>
+                        <div>
+                            <label class="field-label uppercase"><?= $v ?>) Variant (kirill) <span class="text-xs text-brand-muted normal-case">— avto</span></label>
+                            <textarea name="variant_<?= $v ?>_cyrl" rows="2" class="field" placeholder="Avto"><?= e($tahrir['variant_' . $v . '_cyrl'] ?? '') ?></textarea>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -140,8 +170,12 @@ require_once __DIR__ . '/_layout.php';
             </div>
 
             <div>
-                <label class="field-label">Izoh (test tugagandan keyin ko'rsatiladi)</label>
-                <textarea name="izoh" rows="2" class="field"><?= e($tahrir['izoh'] ?? '') ?></textarea>
+                <label class="field-label">Izoh (lotin) — test tugagandan keyin ko'rsatiladi</label>
+                <textarea name="izoh" rows="2" class="field" data-translit="izoh_cyrl"><?= e($tahrir['izoh'] ?? '') ?></textarea>
+            </div>
+            <div>
+                <label class="field-label">Izoh (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+                <textarea name="izoh_cyrl" rows="2" class="field" placeholder="Bo'sh qoldirilsa avtomatik to'ldiriladi"><?= e($tahrir['izoh_cyrl'] ?? '') ?></textarea>
             </div>
 
             <div class="flex gap-3">
@@ -164,11 +198,11 @@ require_once __DIR__ . '/_layout.php';
                     <details class="border border-white/10 rounded-lg group">
                         <summary class="px-4 py-3 cursor-pointer flex items-center gap-3 hover:bg-white/3">
                             <span class="w-7 h-7 rounded-md bg-blue-500/20 flex items-center justify-center text-xs font-bold flex-shrink-0"><?= $i + 1 ?></span>
-                            <span class="flex-1 truncate text-sm"><?= e(mb_substr($s['matn'], 0, 100)) ?></span>
+                            <span class="flex-1 truncate text-sm"><?= e(mb_substr(tk($s, 'matn'), 0, 100)) ?></span>
                             <span class="text-xs text-green-400 uppercase"><?= e($s['togri_javob']) ?></span>
                         </summary>
                         <div class="p-4 border-t border-white/10 text-sm space-y-2">
-                            <p class="text-white"><?= e($s['matn']) ?></p>
+                            <p class="text-white"><?= e(tk($s, 'matn')) ?></p>
                             <?php if ($s['rasm']): ?>
                                 <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($s['rasm']) ?>" class="max-w-md rounded-lg">
                             <?php endif; ?>
@@ -177,12 +211,12 @@ require_once __DIR__ . '/_layout.php';
                                 $togri = $s['togri_javob'] === $v;
                             ?>
                                 <div class="<?= $togri ? 'text-green-400' : 'text-brand-muted' ?>">
-                                    <strong class="uppercase mr-2"><?= $v ?>)</strong><?= e($s['variant_' . $v]) ?>
+                                    <strong class="uppercase mr-2"><?= $v ?>)</strong><?= e(tk($s, 'variant_' . $v)) ?>
                                     <?php if ($togri): ?> ✓<?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                             <?php if (!empty($s['izoh'])): ?>
-                                <p class="p-2 rounded bg-blue-500/10 text-blue-300 text-xs">💡 <?= e($s['izoh']) ?></p>
+                                <p class="p-2 rounded bg-blue-500/10 text-blue-300 text-xs">💡 <?= e(tk($s, 'izoh')) ?></p>
                             <?php endif; ?>
                             <div class="flex gap-2 pt-2">
                                 <a href="?bilet=<?= (int)$bilet_id ?>&tahrir=<?= (int)$s['id'] ?>" class="text-yellow-400 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>

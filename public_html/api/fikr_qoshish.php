@@ -22,8 +22,8 @@ if (!$ism || mb_strlen($matn) < 5) {
 }
 
 db_bajar(
-    'INSERT INTO fikrlar (foydalanuvchi_id, ism, matn, baho, tasdiq) VALUES (?, ?, ?, ?, 0)',
-    [$f['id'] ?? null, $ism, $matn, $baho]
+    'INSERT INTO fikrlar (foydalanuvchi_id, ism, ism_cyrl, matn, matn_cyrl, baho, tasdiq) VALUES (?, ?, ?, ?, ?, ?, 0)',
+    [$f['id'] ?? null, $ism, lotin_dan_kirill($ism), $matn, lotin_dan_kirill($matn), $baho]
 );
 
 json_javob([

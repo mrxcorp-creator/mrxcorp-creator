@@ -10,11 +10,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash_qoy('xato', t('csrf_xato'));
         yonaltir(SAYT_URL . '/admin/sozlamalar.php');
     }
+
+    // Lotin sozlamalarni saqlash + ularning kirill juftlarini avtomatik to'ldirish.
+    // Agar admin _cyrl maydonni bo'sh qoldirsa — lotindan o'giriladi.
+    $avto_translit_kalitlar = ['sayt_nomi', 'sayt_shior'];
+
     foreach ($_POST as $kalit => $qiymat) {
         if ($kalit === 'csrf_token' || !is_string($qiymat)) continue;
         sozlama_saqla($kalit, $qiymat);
     }
-    @unlink(CACHE_PATH . '/indeks_keshi.html');
+
+    // Avto-translit: agar lotin yangilangan, lekin _cyrl bo'sh bo'lsa — to'ldiramiz
+    foreach ($avto_translit_kalitlar as $k) {
+        $latn = trim((string) ($_POST[$k] ?? ''));
+        $cyrl = trim((string) ($_POST[$k . '_cyrl'] ?? ''));
+        if ($latn !== '' && $cyrl === '') {
+            sozlama_saqla($k . '_cyrl', lotin_dan_kirill($latn));
+        }
+    }
+
+    foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $fayl) @unlink($fayl);
     flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
     yonaltir(SAYT_URL . '/admin/sozlamalar.php');
 }
@@ -23,7 +38,7 @@ $barcha = db_barcha('SELECT * FROM sozlamalar ORDER BY kalit');
 
 // Guruhlash
 $guruhlar = [
-    'Sayt' => ['sayt_nomi', 'sayt_shior', 'aloqa_telefon', 'aloqa_email', 'telegram_kanal'],
+    'Sayt' => ['sayt_nomi', 'sayt_nomi_cyrl', 'sayt_shior', 'sayt_shior_cyrl', 'aloqa_telefon', 'aloqa_email', 'telegram_kanal'],
     'Telegram' => ['telegram_bot_token', 'telegram_bot_username', 'telegram_admin_id'],
     "To'lov" => ['click_merchant_id', 'click_secret', 'payme_merchant_id', 'payme_key'],
     'Test' => ['test_vaqti_minut', 'savol_soni_test'],
@@ -48,14 +63,23 @@ require_once __DIR__ . '/_layout.php';
                 <?php foreach ($kalitlar as $k):
                     $s = $kesh[$k] ?? ['qiymat' => '', 'tavsif' => ''];
                     $maxfiy = str_contains($k, 'token') || str_contains($k, 'secret') || str_contains($k, 'key');
+                    $is_cyrl_pair = in_array($k, ['sayt_nomi_cyrl', 'sayt_shior_cyrl'], true);
+                    $is_translit_source = in_array($k, ['sayt_nomi', 'sayt_shior'], true);
                 ?>
                     <div>
-                        <label class="field-label"><?= e($s['tavsif'] ?: $k) ?></label>
-                        <?php if ($k === 'sayt_shior'): ?>
-                            <textarea name="<?= e($k) ?>" rows="2" class="field"><?= e($s['qiymat']) ?></textarea>
+                        <label class="field-label">
+                            <?= e($s['tavsif'] ?: $k) ?>
+                            <?php if ($is_cyrl_pair): ?><span class="text-xs text-brand-muted">— avto</span><?php endif; ?>
+                        </label>
+                        <?php if ($k === 'sayt_shior' || $k === 'sayt_shior_cyrl'): ?>
+                            <textarea name="<?= e($k) ?>" rows="2" class="field"
+                                <?= $is_translit_source ? 'data-translit="' . e($k) . '_cyrl"' : '' ?>
+                                <?= $is_cyrl_pair ? 'placeholder="Bo\'sh qoldirilsa avtomatik to\'ldiriladi"' : '' ?>><?= e($s['qiymat']) ?></textarea>
                         <?php else: ?>
                             <input name="<?= e($k) ?>" type="<?= $maxfiy ? 'password' : 'text' ?>"
-                                   value="<?= e($s['qiymat']) ?>" class="field" autocomplete="off">
+                                   value="<?= e($s['qiymat']) ?>" class="field" autocomplete="off"
+                                   <?= $is_translit_source ? 'data-translit="' . e($k) . '_cyrl"' : '' ?>
+                                   <?= $is_cyrl_pair ? 'placeholder="Avto"' : '' ?>>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>

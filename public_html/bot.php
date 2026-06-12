@@ -93,15 +93,18 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
             return;
         }
         $obuna = db_qator(
-            'SELECT o.*, t.nomi FROM obunalar o JOIN tariflar t ON o.tarif_id = t.id
+            'SELECT o.*, t.nomi, t.nomi_cyrl FROM obunalar o JOIN tariflar t ON o.tarif_id = t.id
              WHERE o.foydalanuvchi_id = ? AND o.holat = "faol" AND o.tugash > NOW()
              ORDER BY o.tugash DESC LIMIT 1',
             [$foydalanuvchi['id']]
         );
         if ($obuna) {
             $kun_qoldi = (int) ((strtotime($obuna['tugash']) - time()) / 86400);
+            $tarif_nomi = ($foydalanuvchi['til'] ?? 'uz_latn') === 'uz_cyrl'
+                ? ($obuna['nomi_cyrl'] ?: $obuna['nomi'])
+                : $obuna['nomi'];
             telegram_yubor($chat_id,
-                "✅ <b>Faol obuna:</b> {$obuna['nomi']}\n" .
+                "✅ <b>Faol obuna:</b> {$tarif_nomi}\n" .
                 "📅 Tugash: " . date('d.m.Y', strtotime($obuna['tugash'])) . "\n" .
                 "⏳ Qolgan: <b>{$kun_qoldi} kun</b>"
             );
