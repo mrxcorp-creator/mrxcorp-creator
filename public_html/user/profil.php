@@ -82,10 +82,10 @@ require_once __DIR__ . '/../includes/navbar.php';
     <h1 class="text-3xl mb-6"><?= e(t('profil_sozlamalar')) ?></h1>
 
     <?php if ($xato): ?>
-        <div class="mb-5 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm"><?= e($xato) ?></div>
+        <div class="mb-5 p-3 rounded-lg bg-rose-50 border border-rose-300 text-red-300 text-sm"><?= e($xato) ?></div>
     <?php endif; ?>
     <?php if ($muvaffaqiyat): ?>
-        <div class="mb-5 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-300 text-sm"><?= e($muvaffaqiyat) ?></div>
+        <div class="mb-5 p-3 rounded-lg bg-green-500/10 border border-emerald-300 text-green-300 text-sm"><?= e($muvaffaqiyat) ?></div>
     <?php endif; ?>
 
     <div class="grid lg:grid-cols-3 gap-6">
@@ -102,12 +102,12 @@ require_once __DIR__ . '/../includes/navbar.php';
             <h3 class="text-xl font-display"><?= e($f['ism']) ?> <?= e($f['familiya'] ?? '') ?></h3>
             <p class="text-brand-muted text-sm"><?= e($f['telefon']) ?></p>
             <span class="inline-block mt-3 px-3 py-1 rounded-full text-xs
-                <?= $f['rol'] === 'developer' ? 'bg-purple-500/20 text-purple-400' :
-                   ($f['rol'] === 'admin' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/60') ?>">
+                <?= $f['rol'] === 'developer' ? 'bg-violet-100 text-violet-700' :
+                   ($f['rol'] === 'admin' ? 'bg-sky-100 text-sky-700' : 'bg-sky-100 text-brand-muted') ?>">
                 <?= e(strtoupper($f['rol'])) ?>
             </span>
 
-            <hr class="my-5 border-white/10">
+            <hr class="my-5 border-brand-border">
 
             <div class="text-left space-y-2 text-sm">
                 <div class="flex justify-between">
@@ -116,7 +116,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 </div>
                 <div class="flex justify-between">
                     <span class="text-brand-muted"><?= e(t('bonus_balans')) ?>:</span>
-                    <span class="font-bold text-green-400"><?= e(pul($f['bonus_balans'])) ?></span>
+                    <span class="font-bold text-emerald-600"><?= e(pul($f['bonus_balans'])) ?></span>
                 </div>
             </div>
         </div>
@@ -156,7 +156,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="mt-4">
                     <label class="field-label"><?= e(t('avatar_yuklash')) ?></label>
                     <input name="avatar" type="file" accept="image/*"
-                           class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-blue-500/20 file:text-blue-400 file:cursor-pointer">
+                           class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-blue-500/20 file:text-sky-600 file:cursor-pointer">
                 </div>
 
                 <button type="submit" class="btn-primary mt-5"><?= e(t('saqlash')) ?></button>
@@ -168,7 +168,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <span>📱</span> Telegram
                 </h2>
                 <?php if ($f['telegram_id']): ?>
-                    <div class="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-300 text-sm">
+                    <div class="p-3 rounded-lg bg-green-500/10 border border-emerald-300 text-green-300 text-sm">
                         ✓ Telegram bog'langan (ID: <?= (int)$f['telegram_id'] ?>)
                     </div>
                 <?php else: ?>

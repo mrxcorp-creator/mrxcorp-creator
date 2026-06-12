@@ -44,7 +44,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         <div class="flex items-center gap-3 mb-4">
             <span class="text-3xl">🎁</span>
             <div>
-                <div class="font-display text-lg">Har bir do'st uchun <span class="text-green-400 font-bold"><?= e(pul($bonus_summa)) ?></span></div>
+                <div class="font-display text-lg">Har bir do'st uchun <span class="text-emerald-600 font-bold"><?= e(pul($bonus_summa)) ?></span></div>
                 <div class="text-sm text-brand-muted">Do'stingiz to'lov qilganda bonusingiz balansga qo'shiladi</div>
             </div>
         </div>
@@ -81,11 +81,11 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
         <div class="glass-card p-5 fade-up">
             <div class="text-xs text-brand-muted uppercase mb-2">Tasdiqlangan</div>
-            <div class="text-3xl font-display font-bold text-green-400"><?= (int)$stat['tasdiq_son'] ?></div>
+            <div class="text-3xl font-display font-bold text-emerald-600"><?= (int)$stat['tasdiq_son'] ?></div>
         </div>
         <div class="glass-card p-5 fade-up col-span-2 md:col-span-1">
             <div class="text-xs text-brand-muted uppercase mb-2"><?= e(t('bonus_balans')) ?></div>
-            <div class="text-3xl font-display font-bold text-yellow-400"><?= e(pul($f['bonus_balans'])) ?></div>
+            <div class="text-3xl font-display font-bold text-amber-600"><?= e(pul($f['bonus_balans'])) ?></div>
         </div>
     </div>
 
@@ -109,16 +109,16 @@ require_once __DIR__ . '/../includes/navbar.php';
                             <th class="py-2">Sana</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-white/5">
+                    <tbody class="divide-y divide-brand-border">
                         <?php foreach ($royxat as $r): ?>
-                            <tr class="hover:bg-white/3">
+                            <tr class="hover:bg-sky-50">
                                 <td class="py-2.5 pr-3"><?= e($r['ism'] . ' ' . ($r['familiya'] ?? '')) ?></td>
                                 <td class="py-2.5 pr-3 font-mono text-xs"><?= e(substr($r['telefon'], 0, 7) . '****' . substr($r['telefon'], -2)) ?></td>
                                 <td class="py-2.5 pr-3 font-bold"><?= e(pul($r['bonus_summa'])) ?></td>
                                 <td class="py-2.5 pr-3">
                                     <span class="text-xs px-2 py-0.5 rounded-full
-                                        <?= $r['holat'] === 'tasdiq' ? 'bg-green-500/20 text-green-400' :
-                                           ($r['holat'] === 'bekor' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400') ?>">
+                                        <?= $r['holat'] === 'tasdiq' ? 'bg-emerald-100 text-emerald-700' :
+                                           ($r['holat'] === 'bekor' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700') ?>">
                                         <?= e($r['holat']) ?>
                                     </span>
                                 </td>

@@ -144,11 +144,11 @@ require_once __DIR__ . '/../includes/navbar.php';
     <?php endif; ?>
 
     <?php if ($obuna): ?>
-        <div class="glass-card p-5 mb-8 border-green-500/30 bg-green-500/5 max-w-2xl mx-auto">
+        <div class="glass-card p-5 mb-8 border-emerald-300 bg-emerald-50 max-w-2xl mx-auto">
             <div class="flex items-center gap-3">
                 <span class="text-3xl">🎉</span>
                 <div>
-                    <strong class="text-green-400">Faol obuna: <?= e($obuna['tarif_nomi']) ?></strong><br>
+                    <strong class="text-emerald-600">Faol obuna: <?= e($obuna['tarif_nomi']) ?></strong><br>
                     <span class="text-sm text-brand-muted"><?= e(t('tugaydigan_sana')) ?>: <?= e(sana($obuna['tugash'])) ?></span>
                 </div>
             </div>
@@ -165,7 +165,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <?php foreach ($tariflar as $t): ?>
                 <div @click="tarif = <?= (int)$t['id'] ?>"
-                     :class="tarif === <?= (int)$t['id'] ?> ? 'border-blue-500 ring-2 ring-blue-500/50 bg-blue-500/5' : ''"
+                     :class="tarif === <?= (int)$t['id'] ?> ? 'border-blue-500 ring-2 ring-blue-500/50 bg-sky-50' : ''"
                      class="glass-card glass-card-hover p-6 cursor-pointer fade-up relative">
                     <?php if ($t['mashhur']): ?>
                         <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
@@ -176,7 +176,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <?php if ($t['eski_narx'] && $t['eski_narx'] > $t['narx']): ?>
                         <span class="line-through text-brand-muted text-sm"><?= e(pul($t['eski_narx'])) ?></span>
                     <?php endif; ?>
-                    <div class="text-3xl font-display font-bold text-blue-400 mb-3"><?= e(pul($t['narx'])) ?></div>
+                    <div class="text-3xl font-display font-bold text-sky-600 mb-3"><?= e(pul($t['narx'])) ?></div>
                     <p class="text-sm text-brand-muted"><?= e($t['tavsif']) ?></p>
                 </div>
             <?php endforeach; ?>
@@ -194,26 +194,26 @@ require_once __DIR__ . '/../includes/navbar.php';
 
             <div class="space-y-2 mb-5">
                 <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition"
-                       :class="tolov === 'click' ? 'border-blue-500 bg-blue-500/5' : 'border-white/10 hover:border-white/20'">
+                       :class="tolov === 'click' ? 'border-sky-500 bg-sky-50 shadow-soft' : 'border-brand-border hover:border-sky-300 hover:bg-sky-50/50'">
                     <input type="radio" name="tolov_radio" value="click" x-model="tolov" class="hidden">
                     <span class="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center font-bold text-sm">CLK</span>
                     <span class="flex-1"><?= e(t('click_orqali')) ?></span>
-                    <svg x-show="tolov === 'click'" class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
+                    <svg x-show="tolov === 'click'" class="w-5 h-5 text-sky-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
                 </label>
 
                 <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition"
-                       :class="tolov === 'payme' ? 'border-blue-500 bg-blue-500/5' : 'border-white/10 hover:border-white/20'">
+                       :class="tolov === 'payme' ? 'border-sky-500 bg-sky-50 shadow-soft' : 'border-brand-border hover:border-sky-300 hover:bg-sky-50/50'">
                     <input type="radio" name="tolov_radio" value="payme" x-model="tolov" class="hidden">
-                    <span class="w-9 h-9 rounded-lg bg-cyan-500/20 flex items-center justify-center font-bold text-sm">PM</span>
+                    <span class="w-9 h-9 rounded-lg bg-cyan-100 flex items-center justify-center font-bold text-sm">PM</span>
                     <span class="flex-1"><?= e(t('payme_orqali')) ?></span>
-                    <svg x-show="tolov === 'payme'" class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
+                    <svg x-show="tolov === 'payme'" class="w-5 h-5 text-sky-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z"/></svg>
                 </label>
 
                 <?php if ((float)$f['bonus_balans'] > 0): ?>
                     <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition"
-                           :class="tolov === 'bonus' ? 'border-blue-500 bg-blue-500/5' : 'border-white/10 hover:border-white/20'">
+                           :class="tolov === 'bonus' ? 'border-sky-500 bg-sky-50 shadow-soft' : 'border-brand-border hover:border-sky-300 hover:bg-sky-50/50'">
                         <input type="radio" name="tolov_radio" value="bonus" x-model="tolov" class="hidden">
-                        <span class="w-9 h-9 rounded-lg bg-green-500/20 flex items-center justify-center text-sm">🎁</span>
+                        <span class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-sm">🎁</span>
                         <span class="flex-1"><?= e(t('bonus_balans')) ?>: <?= e(pul($f['bonus_balans'])) ?></span>
                     </label>
                 <?php endif; ?>

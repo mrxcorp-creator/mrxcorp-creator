@@ -32,22 +32,22 @@ $oxirgi_tolov = db_barcha(
     <div class="glass-card p-5 fade-up">
         <div class="text-xs text-brand-muted uppercase mb-1">Foydalanuvchilar</div>
         <div class="text-3xl font-display font-bold"><?= $stat['foydalanuvchi'] ?></div>
-        <div class="text-xs text-green-400 mt-1">+<?= $stat['foydalanuvchi_24h'] ?> bugun</div>
+        <div class="text-xs text-emerald-600 mt-1">+<?= $stat['foydalanuvchi_24h'] ?> bugun</div>
     </div>
     <div class="glass-card p-5 fade-up">
         <div class="text-xs text-brand-muted uppercase mb-1">Daromad</div>
         <div class="text-2xl font-display font-bold"><?= e(pul($stat['tolov_jami'])) ?></div>
-        <div class="text-xs text-green-400 mt-1">+<?= e(pul($stat['tolov_24h'])) ?> bugun</div>
+        <div class="text-xs text-emerald-600 mt-1">+<?= e(pul($stat['tolov_24h'])) ?> bugun</div>
     </div>
     <div class="glass-card p-5 fade-up">
         <div class="text-xs text-brand-muted uppercase mb-1">Faol obunalar</div>
-        <div class="text-3xl font-display font-bold text-yellow-400"><?= $stat['obuna_faol'] ?></div>
+        <div class="text-3xl font-display font-bold text-amber-600"><?= $stat['obuna_faol'] ?></div>
         <div class="text-xs text-brand-muted mt-1">hozir faol</div>
     </div>
     <div class="glass-card p-5 fade-up">
         <div class="text-xs text-brand-muted uppercase mb-1">Yechilgan testlar</div>
         <div class="text-3xl font-display font-bold"><?= $stat['test_jami'] ?></div>
-        <div class="text-xs text-green-400 mt-1">+<?= $stat['test_24h'] ?> bugun</div>
+        <div class="text-xs text-emerald-600 mt-1">+<?= $stat['test_24h'] ?> bugun</div>
     </div>
 </div>
 
@@ -56,22 +56,22 @@ $oxirgi_tolov = db_barcha(
     <div class="grid sm:grid-cols-2 gap-3 mb-6">
         <?php if ($stat['kutayotgan_tolov']): ?>
             <a href="<?= e(SAYT_URL) ?>/admin/tolovlar.php?holat=kutilmoqda"
-               class="glass-card p-4 border-yellow-500/30 hover:border-yellow-500/60 fade-up flex items-center gap-3">
+               class="glass-card p-4 border-amber-300 hover:border-yellow-500/60 fade-up flex items-center gap-3">
                 <span class="text-2xl">⏳</span>
                 <div class="flex-1">
                     <div class="font-medium">Kutilayotgan to'lovlar</div>
-                    <div class="text-xs text-brand-muted">Tasdiqlash kerak: <strong class="text-yellow-400"><?= $stat['kutayotgan_tolov'] ?></strong></div>
+                    <div class="text-xs text-brand-muted">Tasdiqlash kerak: <strong class="text-amber-600"><?= $stat['kutayotgan_tolov'] ?></strong></div>
                 </div>
                 <span>→</span>
             </a>
         <?php endif; ?>
         <?php if ($stat['kutayotgan_fikr']): ?>
             <a href="<?= e(SAYT_URL) ?>/admin/fikrlar.php?holat=kutilmoqda"
-               class="glass-card p-4 border-blue-500/30 hover:border-blue-500/60 fade-up flex items-center gap-3">
+               class="glass-card p-4 border-sky-300 hover:border-sky-500 fade-up flex items-center gap-3">
                 <span class="text-2xl">💬</span>
                 <div class="flex-1">
                     <div class="font-medium">Yangi fikrlar</div>
-                    <div class="text-xs text-brand-muted">Moderatsiya kerak: <strong class="text-blue-400"><?= $stat['kutayotgan_fikr'] ?></strong></div>
+                    <div class="text-xs text-brand-muted">Moderatsiya kerak: <strong class="text-sky-600"><?= $stat['kutayotgan_fikr'] ?></strong></div>
                 </div>
                 <span>→</span>
             </a>
@@ -83,7 +83,7 @@ $oxirgi_tolov = db_barcha(
 <div class="glass-card p-5 fade-up">
     <div class="flex justify-between items-center mb-4">
         <h2 class="font-display text-lg">Oxirgi to'lovlar</h2>
-        <a href="<?= e(SAYT_URL) ?>/admin/tolovlar.php" class="text-sm text-blue-400 hover:underline">Barchasi →</a>
+        <a href="<?= e(SAYT_URL) ?>/admin/tolovlar.php" class="text-sm text-sky-600 hover:underline">Barchasi →</a>
     </div>
 
     <?php if (empty($oxirgi_tolov)): ?>
@@ -102,9 +102,9 @@ $oxirgi_tolov = db_barcha(
                         <th class="py-2">Sana</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-brand-border">
                     <?php foreach ($oxirgi_tolov as $t): ?>
-                        <tr class="hover:bg-white/3">
+                        <tr class="hover:bg-sky-50">
                             <td class="py-2.5 pr-3 font-mono text-xs"><?= (int)$t['id'] ?></td>
                             <td class="py-2.5 pr-3">
                                 <?= e($t['ism']) ?> <?= e($t['familiya'] ?? '') ?>
@@ -113,12 +113,12 @@ $oxirgi_tolov = db_barcha(
                             <td class="py-2.5 pr-3"><?= e($t['tarif_nomi']) ?></td>
                             <td class="py-2.5 pr-3 font-bold"><?= e(pul($t['summa'])) ?></td>
                             <td class="py-2.5 pr-3">
-                                <span class="text-xs px-2 py-0.5 rounded bg-white/10"><?= e(strtoupper($t['tolov_turi'])) ?></span>
+                                <span class="text-xs px-2 py-0.5 rounded bg-sky-100"><?= e(strtoupper($t['tolov_turi'])) ?></span>
                             </td>
                             <td class="py-2.5 pr-3">
                                 <span class="text-xs px-2 py-0.5 rounded-full
-                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-green-500/20 text-green-400' :
-                                       ($t['holat'] === 'kutilmoqda' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400') ?>">
+                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-emerald-100 text-emerald-700' :
+                                       ($t['holat'] === 'kutilmoqda' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700') ?>">
                                     <?= e($t['holat']) ?>
                                 </span>
                             </td>

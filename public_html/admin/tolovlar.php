@@ -120,9 +120,9 @@ require_once __DIR__ . '/_layout.php';
                         <th class="py-2 text-right">Amallar</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-brand-border">
                     <?php foreach ($royxat as $t): ?>
-                        <tr class="hover:bg-white/3">
+                        <tr class="hover:bg-sky-50">
                             <td class="py-2.5 pr-3 font-mono text-xs"><?= (int)$t['id'] ?></td>
                             <td class="py-2.5 pr-3">
                                 <?= e($t['ism']) ?> <?= e($t['familiya'] ?? '') ?>
@@ -130,11 +130,11 @@ require_once __DIR__ . '/_layout.php';
                             </td>
                             <td class="py-2.5 pr-3"><?= e($t['tarif_nomi']) ?></td>
                             <td class="py-2.5 pr-3 font-bold"><?= e(pul($t['summa'])) ?></td>
-                            <td class="py-2.5 pr-3"><span class="text-xs px-2 py-0.5 rounded bg-white/10 uppercase"><?= e($t['tolov_turi']) ?></span></td>
+                            <td class="py-2.5 pr-3"><span class="text-xs px-2 py-0.5 rounded bg-sky-100 uppercase"><?= e($t['tolov_turi']) ?></span></td>
                             <td class="py-2.5 pr-3">
                                 <span class="text-xs px-2 py-0.5 rounded-full
-                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-green-500/20 text-green-400' :
-                                       ($t['holat'] === 'kutilmoqda' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400') ?>">
+                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-emerald-100 text-emerald-700' :
+                                       ($t['holat'] === 'kutilmoqda' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700') ?>">
                                     <?= e($t['holat']) ?>
                                 </span>
                             </td>
@@ -145,13 +145,13 @@ require_once __DIR__ . '/_layout.php';
                                         <?= csrf_input() ?>
                                         <input type="hidden" name="harakat" value="tasdiq">
                                         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                                        <button class="text-green-400 text-xs hover:underline mr-2">✓ Tasdiq</button>
+                                        <button class="text-emerald-600 text-xs hover:underline mr-2">✓ Tasdiq</button>
                                     </form>
                                     <form method="POST" class="inline" onsubmit="return confirm('Bekor qilinsinmi?')">
                                         <?= csrf_input() ?>
                                         <input type="hidden" name="harakat" value="bekor">
                                         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                                        <button class="text-red-400 text-xs hover:underline">✗ Bekor</button>
+                                        <button class="text-rose-600 text-xs hover:underline">✗ Bekor</button>
                                     </form>
                                 <?php endif; ?>
                             </td>

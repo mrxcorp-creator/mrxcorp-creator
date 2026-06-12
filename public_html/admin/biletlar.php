@@ -144,30 +144,30 @@ require_once __DIR__ . '/_layout.php';
                         <th class="py-2 text-right">Amallar</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-brand-border">
                     <?php foreach ($biletlar as $b): ?>
-                        <tr class="hover:bg-white/3">
+                        <tr class="hover:bg-sky-50">
                             <td class="py-2.5 pr-3 font-mono"><?= (int)$b['raqam'] ?></td>
                             <td class="py-2.5 pr-3"><?= e($b['nomi']) ?></td>
                             <td class="py-2.5 pr-3">
-                                <span class="text-xs px-2 py-0.5 rounded <?= $b['tur'] === 'bepul' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400' ?>">
+                                <span class="text-xs px-2 py-0.5 rounded <?= $b['tur'] === 'bepul' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' ?>">
                                     <?= e($b['tur']) ?>
                                 </span>
                             </td>
                             <td class="py-2.5 pr-3 font-bold"><?= (int)$b['savol_son'] ?></td>
                             <td class="py-2.5 pr-3">
-                                <span class="text-xs px-2 py-0.5 rounded <?= $b['holat'] === 'faol' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' ?>">
+                                <span class="text-xs px-2 py-0.5 rounded <?= $b['holat'] === 'faol' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' ?>">
                                     <?= e($b['holat']) ?>
                                 </span>
                             </td>
                             <td class="py-2.5 text-right">
-                                <a href="<?= e(SAYT_URL) ?>/admin/savollar.php?bilet=<?= (int)$b['id'] ?>" class="text-blue-400 hover:underline mr-2">Savollar</a>
-                                <a href="?tahrir=<?= (int)$b['id'] ?>" class="text-yellow-400 hover:underline mr-2"><?= e(t('tahrirlash')) ?></a>
+                                <a href="<?= e(SAYT_URL) ?>/admin/savollar.php?bilet=<?= (int)$b['id'] ?>" class="text-sky-600 hover:underline mr-2">Savollar</a>
+                                <a href="?tahrir=<?= (int)$b['id'] ?>" class="text-amber-600 hover:underline mr-2"><?= e(t('tahrirlash')) ?></a>
                                 <form method="POST" class="inline" onsubmit="return confirm('Rostdan ham o\'chirilsinmi? Barcha savollar ham o\'chiriladi!')">
                                     <?= csrf_input() ?>
                                     <input type="hidden" name="harakat" value="ochirish">
                                     <input type="hidden" name="id" value="<?= (int)$b['id'] ?>">
-                                    <button class="text-red-400 hover:underline"><?= e(t('ochirish')) ?></button>
+                                    <button class="text-rose-600 hover:underline"><?= e(t('ochirish')) ?></button>
                                 </form>
                             </td>
                         </tr>

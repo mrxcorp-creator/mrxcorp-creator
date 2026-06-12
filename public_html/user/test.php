@@ -36,14 +36,14 @@ if ($natija_id) {
     require_once __DIR__ . '/../includes/navbar.php';
     ?>
     <main class="max-w-4xl mx-auto px-4 py-8 fade-up">
-        <a href="<?= e(SAYT_URL) ?>/dashboard" class="text-brand-muted hover:text-white text-sm mb-4 inline-block">← <?= e(t('orqaga')) ?></a>
+        <a href="<?= e(SAYT_URL) ?>/dashboard" class="text-brand-muted hover:text-sky-600 text-sm mb-4 inline-block">← <?= e(t('orqaga')) ?></a>
 
         <!-- Natija sarlavha -->
         <div class="glass-card p-8 text-center mb-6">
             <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-3xl font-display font-bold mb-4
-                <?= $foiz >= 90 ? 'bg-green-500/20 text-green-400' :
-                   ($foiz >= 70 ? 'bg-blue-500/20 text-blue-400' :
-                   ($foiz >= 50 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400')) ?>">
+                <?= $foiz >= 90 ? 'bg-emerald-100 text-emerald-700' :
+                   ($foiz >= 70 ? 'bg-sky-100 text-sky-700' :
+                   ($foiz >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')) ?>">
                 <?= $foiz ?>%
             </div>
             <h1 class="text-2xl mb-2">№<?= (int)$natija['raqam'] ?> — <?= e($natija['nomi']) ?></h1>
@@ -59,10 +59,10 @@ if ($natija_id) {
             $j = $javoblar[$s['id']] ?? null;
             $togri = $j === $s['togri_javob'];
         ?>
-            <div class="glass-card p-5 mb-3 <?= $togri ? 'border-green-500/30' : ($j ? 'border-red-500/30' : '') ?>">
+            <div class="glass-card p-5 mb-3 <?= $togri ? 'border-emerald-300' : ($j ? 'border-rose-300' : '') ?>">
                 <div class="flex gap-3 mb-3">
                     <span class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold
-                        <?= $togri ? 'bg-green-500/20 text-green-400' : ($j ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white/40') ?>">
+                        <?= $togri ? 'bg-emerald-100 text-emerald-700' : ($j ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-brand-muted') ?>">
                         <?= $i + 1 ?>
                     </span>
                     <div class="flex-1">
@@ -80,16 +80,16 @@ if ($natija_id) {
                         $bu_javob = $v === $j;
                     ?>
                         <div class="p-2.5 rounded-lg text-sm border
-                            <?= $bu_togri ? 'bg-green-500/10 border-green-500/40' :
-                               ($bu_javob ? 'bg-red-500/10 border-red-500/40' : 'bg-white/3 border-white/10') ?>">
+                            <?= $bu_togri ? 'bg-emerald-50 border-emerald-400' :
+                               ($bu_javob ? 'bg-rose-50 border-rose-400' : 'bg-sky-50 border-brand-border') ?>">
                             <span class="font-bold mr-2 uppercase"><?= $v ?>)</span><?= e($matn) ?>
                             <?php if ($bu_togri): ?> ✓<?php elseif ($bu_javob): ?> ✗<?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
                 <?php if (!empty($s['izoh'])): ?>
-                    <div class="mt-3 ml-11 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm">
-                        <strong class="text-blue-400">💡 Izoh:</strong> <?= e($s['izoh']) ?>
+                    <div class="mt-3 ml-11 p-3 rounded-lg bg-blue-500/10 border border-sky-300 text-sm">
+                        <strong class="text-sky-600">💡 Izoh:</strong> <?= e($s['izoh']) ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -165,21 +165,21 @@ if ($bilet_id) {
         ], JSON_UNESCAPED_UNICODE), ENT_QUOTES) ?>)" x-cloak>
 
         <!-- Yuqori panel -->
-        <div class="sticky top-0 z-30 backdrop-blur-xl bg-brand-bg/90 border-b border-white/10">
+        <div class="sticky top-0 z-30 backdrop-blur-xl bg-white/90 border-b border-brand-border">
             <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 min-w-0">
-                    <a href="<?= e(SAYT_URL) ?>/dashboard" class="text-brand-muted hover:text-white">←</a>
+                    <a href="<?= e(SAYT_URL) ?>/dashboard" class="text-brand-muted hover:text-sky-600">←</a>
                     <span class="font-display font-semibold truncate">№<?= (int)$bilet['raqam'] ?> — <?= e($bilet['nomi']) ?></span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span class="text-xs text-brand-muted hidden sm:inline"><?= e(t('qolgan_vaqt')) ?>:</span>
                     <span class="font-mono font-bold tabular-nums px-3 py-1 rounded-lg"
-                          :class="qolgan < 60 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/5'"
+                          :class="qolgan < 60 ? 'bg-rose-100 text-rose-700 animate-pulse' : 'bg-sky-50'"
                           x-text="vaqtFormat(qolgan)"></span>
                 </div>
             </div>
             <!-- Progress bar -->
-            <div class="h-1 bg-white/5">
+            <div class="h-1 bg-sky-50">
                 <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"
                      :style="`width:${(joriy + 1) / savollar.length * 100}%`"></div>
             </div>
@@ -190,9 +190,9 @@ if ($bilet_id) {
             <div class="flex flex-wrap gap-2 mb-6">
                 <template x-for="(s, i) in savollar" :key="s.id">
                     <button @click="joriy = i"
-                            :class="i === joriy ? 'ring-2 ring-blue-500 bg-blue-500/30 text-white' :
-                                    (javoblar[s.id] ? 'bg-blue-500/15 text-blue-300' : 'bg-white/5 text-brand-muted')"
-                            class="w-10 h-10 rounded-lg text-sm font-bold transition-all hover:bg-white/10 active:scale-95"
+                            :class="i === joriy ? 'ring-2 ring-blue-500 bg-sky-500 text-white' :
+                                    (javoblar[s.id] ? 'bg-sky-100 text-sky-700' : 'bg-sky-50 text-brand-muted')"
+                            class="w-10 h-10 rounded-lg text-sm font-bold transition-all hover:bg-sky-100 active:scale-95"
                             x-text="i + 1"></button>
                 </template>
             </div>
@@ -202,7 +202,7 @@ if ($bilet_id) {
                 <div x-show="i === joriy" class="glass-card p-6 fade-up">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-brand-muted text-sm"><?= e(t('savol')) ?> <span x-text="i + 1"></span> / <span x-text="savollar.length"></span></span>
-                        <span class="text-xs px-2 py-1 rounded bg-white/5 text-brand-muted"
+                        <span class="text-xs px-2 py-1 rounded bg-sky-50 text-brand-muted"
                               x-show="javoblar[s.id]" x-text="javoblar[s.id].toUpperCase()"></span>
                     </div>
 
@@ -217,10 +217,10 @@ if ($bilet_id) {
                         <template x-for="v in ['a','b','c','d']" :key="v">
                             <button x-show="s['variant_' + v]"
                                     @click="javobBer(s.id, v)"
-                                    :class="javoblar[s.id] === v ? 'bg-blue-500/20 border-blue-500 text-white' : 'bg-white/3 border-white/10 hover:border-white/30'"
+                                    :class="javoblar[s.id] === v ? 'bg-blue-500/20 border-blue-500 text-white' : 'bg-sky-50 border-brand-border hover:border-sky-300'"
                                     class="w-full text-left p-3 rounded-xl border transition-all flex items-start gap-3 active:scale-[.98]">
                                 <span class="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 uppercase"
-                                      :class="javoblar[s.id] === v ? 'bg-blue-500 text-white' : 'bg-white/10'"
+                                      :class="javoblar[s.id] === v ? 'bg-blue-500 text-white' : 'bg-sky-100'"
                                       x-text="v"></span>
                                 <span x-text="s['variant_' + v]" class="flex-1"></span>
                             </button>
@@ -248,7 +248,7 @@ if ($bilet_id) {
 
                     <!-- Saqlash holati -->
                     <div class="mt-4 text-xs text-center"
-                         :class="saqlash === 'saqlandi' ? 'text-green-400' : (saqlash === 'xato' ? 'text-red-400' : 'text-brand-muted')">
+                         :class="saqlash === 'saqlandi' ? 'text-emerald-600' : (saqlash === 'xato' ? 'text-rose-600' : 'text-brand-muted')">
                         <span x-show="saqlash === 'saqlanmoqda'">⏳ Saqlanmoqda...</span>
                         <span x-show="saqlash === 'saqlandi'">✓ Saqlandi</span>
                         <span x-show="saqlash === 'xato'">⚠ Saqlash xatosi (qaytadan urinmoqdamiz)</span>
@@ -386,9 +386,9 @@ require_once __DIR__ . '/../includes/navbar.php';
     </div>
 
     <?php if (!$obuna_faol && $f['rol'] === 'user'): ?>
-        <div class="glass-card p-5 mb-6 border-yellow-500/30 bg-yellow-500/5 flex items-center justify-between flex-wrap gap-3">
+        <div class="glass-card p-5 mb-6 border-amber-300 bg-amber-50 flex items-center justify-between flex-wrap gap-3">
             <div>
-                <strong class="text-yellow-400">⚡ Faol obuna yo'q.</strong>
+                <strong class="text-amber-600">⚡ Faol obuna yo'q.</strong>
                 <span class="text-brand-muted">Faqat bepul biletlarni yechishingiz mumkin.</span>
             </div>
             <a href="<?= e(SAYT_URL) ?>/tolov" class="btn-primary"><?= e(t('tarif_olish')) ?></a>
@@ -403,18 +403,18 @@ require_once __DIR__ . '/../includes/navbar.php';
         ?>
             <div class="glass-card glass-card-hover p-5 fade-up relative">
                 <?php if (!$bepul): ?>
-                    <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">PRO</span>
+                    <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">PRO</span>
                 <?php else: ?>
-                    <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">Bepul</span>
+                    <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Bepul</span>
                 <?php endif; ?>
-                <div class="text-3xl font-display font-bold text-blue-400 mb-1">№<?= (int)$b['raqam'] ?></div>
+                <div class="text-3xl font-display font-bold text-sky-600 mb-1">№<?= (int)$b['raqam'] ?></div>
                 <div class="font-medium mb-1 truncate"><?= e($b['nomi']) ?></div>
                 <div class="text-xs text-brand-muted mb-3"><?= (int)$b['savol_son'] ?> savol</div>
 
                 <?php if ($eng !== null): ?>
                     <div class="text-xs mb-3 flex items-center gap-2">
                         <span class="text-brand-muted">Eng yaxshi:</span>
-                        <span class="font-bold <?= $eng >= 90 ? 'text-green-400' : ($eng >= 70 ? 'text-blue-400' : 'text-yellow-400') ?>"><?= $eng ?>%</span>
+                        <span class="font-bold <?= $eng >= 90 ? 'text-emerald-600' : ($eng >= 70 ? 'text-sky-600' : 'text-amber-600') ?>"><?= $eng ?>%</span>
                     </div>
                 <?php endif; ?>
 

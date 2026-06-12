@@ -67,9 +67,9 @@ require_once __DIR__ . '/_layout.php';
         <h2 class="font-display text-lg mb-4">Vebhuk URL'lar</h2>
         <p class="text-sm text-brand-muted mb-3">To'lov tizimlarini sozlash uchun ushbu URL'larni ulardagi merchant kabinetiga kiriting.</p>
         <div class="space-y-2 text-sm font-mono">
-            <div><span class="text-blue-400">Click:</span> <?= e(SAYT_URL) ?>/api/click_webhook.php</div>
-            <div><span class="text-blue-400">Payme:</span> <?= e(SAYT_URL) ?>/api/payme_webhook.php</div>
-            <div><span class="text-blue-400">Telegram bot:</span> <?= e(SAYT_URL) ?>/bot.php</div>
+            <div><span class="text-sky-600">Click:</span> <?= e(SAYT_URL) ?>/api/click_webhook.php</div>
+            <div><span class="text-sky-600">Payme:</span> <?= e(SAYT_URL) ?>/api/payme_webhook.php</div>
+            <div><span class="text-sky-600">Telegram bot:</span> <?= e(SAYT_URL) ?>/bot.php</div>
         </div>
     </div>
 

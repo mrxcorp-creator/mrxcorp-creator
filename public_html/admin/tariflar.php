@@ -124,21 +124,21 @@ require_once __DIR__ . '/_layout.php';
             <div class="flex items-start justify-between">
                 <h3 class="font-display"><?= e($t['nomi']) ?></h3>
                 <?php if ($t['mashhur']): ?>
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">★</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">★</span>
                 <?php endif; ?>
             </div>
-            <div class="text-2xl font-display font-bold text-blue-400 mt-2"><?= e(pul($t['narx'])) ?></div>
+            <div class="text-2xl font-display font-bold text-sky-600 mt-2"><?= e(pul($t['narx'])) ?></div>
             <?php if ($t['eski_narx']): ?>
                 <div class="line-through text-brand-muted text-xs"><?= e(pul($t['eski_narx'])) ?></div>
             <?php endif; ?>
             <p class="text-xs text-brand-muted mt-2 line-clamp-2"><?= e($t['tavsif']) ?></p>
             <div class="flex gap-2 mt-4">
-                <a href="?tahrir=<?= (int)$t['id'] ?>" class="text-yellow-400 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
+                <a href="?tahrir=<?= (int)$t['id'] ?>" class="text-amber-600 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
                 <form method="POST" class="inline" onsubmit="return confirm('O\'chirilsinmi?')">
                     <?= csrf_input() ?>
                     <input type="hidden" name="harakat" value="ochirish">
                     <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                    <button class="text-red-400 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
+                    <button class="text-rose-600 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
                 </form>
             </div>
         </div>

@@ -131,40 +131,40 @@ require_once __DIR__ . '/_layout.php';
                         <th class="py-2 text-right">Amallar</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-white/5">
+                <tbody class="divide-y divide-brand-border">
                     <?php foreach ($royxat as $u):
                         $obuna_son = (int) db_qiymat('SELECT COUNT(*) FROM obunalar WHERE foydalanuvchi_id = ? AND holat = "faol" AND tugash > NOW()', [$u['id']]);
                     ?>
-                        <tr class="hover:bg-white/3" x-data="{menu: false}">
+                        <tr class="hover:bg-sky-50" x-data="{menu: false}">
                             <td class="py-2.5 pr-3 font-mono text-xs"><?= (int)$u['id'] ?></td>
                             <td class="py-2.5 pr-3">
                                 <div class="font-medium"><?= e($u['ism']) ?> <?= e($u['familiya'] ?? '') ?></div>
                                 <?php if ($obuna_son): ?>
-                                    <span class="text-xs text-yellow-400">⚡ Faol obuna</span>
+                                    <span class="text-xs text-amber-600">⚡ Faol obuna</span>
                                 <?php endif; ?>
                             </td>
                             <td class="py-2.5 pr-3 font-mono text-xs"><?= e($u['telefon']) ?></td>
                             <td class="py-2.5 pr-3">
                                 <span class="text-xs px-2 py-0.5 rounded-full
-                                    <?= $u['rol'] === 'developer' ? 'bg-purple-500/20 text-purple-400' :
-                                       ($u['rol'] === 'admin' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10') ?>">
+                                    <?= $u['rol'] === 'developer' ? 'bg-violet-100 text-violet-700' :
+                                       ($u['rol'] === 'admin' ? 'bg-sky-100 text-sky-700' : 'bg-sky-100') ?>">
                                     <?= e($u['rol']) ?>
                                 </span>
                             </td>
                             <td class="py-2.5 pr-3"><?= e(pul($u['bonus_balans'])) ?></td>
                             <td class="py-2.5 pr-3">
-                                <span class="text-xs px-2 py-0.5 rounded <?= $u['holat'] === 'faol' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400' ?>">
+                                <span class="text-xs px-2 py-0.5 rounded <?= $u['holat'] === 'faol' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' ?>">
                                     <?= e($u['holat']) ?>
                                 </span>
                             </td>
                             <td class="py-2.5 pr-3 text-xs text-brand-muted"><?= e(sana($u['yaratilgan'], 'd.m.Y')) ?></td>
                             <td class="py-2.5 text-right relative">
-                                <button @click="menu = !menu" class="px-2 py-1 rounded hover:bg-white/10">⋯</button>
+                                <button @click="menu = !menu" class="px-2 py-1 rounded hover:bg-sky-100">⋯</button>
                                 <div x-show="menu" @click.outside="menu=false" x-cloak
                                      class="absolute right-0 top-full mt-1 z-20 w-56 glass-card p-2 text-left">
                                     <!-- Obuna berish -->
                                     <details class="text-sm">
-                                        <summary class="px-3 py-2 rounded hover:bg-white/5 cursor-pointer">🎁 Obuna berish</summary>
+                                        <summary class="px-3 py-2 rounded hover:bg-sky-50 cursor-pointer">🎁 Obuna berish</summary>
                                         <form method="POST" class="p-2 space-y-2">
                                             <?= csrf_input() ?>
                                             <input type="hidden" name="harakat" value="obuna">
@@ -181,7 +181,7 @@ require_once __DIR__ . '/_layout.php';
 
                                     <!-- Bonus -->
                                     <details class="text-sm">
-                                        <summary class="px-3 py-2 rounded hover:bg-white/5 cursor-pointer">💰 Bonus qo'shish</summary>
+                                        <summary class="px-3 py-2 rounded hover:bg-sky-50 cursor-pointer">💰 Bonus qo'shish</summary>
                                         <form method="POST" class="p-2 space-y-2">
                                             <?= csrf_input() ?>
                                             <input type="hidden" name="harakat" value="bonus">
@@ -192,7 +192,7 @@ require_once __DIR__ . '/_layout.php';
                                     </details>
 
                                     <!-- Block -->
-                                    <form method="POST" class="px-3 py-2 hover:bg-white/5">
+                                    <form method="POST" class="px-3 py-2 hover:bg-sky-50">
                                         <?= csrf_input() ?>
                                         <input type="hidden" name="harakat" value="block">
                                         <input type="hidden" name="id" value="<?= (int)$u['id'] ?>">
@@ -203,7 +203,7 @@ require_once __DIR__ . '/_layout.php';
 
                                     <?php if ($f['rol'] === 'developer' && $u['id'] !== $f['id']): ?>
                                         <details class="text-sm">
-                                            <summary class="px-3 py-2 rounded hover:bg-white/5 cursor-pointer">🔧 Rol</summary>
+                                            <summary class="px-3 py-2 rounded hover:bg-sky-50 cursor-pointer">🔧 Rol</summary>
                                             <form method="POST" class="p-2 space-y-2">
                                                 <?= csrf_input() ?>
                                                 <input type="hidden" name="harakat" value="rol">
@@ -232,7 +232,7 @@ require_once __DIR__ . '/_layout.php';
                     if ($i > 7 && $i < $jami_sahifa - 1 && abs($i - $sahifa) > 2) continue;
                 ?>
                     <a href="?p=<?= $i ?>&q=<?= e($qidiruv) ?>&rol=<?= e($rol_filt) ?>"
-                       class="px-3 py-1.5 rounded text-sm <?= $i === $sahifa ? 'bg-blue-500 text-white' : 'bg-white/5 hover:bg-white/10' ?>">
+                       class="px-3 py-1.5 rounded text-sm <?= $i === $sahifa ? 'bg-blue-500 text-white' : 'bg-sky-50 hover:bg-sky-100' ?>">
                         <?= $i ?>
                     </a>
                 <?php endfor; ?>

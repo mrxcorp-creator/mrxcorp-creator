@@ -75,20 +75,20 @@ require_once __DIR__ . '/_layout.php';
 </form>
 
 <div class="flex gap-2 mb-4">
-    <a href="?" class="px-3 py-1.5 rounded-lg text-sm <?= !$holat ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5' ?>">Barcha</a>
-    <a href="?holat=kutilmoqda" class="px-3 py-1.5 rounded-lg text-sm <?= $holat === 'kutilmoqda' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5' ?>">Kutilmoqda</a>
-    <a href="?holat=tasdiqlangan" class="px-3 py-1.5 rounded-lg text-sm <?= $holat === 'tasdiqlangan' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5' ?>">Tasdiqlangan</a>
+    <a href="?" class="px-3 py-1.5 rounded-lg text-sm <?= !$holat ? 'bg-sky-100 text-sky-700' : 'bg-sky-50' ?>">Barcha</a>
+    <a href="?holat=kutilmoqda" class="px-3 py-1.5 rounded-lg text-sm <?= $holat === 'kutilmoqda' ? 'bg-sky-100 text-sky-700' : 'bg-sky-50' ?>">Kutilmoqda</a>
+    <a href="?holat=tasdiqlangan" class="px-3 py-1.5 rounded-lg text-sm <?= $holat === 'tasdiqlangan' ? 'bg-sky-100 text-sky-700' : 'bg-sky-50' ?>">Tasdiqlangan</a>
 </div>
 
 <div class="grid md:grid-cols-2 gap-4">
     <?php foreach ($royxat as $r): ?>
-        <div class="glass-card p-5 fade-up <?= !$r['tasdiq'] ? 'border-yellow-500/30' : '' ?>">
+        <div class="glass-card p-5 fade-up <?= !$r['tasdiq'] ? 'border-amber-300' : '' ?>">
             <div class="flex items-start justify-between mb-2">
                 <strong><?= e($r['ism']) ?></strong>
-                <span class="text-yellow-400"><?= str_repeat('★', (int)$r['baho']) ?></span>
+                <span class="text-amber-600"><?= str_repeat('★', (int)$r['baho']) ?></span>
             </div>
             <p class="text-sm text-brand-muted leading-relaxed"><?= e($r['matn']) ?></p>
-            <div class="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-brand-border">
                 <span class="text-xs text-brand-muted"><?= e(vaqt_oldin($r['yaratilgan'])) ?></span>
                 <div class="flex gap-2">
                     <?php if (!$r['tasdiq']): ?>
@@ -96,16 +96,16 @@ require_once __DIR__ . '/_layout.php';
                             <?= csrf_input() ?>
                             <input type="hidden" name="harakat" value="tasdiq">
                             <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
-                            <button class="text-green-400 text-xs hover:underline">✓ Tasdiq</button>
+                            <button class="text-emerald-600 text-xs hover:underline">✓ Tasdiq</button>
                         </form>
                     <?php else: ?>
-                        <span class="text-xs text-green-400">✓ Tasdiqlangan</span>
+                        <span class="text-xs text-emerald-600">✓ Tasdiqlangan</span>
                     <?php endif; ?>
                     <form method="POST" class="inline" onsubmit="return confirm('O\'chirilsinmi?')">
                         <?= csrf_input() ?>
                         <input type="hidden" name="harakat" value="ochirish">
                         <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
-                        <button class="text-red-400 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
+                        <button class="text-rose-600 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
                     </form>
                 </div>
             </div>
