@@ -82,6 +82,18 @@ if (olish('bosh') === '1') {
         $savol_idlar = array_column($savol_idlar_data, 'id');
         $bilet_id = (int) db_qiymat('SELECT id FROM biletlar WHERE holat = "faol" ORDER BY id LIMIT 1');
 
+        // Agar faol bilet yo'q bo'lsa, savollar mavjud bo'lgan istalgan biletni olamiz
+        if (!$bilet_id) {
+            $bilet_id = (int) db_qiymat(
+                'SELECT bilet_id FROM savollar WHERE id = ? LIMIT 1',
+                [$savol_idlar[0]]
+            );
+        }
+        if (!$bilet_id) {
+            flash_qoy('xato', 'Imtihon uchun bilet topilmadi. Avval admin panelidan biletlar yarating.');
+            yonaltir(SAYT_URL . '/imtihon');
+        }
+
         $yangi_id = db_bajar(
             'INSERT INTO natijalar (foydalanuvchi_id, bilet_id, tur, javoblar_json, umumiy_son, qolgan_vaqt, izoh)
              VALUES (?, ?, "imtihon", "{}", ?, ?, ?)',

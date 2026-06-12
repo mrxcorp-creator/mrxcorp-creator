@@ -340,10 +340,22 @@ CREATE TABLE IF NOT EXISTS `bildirishnomalar` (
 
 
 -- ============================================================
--- 17. natijalar — TUR ustuni qo'shamiz (mashq/imtihon)
+-- 17. natijalar — TUR va OTDIMI ustunlarini qo'shamiz
+-- (MySQL 5.x va MariaDB'ning barcha versiyalarida ishlaydigan dynamic SQL)
 -- ============================================================
-ALTER TABLE `natijalar` ADD COLUMN IF NOT EXISTS `tur` ENUM('mashq','imtihon') DEFAULT 'mashq' AFTER `bilet_id`;
-ALTER TABLE `natijalar` ADD COLUMN IF NOT EXISTS `otdimi` TINYINT(1) DEFAULT NULL AFTER `umumiy_son`;
+SELECT IF (
+    EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='natijalar' AND COLUMN_NAME='tur'),
+    'SELECT 1',
+    'ALTER TABLE `natijalar` ADD COLUMN `tur` ENUM(''mashq'',''imtihon'') DEFAULT ''mashq'' AFTER `bilet_id`'
+) INTO @sql_tur;
+PREPARE stmt_tur FROM @sql_tur; EXECUTE stmt_tur; DEALLOCATE PREPARE stmt_tur;
+
+SELECT IF (
+    EXISTS(SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='natijalar' AND COLUMN_NAME='otdimi'),
+    'SELECT 1',
+    'ALTER TABLE `natijalar` ADD COLUMN `otdimi` TINYINT(1) DEFAULT NULL AFTER `umumiy_son`'
+) INTO @sql_otdimi;
+PREPARE stmt_otdimi FROM @sql_otdimi; EXECUTE stmt_otdimi; DEALLOCATE PREPARE stmt_otdimi;
 
 -- ============================================================
 -- 18. YUTUQLAR — Achievements katalogi
