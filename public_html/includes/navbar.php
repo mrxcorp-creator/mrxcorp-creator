@@ -36,6 +36,8 @@ $sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
             <?php if ($f): ?>
                 <a href="<?= e(SAYT_URL) ?>/dashboard" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('boshqaruv_paneli')) ?></a>
                 <a href="<?= e(SAYT_URL) ?>/test" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('testlar')) ?></a>
+                <a href="<?= e(SAYT_URL) ?>/imtihon" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm">🎓 Imtihon</a>
+                <a href="<?= e(SAYT_URL) ?>/reyting" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm">🏆 Reyting</a>
                 <a href="<?= e(SAYT_URL) ?>/tolov" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('tariflar')) ?></a>
                 <a href="<?= e(SAYT_URL) ?>/referal" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('referal')) ?></a>
                 <?php if (in_array($f['rol'], ['admin', 'developer'], true)): ?>
@@ -222,6 +224,14 @@ $sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
             <a href="<?= e(SAYT_URL) ?>/test" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
                 <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base">📝</span>
                 <?= e(t('testlar')) ?>
+            </a>
+            <a href="<?= e(SAYT_URL) ?>/imtihon" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
+                <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-base">🎓</span>
+                Imtihon
+            </a>
+            <a href="<?= e(SAYT_URL) ?>/reyting" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
+                <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-base">🏆</span>
+                Reyting
             </a>
             <a href="<?= e(SAYT_URL) ?>/tolov" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-sky-50 transition text-sm font-medium">
                 <span class="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center text-base">💎</span>

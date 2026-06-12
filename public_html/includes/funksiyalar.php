@@ -301,3 +301,163 @@ function chat_admin_aktivmi(int $foydalanuvchi_id, int $daqiqa = 30): bool {
         [$foydalanuvchi_id, $daqiqa]
     );
 }
+
+
+
+/**
+ * ============================================================
+ *  YUTUQLAR (Achievements) — avtomatik berish
+ * ============================================================
+ */
+
+/**
+ * Foydalanuvchi shartlari bo'yicha yutuq olishni tekshiradi.
+ * Test tugatganda, to'lov qilganda va h.k. chaqiriladi.
+ *
+ * @param int $foydalanuvchi_id
+ * @return array yangi olingan yutuqlar
+ */
+function yutuqlar_tekshir(int $foydalanuvchi_id): array {
+    $yangilar = [];
+
+    // Foydalanuvchi statistikasi
+    $jami_test = (int) db_qiymat(
+        'SELECT COUNT(*) FROM natijalar WHERE foydalanuvchi_id = ? AND holat = "tugagan"',
+        [$foydalanuvchi_id]
+    );
+
+    // Streak hisobi
+    $kunlar = db_barcha(
+        'SELECT DISTINCT DATE(tugagan) AS sana FROM natijalar
+         WHERE foydalanuvchi_id = ? AND holat = "tugagan"
+         ORDER BY sana DESC LIMIT 60',
+        [$foydalanuvchi_id]
+    );
+    $streak = 0;
+    $bugun = strtotime('today');
+    foreach ($kunlar as $i => $k) {
+        $kun_ts = strtotime($k['sana']);
+        $farq = (int) (($bugun - $kun_ts) / 86400);
+        if ($farq === $streak) $streak++;
+        else break;
+    }
+
+    // Mukammal natija
+    $mukammal_son = (int) db_qiymat(
+        'SELECT COUNT(*) FROM natijalar
+         WHERE foydalanuvchi_id = ? AND holat = "tugagan"
+           AND umumiy_son > 0 AND togri_son = umumiy_son',
+        [$foydalanuvchi_id]
+    );
+
+    // Imtihondan o'tish
+    $imtihon_pass = (int) db_qiymat(
+        'SELECT COUNT(*) FROM natijalar
+         WHERE foydalanuvchi_id = ? AND holat = "tugagan"
+           AND tur = "imtihon" AND otdimi = 1',
+        [$foydalanuvchi_id]
+    );
+
+    // Referallar
+    $referal_son = (int) db_qiymat(
+        'SELECT COUNT(*) FROM referallar WHERE referer_id = ? AND holat = "tasdiq"',
+        [$foydalanuvchi_id]
+    );
+
+    // Obunalar
+    $obuna_son = (int) db_qiymat(
+        'SELECT COUNT(*) FROM tolovlar WHERE foydalanuvchi_id = ? AND holat = "muvaffaqiyatli"',
+        [$foydalanuvchi_id]
+    );
+
+    $statistika = [
+        'jami_test'    => $jami_test,
+        'streak'       => $streak,
+        'mukammal'     => $mukammal_son,
+        'imtihon_pass' => $imtihon_pass,
+        'referal'      => $referal_son,
+        'obuna'        => $obuna_son,
+    ];
+
+    // Hali olinmagan yutuqlarni topamiz
+    $barcha_yutuqlar = db_barcha(
+        'SELECT y.* FROM yutuqlar y
+         WHERE y.id NOT IN (
+             SELECT yutuq_id FROM foydalanuvchi_yutuqlar WHERE foydalanuvchi_id = ?
+         )',
+        [$foydalanuvchi_id]
+    );
+
+    foreach ($barcha_yutuqlar as $y) {
+        $tur = $y['shart_turi'];
+        $qiymat = (int) $y['shart_qiymati'];
+        if (!$tur || !isset($statistika[$tur])) continue;
+
+        if ($statistika[$tur] >= $qiymat) {
+            // Yutuq beriladi
+            db_bajar(
+                'INSERT IGNORE INTO foydalanuvchi_yutuqlar (foydalanuvchi_id, yutuq_id) VALUES (?, ?)',
+                [$foydalanuvchi_id, $y['id']]
+            );
+            // Bonus balansga XP qo'shamiz (XP miqdori — 100 XP = 1000 so'm bonus konvertatsiyasi yo'q,
+            // hozircha shunchaki XP bo'lib turadi, lekin keyinroq foydalansa bo'ladi)
+
+            // Bildirishnoma
+            bildirishnoma_yarat(
+                $foydalanuvchi_id,
+                "Yangi yutuq: {$y['nomi']}!",
+                "{$y['ikon']} {$y['tavsif']}\nSizning kollektsiyangizga qo'shildi.",
+                '/profil#yutuqlar',
+                'muvaffaqiyat',
+                $y['ikon']
+            );
+
+            $yangilar[] = $y;
+        }
+    }
+
+    return $yangilar;
+}
+
+/**
+ * Foydalanuvchining barcha yutuqlari.
+ */
+function foydalanuvchi_yutuqlari(int $foydalanuvchi_id): array {
+    return db_barcha(
+        'SELECT y.*, fy.olingan FROM yutuqlar y
+         JOIN foydalanuvchi_yutuqlar fy ON y.id = fy.yutuq_id
+         WHERE fy.foydalanuvchi_id = ?
+         ORDER BY fy.olingan DESC',
+        [$foydalanuvchi_id]
+    );
+}
+
+/**
+ * Foydalanuvchining jami XP'si.
+ */
+function foydalanuvchi_xp(int $foydalanuvchi_id): int {
+    return (int) db_qiymat(
+        'SELECT COALESCE(SUM(y.xp), 0) FROM foydalanuvchi_yutuqlar fy
+         JOIN yutuqlar y ON fy.yutuq_id = y.id
+         WHERE fy.foydalanuvchi_id = ?',
+        [$foydalanuvchi_id]
+    );
+}
+
+/**
+ * ============================================================
+ *  AUDIT LOG — admin amallarini yozib qo'yish
+ * ============================================================
+ */
+function audit_yoz(int $foydalanuvchi_id, string $amal, ?string $obyekt = null,
+                   ?int $obyekt_id = null, ?string $tafsilot = null): void {
+    db_bajar(
+        'INSERT INTO audit_log (foydalanuvchi_id, amal, obyekt, obyekt_id, tafsilot, ip, user_agent)
+         VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [
+            $foydalanuvchi_id, $amal, $obyekt, $obyekt_id, $tafsilot,
+            ip_olish(),
+            mb_substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 250),
+        ]
+    );
+}

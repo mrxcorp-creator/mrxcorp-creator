@@ -276,6 +276,20 @@ require_once __DIR__ . '/../includes/navbar.php';
                         </div>
                         <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
+                    <a href="<?= e(SAYT_URL) ?>/imtihon" class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-600 flex items-center justify-center text-base">🎓</span>
+                            <span class="font-bold text-brand-text">Imtihon Rejimi</span>
+                        </div>
+                        <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="<?= e(SAYT_URL) ?>/reyting" class="flex items-center justify-between p-3 rounded-xl hover:bg-amber-50 transition group">
+                        <div class="flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-base">🏆</span>
+                            <span class="font-medium text-brand-text">Reyting jadvali</span>
+                        </div>
+                        <svg class="w-4 h-4 text-brand-light group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                     <a href="<?= e(SAYT_URL) ?>/chat" class="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 transition group">
                         <div class="flex items-center gap-3 relative">
                             <span class="w-9 h-9 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center text-base">💬</span>

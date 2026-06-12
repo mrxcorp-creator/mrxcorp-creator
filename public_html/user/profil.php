@@ -71,6 +71,11 @@ if (empty($f['telegram_hash'])) {
     $f['telegram_hash'] = $hash;
 }
 
+// Yutuqlar va statistika
+$yutuqlar_olingan = foydalanuvchi_yutuqlari($f['id']);
+$yutuqlar_jami = db_barcha('SELECT * FROM yutuqlar ORDER BY tartib');
+$xp = foydalanuvchi_xp($f['id']);
+
 $bot_username = sozlama('telegram_bot_username', 'vatanparvaryaypan_bot');
 
 $sahifa_sarlavha = t('profil_sozlamalar');
@@ -118,6 +123,14 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <span class="text-brand-muted"><?= e(t('bonus_balans')) ?>:</span>
                     <span class="font-bold text-emerald-600"><?= e(pul($f['bonus_balans'])) ?></span>
                 </div>
+                <div class="flex justify-between">
+                    <span class="text-brand-muted">XP:</span>
+                    <span class="font-bold text-amber-600"><?= $xp ?> ⚡</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-brand-muted">Yutuqlar:</span>
+                    <span class="font-bold text-brand-text"><?= count($yutuqlar_olingan) ?> / <?= count($yutuqlar_jami) ?> 🏅</span>
+                </div>
             </div>
         </div>
 
@@ -161,6 +174,61 @@ require_once __DIR__ . '/../includes/navbar.php';
 
                 <button type="submit" class="btn-primary mt-5"><?= e(t('saqlash')) ?></button>
             </form>
+
+            <!-- Yutuqlar -->
+            <div id="yutuqlar" class="glass-card p-6 fade-up">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-display flex items-center gap-2">
+                        <span>🏅</span> Mening yutuqlarim
+                    </h2>
+                    <span class="text-sm text-brand-muted"><?= count($yutuqlar_olingan) ?> / <?= count($yutuqlar_jami) ?></span>
+                </div>
+
+                <?php if (count($yutuqlar_jami) === 0): ?>
+                    <p class="text-brand-muted text-sm">Hozircha yutuqlar yo'q</p>
+                <?php else:
+                    $olingan_idlar = array_column($yutuqlar_olingan, 'id');
+                ?>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                        <?php foreach ($yutuqlar_jami as $y):
+                            $olingan = in_array($y['id'], $olingan_idlar);
+                            $rang = match ($y['daraja']) {
+                                'platina' => 'from-violet-300 to-fuchsia-400',
+                                'oltin'   => 'from-amber-300 to-orange-400',
+                                'kumush'  => 'from-slate-300 to-slate-400',
+                                default   => 'from-orange-300 to-amber-400',
+                            };
+                        ?>
+                            <div class="relative group" title="<?= e($y['nomi'] . ': ' . $y['tavsif']) ?>">
+                                <div class="aspect-square rounded-2xl flex flex-col items-center justify-center text-center p-2 transition-all
+                                    <?= $olingan
+                                        ? 'bg-gradient-to-br ' . $rang . ' shadow-soft hover:scale-110 hover:shadow-glow cursor-pointer'
+                                        : 'bg-brand-bg-soft border border-brand-border opacity-50 grayscale' ?>">
+                                    <div class="text-3xl mb-1"><?= $y['ikon'] ?></div>
+                                    <div class="text-[9px] font-bold uppercase tracking-wider <?= $olingan ? 'text-white/95' : 'text-brand-muted' ?>">
+                                        <?= e($y['nomi']) ?>
+                                    </div>
+                                </div>
+                                <?php if (!$olingan): ?>
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <svg class="w-8 h-8 text-brand-muted/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Tooltip -->
+                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-brand-text text-white text-xs rounded-lg w-44 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-medium z-10">
+                                    <div class="font-bold mb-0.5"><?= e($y['nomi']) ?></div>
+                                    <div class="text-white/80 text-[10px]"><?= e($y['tavsif']) ?></div>
+                                    <div class="mt-1 flex items-center gap-1 text-amber-300">
+                                        <span>⚡ <?= (int)$y['xp'] ?> XP</span>
+                                        <?php if ($olingan): ?><span class="text-emerald-300 ml-auto">✓ Olingan</span><?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
 
             <!-- Telegram bog'lash -->
             <div class="glass-card p-6 fade-up">

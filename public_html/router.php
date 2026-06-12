@@ -26,6 +26,8 @@ $routes = [
     '/referal'         => '/user/referal.php',
     '/chat'            => '/user/chat.php',
     '/bildirishnomalar'=> '/user/bildirishnomalar.php',
+    '/imtihon'         => '/user/imtihon.php',
+    '/reyting'         => '/user/reyting.php',
     // Yangi public sahifalar
     '/tariflar'        => '/tariflar.php',
     '/blog'            => '/blog.php',

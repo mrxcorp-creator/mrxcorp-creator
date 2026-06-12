@@ -336,3 +336,107 @@ CREATE TABLE IF NOT EXISTS `bildirishnomalar` (
     INDEX `idx_foydalanuvchi_oqilgan` (`foydalanuvchi_id`, `oqilgan`),
     FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+
+-- ============================================================
+-- 17. natijalar — TUR ustuni qo'shamiz (mashq/imtihon)
+-- ============================================================
+ALTER TABLE `natijalar` ADD COLUMN IF NOT EXISTS `tur` ENUM('mashq','imtihon') DEFAULT 'mashq' AFTER `bilet_id`;
+ALTER TABLE `natijalar` ADD COLUMN IF NOT EXISTS `otdimi` TINYINT(1) DEFAULT NULL AFTER `umumiy_son`;
+
+-- ============================================================
+-- 18. YUTUQLAR — Achievements katalogi
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `yutuqlar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `kod` VARCHAR(50) UNIQUE NOT NULL,
+    `nomi` VARCHAR(100) NOT NULL,
+    `tavsif` VARCHAR(255) NOT NULL,
+    `ikon` VARCHAR(20) DEFAULT '🏅',
+    `daraja` ENUM('bronz','kumush','oltin','platina') DEFAULT 'bronz',
+    `xp` INT DEFAULT 10,
+    `shart_turi` VARCHAR(50) DEFAULT NULL,
+    `shart_qiymati` INT DEFAULT 0,
+    `tartib` INT DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 19. FOYDALANUVCHI YUTUQLARI
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `foydalanuvchi_yutuqlar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED NOT NULL,
+    `yutuq_id` INT UNSIGNED NOT NULL,
+    `olingan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uk_user_yutuq` (`foydalanuvchi_id`, `yutuq_id`),
+    INDEX `idx_user` (`foydalanuvchi_id`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`yutuq_id`) REFERENCES `yutuqlar`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 20. AUDIT LOG — admin amallarini kuzatish
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `audit_log` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED DEFAULT NULL,
+    `amal` VARCHAR(100) NOT NULL,
+    `obyekt` VARCHAR(100) DEFAULT NULL,
+    `obyekt_id` INT UNSIGNED DEFAULT NULL,
+    `tafsilot` TEXT DEFAULT NULL,
+    `ip` VARCHAR(45) DEFAULT NULL,
+    `user_agent` VARCHAR(255) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foydalanuvchi` (`foydalanuvchi_id`),
+    INDEX `idx_yaratilgan` (`yaratilgan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 21. PROMO KAMPANIYALAR (chuqurlashtirilgan promo)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `promo_kampaniyalar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `nomi` VARCHAR(150) NOT NULL,
+    `tavsif` TEXT DEFAULT NULL,
+    `chegirma_foiz` INT DEFAULT 0,
+    `chegirma_summa` DECIMAL(12,2) DEFAULT 0,
+    `tarif_id` INT UNSIGNED DEFAULT NULL,
+    `boshlanish` DATETIME NOT NULL,
+    `tugash` DATETIME NOT NULL,
+    `holat` ENUM('faol','nofaol','tugagan') DEFAULT 'faol',
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`tarif_id`) REFERENCES `tariflar`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 22. WEB PUSH OBUNA
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `push_obuna` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED NOT NULL,
+    `endpoint` TEXT NOT NULL,
+    `p256dh` VARCHAR(255) NOT NULL,
+    `auth_key` VARCHAR(255) NOT NULL,
+    `user_agent` VARCHAR(255) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foydalanuvchi` (`foydalanuvchi_id`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Boshlang'ich yutuqlar
+-- ============================================================
+INSERT IGNORE INTO `yutuqlar` (`kod`, `nomi`, `tavsif`, `ikon`, `daraja`, `xp`, `shart_turi`, `shart_qiymati`, `tartib`) VALUES
+('birinchi_test',     'Birinchi qadam',     '1 ta testni tugating',                        '🌱', 'bronz',   10,  'jami_test',       1,   1),
+('test_10',           'Yo''lda',             '10 ta testni tugating',                       '🚶', 'bronz',   25,  'jami_test',       10,  2),
+('test_50',           'Marafonchi',          '50 ta testni tugating',                       '🏃', 'kumush',  50,  'jami_test',       50,  3),
+('test_100',          'Ulug'' marafonchi',   '100 ta testni tugating',                      '🥇', 'oltin',   100, 'jami_test',       100, 4),
+('streak_3',          'Issiq olov',          '3 kun ketma-ket mashq qiling',                '🔥', 'bronz',   20,  'streak',          3,   5),
+('streak_7',          'Bir hafta',           '7 kun ketma-ket mashq qiling',                '🔥', 'kumush',  50,  'streak',          7,   6),
+('streak_30',         'Hech to''xtamadi',    '30 kun ketma-ket mashq qiling',               '🔥', 'oltin',   200, 'streak',          30,  7),
+('mukammal',          'Mukammal!',           'Birinchi marta 100% natijaga erishing',       '⭐', 'oltin',   75,  'mukammal',        1,   8),
+('imtihon_otish',     'Imtihondan o''tdi',   'Imtihon rejimida 1 marta o''ting',            '🎓', 'oltin',   100, 'imtihon_pass',    1,   9),
+('imtihon_5',         'Doimiy g''olib',      'Imtihon rejimida 5 marta o''ting',            '🏆', 'platina', 250, 'imtihon_pass',    5,   10),
+('referal_3',         'Yordamchi',           '3 ta do''st taklif qiling',                   '🤝', 'kumush',  50,  'referal',         3,   11),
+('obuna',             'Premium',             'Birinchi tarif sotib olish',                  '💎', 'kumush',  50,  'obuna',           1,   12);
