@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/../includes/security.php';
+require_once __DIR__ . '/../includes/funksiyalar.php';
 
 sessiya_boshla();
 
