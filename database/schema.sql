@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `foydalanuvchilar` (
     `bonus_balans` DECIMAL(10,2) DEFAULT 0,
     `telegram_id` BIGINT DEFAULT NULL,
     `telegram_hash` VARCHAR(64) DEFAULT NULL,
-    `til` ENUM('uz_latn','uz_cyrl','ru') DEFAULT 'uz_latn',
+    `til` ENUM('uz_latn','uz_cyrl') DEFAULT 'uz_latn',
     `oxirgi_kirish` DATETIME DEFAULT NULL,
     `holat` ENUM('faol','bloklangan') DEFAULT 'faol',
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS `foydalanuvchilar` (
 CREATE TABLE IF NOT EXISTS `tariflar` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `nomi` VARCHAR(100) NOT NULL,
+    `nomi_cyrl` VARCHAR(100) DEFAULT NULL,
     `tavsif` TEXT DEFAULT NULL,
+    `tavsif_cyrl` TEXT DEFAULT NULL,
     `tur` ENUM('kun','oy','bilet') DEFAULT 'oy',
     `qiymat` INT UNSIGNED DEFAULT 1,
     `narx` DECIMAL(12,2) NOT NULL,
@@ -66,7 +68,9 @@ CREATE TABLE IF NOT EXISTS `biletlar` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `raqam` INT UNSIGNED UNIQUE NOT NULL,
     `nomi` VARCHAR(150) NOT NULL,
+    `nomi_cyrl` VARCHAR(150) DEFAULT NULL,
     `tavsif` TEXT DEFAULT NULL,
+    `tavsif_cyrl` TEXT DEFAULT NULL,
     `tur` ENUM('bepul','pullik') DEFAULT 'pullik',
     `holat` ENUM('faol','nofaol') DEFAULT 'faol',
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -78,13 +82,19 @@ CREATE TABLE IF NOT EXISTS `savollar` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `bilet_id` INT UNSIGNED NOT NULL,
     `matn` TEXT NOT NULL,
+    `matn_cyrl` TEXT DEFAULT NULL,
     `rasm` VARCHAR(255) DEFAULT NULL,
     `variant_a` TEXT NOT NULL,
+    `variant_a_cyrl` TEXT DEFAULT NULL,
     `variant_b` TEXT NOT NULL,
+    `variant_b_cyrl` TEXT DEFAULT NULL,
     `variant_c` TEXT DEFAULT NULL,
+    `variant_c_cyrl` TEXT DEFAULT NULL,
     `variant_d` TEXT DEFAULT NULL,
+    `variant_d_cyrl` TEXT DEFAULT NULL,
     `togri_javob` ENUM('a','b','c','d') NOT NULL,
     `izoh` TEXT DEFAULT NULL,
+    `izoh_cyrl` TEXT DEFAULT NULL,
     `tartib` INT DEFAULT 0,
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_bilet` (`bilet_id`),
@@ -168,7 +178,9 @@ CREATE TABLE IF NOT EXISTS `fikrlar` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `foydalanuvchi_id` INT UNSIGNED DEFAULT NULL,
     `ism` VARCHAR(100) NOT NULL,
+    `ism_cyrl` VARCHAR(100) DEFAULT NULL,
     `matn` TEXT NOT NULL,
+    `matn_cyrl` TEXT DEFAULT NULL,
     `baho` TINYINT DEFAULT 5,
     `tasdiq` TINYINT(1) DEFAULT 0,
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -195,7 +207,9 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Standart sozlamalar
 INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('sayt_nomi', 'VatanParvar Yaypan', 'Sayt nomi'),
+('sayt_nomi_cyrl', 'ВатанПарвар Яйпан', 'Sayt nomi (kirill)'),
 ('sayt_shior', 'Avto maktab nazariyasiga eng tezkor tayyorgarlik', 'Bosh sahifa shiori'),
+('sayt_shior_cyrl', 'Авто мактаб назариясига энг тезкор тайёргарлик', 'Bosh sahifa shiori (kirill)'),
 ('aloqa_telefon', '+998 90 123 45 67', 'Aloqa telefoni'),
 ('aloqa_email', 'info@vatanparvaryaypan.uz', 'Aloqa elektron pochtasi'),
 ('telegram_kanal', 'https://t.me/vatanparvaryaypan', 'Telegram kanal'),
@@ -210,25 +224,37 @@ INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('savol_soni_test', '20', 'Bitta testdagi savollar soni');
 
 -- Standart tariflar
-INSERT INTO `tariflar` (`nomi`, `tavsif`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES
-('1 kunlik', 'Bir kunlik to''liq kirish', 'kun', 1, 5000, 8000, 0, 1),
-('1 oylik', 'Bir oylik to''liq kirish', 'oy', 1, 25000, 40000, 1, 2),
-('3 oylik', 'Uch oylik chegirmali tarif', 'oy', 3, 60000, 120000, 0, 3),
-('Cheksiz', 'Imtihon topshirilguncha', 'oy', 12, 99000, 200000, 0, 4);
+INSERT INTO `tariflar` (`nomi`, `nomi_cyrl`, `tavsif`, `tavsif_cyrl`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES
+('1 kunlik', '1 кунлик', 'Bir kunlik to''liq kirish',  'Бир кунлик тўлиқ кириш',     'kun', 1,  5000,  8000, 0, 1),
+('1 oylik',  '1 ойлик',  'Bir oylik to''liq kirish',   'Бир ойлик тўлиқ кириш',      'oy',  1, 25000, 40000, 1, 2),
+('3 oylik',  '3 ойлик',  'Uch oylik chegirmali tarif', 'Уч ойлик чегирмали тариф',   'oy',  3, 60000, 120000, 0, 3),
+('Cheksiz',  'Чексиз',   'Imtihon topshirilguncha',     'Имтиҳон топширилгунча',     'oy', 12, 99000, 200000, 0, 4);
 
 -- Demo bilet
-INSERT INTO `biletlar` (`raqam`, `nomi`, `tavsif`, `tur`) VALUES
-(1, 'Bilet №1 (demo)', 'Bepul tanishuv bileti', 'bepul');
+INSERT INTO `biletlar` (`raqam`, `nomi`, `nomi_cyrl`, `tavsif`, `tavsif_cyrl`, `tur`) VALUES
+(1, 'Bilet №1 (demo)', 'Билет №1 (демо)', 'Bepul tanishuv bileti', 'Бепул танишув билети', 'bepul');
 
 -- Demo savol
-INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c`, `variant_d`, `togri_javob`, `izoh`) VALUES
-(1, 'Yo''l harakati qoidalariga binoan, qaysi belgi xavf belgilarini bildiradi?',
+INSERT INTO `savollar` (`bilet_id`, `matn`, `matn_cyrl`,
+    `variant_a`, `variant_a_cyrl`,
+    `variant_b`, `variant_b_cyrl`,
+    `variant_c`, `variant_c_cyrl`,
+    `variant_d`, `variant_d_cyrl`,
+    `togri_javob`, `izoh`, `izoh_cyrl`) VALUES
+(1,
+ 'Yo''l harakati qoidalariga binoan, qaysi belgi xavf belgilarini bildiradi?',
+ 'Йўл ҳаракати қоидаларига биноан, қайси белги хавф белгиларини билдиради?',
  'Uchburchak shaklidagi qizil hoshiyali belgilar',
+ 'Учбурчак шаклидаги қизил ҳошияли белгилар',
  'Doira shaklidagi ko''k belgilar',
+ 'Доира шаклидаги кўк белгилар',
  'To''rtburchak shaklidagi yashil belgilar',
+ 'Тўртбурчак шаклидаги яшил белгилар',
  'Sakkiztomonlama qizil belgi',
+ 'Саккизтомонлама қизил белги',
  'a',
- 'Xavf belgilari uchburchak shaklida bo''lib, qizil hoshiya bilan o''ralgan.');
+ 'Xavf belgilari uchburchak shaklida bo''lib, qizil hoshiya bilan o''ralgan.',
+ 'Хавф белгилари учбурчак шаклида бўлиб, қизил ҳошия билан ўралган.');
 
 -- Developer akkaunt (parol: admin12345)
 INSERT INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash`, `rol`, `referal_kod`)

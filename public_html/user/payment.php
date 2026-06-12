@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $obuna = db_qator(
-    'SELECT o.*, t.nomi AS tarif_nomi FROM obunalar o
+    'SELECT o.*, t.nomi AS tarif_nomi, t.nomi_cyrl AS tarif_nomi_cyrl FROM obunalar o
      JOIN tariflar t ON o.tarif_id = t.id
      WHERE o.foydalanuvchi_id = ? AND o.holat = "faol" AND o.tugash > NOW()
      ORDER BY o.tugash DESC LIMIT 1',
@@ -148,7 +148,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="flex items-center gap-3">
                 <span class="text-3xl">🎉</span>
                 <div>
-                    <strong class="text-green-400">Faol obuna: <?= e($obuna['tarif_nomi']) ?></strong><br>
+                    <strong class="text-green-400">Faol obuna: <?= e(tk(['nomi' => $obuna['tarif_nomi'], 'nomi_cyrl' => $obuna['tarif_nomi_cyrl']], 'nomi')) ?></strong><br>
                     <span class="text-sm text-brand-muted"><?= e(t('tugaydigan_sana')) ?>: <?= e(sana($obuna['tugash'])) ?></span>
                 </div>
             </div>
@@ -172,12 +172,12 @@ require_once __DIR__ . '/../includes/navbar.php';
                             <?= e(t('mashhur')) ?>
                         </div>
                     <?php endif; ?>
-                    <h3 class="text-xl font-display mb-2"><?= e($t['nomi']) ?></h3>
+                    <h3 class="text-xl font-display mb-2"><?= e(tk($t, 'nomi')) ?></h3>
                     <?php if ($t['eski_narx'] && $t['eski_narx'] > $t['narx']): ?>
                         <span class="line-through text-brand-muted text-sm"><?= e(pul($t['eski_narx'])) ?></span>
                     <?php endif; ?>
                     <div class="text-3xl font-display font-bold text-blue-400 mb-3"><?= e(pul($t['narx'])) ?></div>
-                    <p class="text-sm text-brand-muted"><?= e($t['tavsif']) ?></p>
+                    <p class="text-sm text-brand-muted"><?= e(tk($t, 'tavsif')) ?></p>
                 </div>
             <?php endforeach; ?>
         </div>

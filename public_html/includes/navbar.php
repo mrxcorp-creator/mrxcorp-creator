@@ -37,6 +37,13 @@ $f = $f ?? joriy_foydalanuvchi();
 
         <!-- O'ng tomon -->
         <div class="hidden md:flex items-center gap-3">
+            <!-- Til almashtirgich -->
+            <?php $joriy_til = $_SESSION['til'] ?? 'uz_latn'; ?>
+            <div class="flex items-center gap-1 text-xs bg-white/5 rounded-lg p-1">
+                <a href="?til=uz_latn" class="px-2 py-1 rounded <?= $joriy_til === 'uz_latn' ? 'bg-blue-500/30 text-white font-semibold' : 'text-brand-muted hover:text-white' ?>">Lat</a>
+                <a href="?til=uz_cyrl" class="px-2 py-1 rounded <?= $joriy_til === 'uz_cyrl' ? 'bg-blue-500/30 text-white font-semibold' : 'text-brand-muted hover:text-white' ?>">Кир</a>
+            </div>
+
             <?php if ($f): ?>
                 <div x-data="{menu:false}" class="relative">
                     <button @click="menu=!menu" class="flex items-center gap-2 hover:bg-white/5 rounded-lg pl-2 pr-3 py-1.5 transition">
@@ -69,6 +76,14 @@ $f = $f ?? joriy_foydalanuvchi();
 
     <!-- Mobil ochiluvchi -->
     <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-brand-bg/95 backdrop-blur-xl px-4 py-3 space-y-1" x-cloak>
+        <!-- Til almashtirgich (mobil) -->
+        <?php $joriy_til = $_SESSION['til'] ?? 'uz_latn'; ?>
+        <div class="flex items-center gap-2 px-3 py-2 mb-2">
+            <span class="text-xs text-brand-muted">Til:</span>
+            <a href="?til=uz_latn" class="px-3 py-1 rounded-lg text-xs <?= $joriy_til === 'uz_latn' ? 'bg-blue-500/30 text-white font-semibold' : 'bg-white/5 text-brand-muted' ?>">Lotin</a>
+            <a href="?til=uz_cyrl" class="px-3 py-1 rounded-lg text-xs <?= $joriy_til === 'uz_cyrl' ? 'bg-blue-500/30 text-white font-semibold' : 'bg-white/5 text-brand-muted' ?>">Кирилл</a>
+        </div>
+
         <?php if ($f): ?>
             <div class="flex items-center gap-3 px-3 py-3 rounded-lg bg-white/5 mb-2">
                 <span class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white"><?= e(bosh_harflar($f)) ?></span>

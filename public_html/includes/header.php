@@ -20,7 +20,7 @@ $f               = joriy_foydalanuvchi();
 $flash           = flash_ol();
 ?>
 <!DOCTYPE html>
-<html lang="<?= str_starts_with($_SESSION['til'] ?? 'uz', 'ru') ? 'ru' : 'uz' ?>">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5">

@@ -22,18 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tur = post('tur') === 'bepul' ? 'bepul' : 'pullik';
         $holat = post('holat') === 'nofaol' ? 'nofaol' : 'faol';
 
+        // Avtomatik kirill versiya (admin yozgan bo'lsa o'sha qoladi, aks holda lotindan o'giriladi)
+        $nomi_cyrl   = trim((string) post('nomi_cyrl'))   ?: ($nomi   ? lotin_dan_kirill($nomi)   : '');
+        $tavsif_cyrl = trim((string) post('tavsif_cyrl')) ?: ($tavsif ? lotin_dan_kirill($tavsif) : '');
+
         if (!$raqam || !$nomi) {
             flash_qoy('xato', t('kerakli_maydon'));
         } elseif ($id) {
             db_bajar(
-                'UPDATE biletlar SET raqam = ?, nomi = ?, tavsif = ?, tur = ?, holat = ? WHERE id = ?',
-                [$raqam, $nomi, $tavsif, $tur, $holat, $id]
+                'UPDATE biletlar SET raqam = ?, nomi = ?, nomi_cyrl = ?, tavsif = ?, tavsif_cyrl = ?, tur = ?, holat = ? WHERE id = ?',
+                [$raqam, $nomi, $nomi_cyrl, $tavsif, $tavsif_cyrl, $tur, $holat, $id]
             );
             flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         } else {
             db_bajar(
-                'INSERT INTO biletlar (raqam, nomi, tavsif, tur, holat) VALUES (?, ?, ?, ?, ?)',
-                [$raqam, $nomi, $tavsif, $tur, $holat]
+                'INSERT INTO biletlar (raqam, nomi, nomi_cyrl, tavsif, tavsif_cyrl, tur, holat) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [$raqam, $nomi, $nomi_cyrl, $tavsif, $tavsif_cyrl, $tur, $holat]
             );
             flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         }
@@ -92,8 +96,12 @@ require_once __DIR__ . '/_layout.php';
             <input type="number" name="raqam" required min="1" value="<?= e($tahrir['raqam'] ?? '') ?>" class="field">
         </div>
         <div>
-            <label class="field-label">Nomi *</label>
-            <input name="nomi" required value="<?= e($tahrir['nomi'] ?? '') ?>" class="field">
+            <label class="field-label">Nomi (lotin) *</label>
+            <input name="nomi" required value="<?= e($tahrir['nomi'] ?? '') ?>" class="field" data-translit="nomi_cyrl">
+        </div>
+        <div>
+            <label class="field-label">Nomi (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+            <input name="nomi_cyrl" value="<?= e($tahrir['nomi_cyrl'] ?? '') ?>" class="field" placeholder="Bo'sh qoldirilsa avtomatik to'ldiriladi">
         </div>
         <div>
             <label class="field-label">Turi</label>
@@ -110,8 +118,12 @@ require_once __DIR__ . '/_layout.php';
             </select>
         </div>
         <div class="sm:col-span-2">
-            <label class="field-label">Tavsif</label>
-            <textarea name="tavsif" rows="2" class="field"><?= e($tahrir['tavsif'] ?? '') ?></textarea>
+            <label class="field-label">Tavsif (lotin)</label>
+            <textarea name="tavsif" rows="2" class="field" data-translit="tavsif_cyrl"><?= e($tahrir['tavsif'] ?? '') ?></textarea>
+        </div>
+        <div class="sm:col-span-2">
+            <label class="field-label">Tavsif (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+            <textarea name="tavsif_cyrl" rows="2" class="field" placeholder="Bo'sh qoldirilsa avtomatik to'ldiriladi"><?= e($tahrir['tavsif_cyrl'] ?? '') ?></textarea>
         </div>
         <div class="sm:col-span-2 flex gap-3">
             <button type="submit" class="btn-primary"><?= e(t('saqlash')) ?></button>
@@ -148,7 +160,7 @@ require_once __DIR__ . '/_layout.php';
                     <?php foreach ($biletlar as $b): ?>
                         <tr class="hover:bg-white/3">
                             <td class="py-2.5 pr-3 font-mono"><?= (int)$b['raqam'] ?></td>
-                            <td class="py-2.5 pr-3"><?= e($b['nomi']) ?></td>
+                            <td class="py-2.5 pr-3"><?= e(tk($b, 'nomi')) ?></td>
                             <td class="py-2.5 pr-3">
                                 <span class="text-xs px-2 py-0.5 rounded <?= $b['tur'] === 'bepul' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400' ?>">
                                     <?= e($b['tur']) ?>

@@ -16,21 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($harakat === 'tasdiq') {
         db_bajar('UPDATE fikrlar SET tasdiq = 1 WHERE id = ?', [$id]);
 
-        // Bosh sahifa keshini tozalash
-        @unlink(CACHE_PATH . '/indeks_keshi.html');
+        // Bosh sahifa keshini tozalash (har bir til uchun)
+        foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $fayl) @unlink($fayl);
     }
     if ($harakat === 'ochirish') {
         db_bajar('DELETE FROM fikrlar WHERE id = ?', [$id]);
-        @unlink(CACHE_PATH . '/indeks_keshi.html');
+        foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $fayl) @unlink($fayl);
     }
     if ($harakat === 'qoshish') {
         $ism = post('ism');
         $matn = post('matn');
         $baho = max(1, min(5, (int) post('baho')));
         if ($ism && $matn) {
-            db_bajar('INSERT INTO fikrlar (ism, matn, baho, tasdiq) VALUES (?, ?, ?, 1)',
-                     [$ism, $matn, $baho]);
-            @unlink(CACHE_PATH . '/indeks_keshi.html');
+            $ism_cyrl  = lotin_dan_kirill($ism);
+            $matn_cyrl = lotin_dan_kirill($matn);
+            db_bajar('INSERT INTO fikrlar (ism, ism_cyrl, matn, matn_cyrl, baho, tasdiq) VALUES (?, ?, ?, ?, ?, 1)',
+                     [$ism, $ism_cyrl, $matn, $matn_cyrl, $baho]);
+            foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $fayl) @unlink($fayl);
         }
     }
     flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
@@ -84,10 +86,10 @@ require_once __DIR__ . '/_layout.php';
     <?php foreach ($royxat as $r): ?>
         <div class="glass-card p-5 fade-up <?= !$r['tasdiq'] ? 'border-yellow-500/30' : '' ?>">
             <div class="flex items-start justify-between mb-2">
-                <strong><?= e($r['ism']) ?></strong>
+                <strong><?= e(tk($r, 'ism')) ?></strong>
                 <span class="text-yellow-400"><?= str_repeat('★', (int)$r['baho']) ?></span>
             </div>
-            <p class="text-sm text-brand-muted leading-relaxed"><?= e($r['matn']) ?></p>
+            <p class="text-sm text-brand-muted leading-relaxed"><?= e(tk($r, 'matn')) ?></p>
             <div class="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
                 <span class="text-xs text-brand-muted"><?= e(vaqt_oldin($r['yaratilgan'])) ?></span>
                 <div class="flex gap-2">

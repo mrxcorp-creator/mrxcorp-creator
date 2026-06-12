@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'UPDATE foydalanuvchilar
                  SET ism = ?, familiya = ?, email = ?, til = ?, avatar = ?
                  WHERE id = ?',
-                [$ism, $familiya, $email ?: null, in_array($til, ['uz_latn','uz_cyrl','ru'], true) ? $til : 'uz_latn', $avatar, $f['id']]
+                [$ism, $familiya, $email ?: null, in_array($til, ['uz_latn','uz_cyrl'], true) ? $til : 'uz_latn', $avatar, $f['id']]
             );
             $_SESSION['til'] = $til;
             $muvaffaqiyat = t('malumot_saqlandi');
@@ -148,7 +148,6 @@ require_once __DIR__ . '/../includes/navbar.php';
                         <select name="til" class="field">
                             <option value="uz_latn" <?= $f['til'] === 'uz_latn' ? 'selected' : '' ?>>O'zbek (Lotin)</option>
                             <option value="uz_cyrl" <?= $f['til'] === 'uz_cyrl' ? 'selected' : '' ?>>Ўзбек (Кирилл)</option>
-                            <option value="ru" <?= $f['til'] === 'ru' ? 'selected' : '' ?>>Русский</option>
                         </select>
                     </div>
                 </div>

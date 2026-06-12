@@ -75,6 +75,20 @@ require_once __DIR__ . '/../includes/header.php';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <h1 class="font-display font-semibold text-lg flex-1 truncate"><?= e($sahifa_sarlavha) ?></h1>
+
+            <!-- Til almashtirgich -->
+            <?php
+            $joriy_til = $_SESSION['til'] ?? 'uz_latn';
+            $url_til = function (string $til) {
+                $param = http_build_query(array_merge($_GET, ['til' => $til]));
+                return '?' . $param;
+            };
+            ?>
+            <div class="hidden sm:flex items-center gap-1 text-xs bg-white/5 rounded-lg p-1">
+                <a href="<?= e($url_til('uz_latn')) ?>" class="px-2 py-1 rounded <?= $joriy_til === 'uz_latn' ? 'bg-blue-500/30 text-white font-semibold' : 'text-brand-muted hover:text-white' ?>">Lat</a>
+                <a href="<?= e($url_til('uz_cyrl')) ?>" class="px-2 py-1 rounded <?= $joriy_til === 'uz_cyrl' ? 'bg-blue-500/30 text-white font-semibold' : 'text-brand-muted hover:text-white' ?>">Кир</a>
+            </div>
+
             <span class="hidden sm:inline text-sm text-brand-muted">
                 <?= e($f['ism']) ?>
                 <span class="text-xs px-2 py-0.5 ml-1 rounded-full <?= $f['rol'] === 'developer' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400' ?>">

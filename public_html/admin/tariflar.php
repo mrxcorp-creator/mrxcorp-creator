@@ -24,17 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tartib = (int) post('tartib');
         $holat = post('holat') === 'nofaol' ? 'nofaol' : 'faol';
 
+        // Avto kirill versiyalari
+        $nomi_cyrl   = trim((string) post('nomi_cyrl'))   ?: ($nomi   ? lotin_dan_kirill($nomi)   : '');
+        $tavsif_cyrl = trim((string) post('tavsif_cyrl')) ?: ($tavsif ? lotin_dan_kirill($tavsif) : '');
+
         if (!$nomi || $narx <= 0) {
             flash_qoy('xato', t('kerakli_maydon'));
         } elseif ($id) {
             db_bajar(
-                'UPDATE tariflar SET nomi=?, tavsif=?, tur=?, qiymat=?, narx=?, eski_narx=?, mashhur=?, tartib=?, holat=? WHERE id=?',
-                [$nomi, $tavsif, $tur, $qiymat, $narx, $eski, $mashhur, $tartib, $holat, $id]
+                'UPDATE tariflar SET nomi=?, nomi_cyrl=?, tavsif=?, tavsif_cyrl=?, tur=?, qiymat=?, narx=?, eski_narx=?, mashhur=?, tartib=?, holat=? WHERE id=?',
+                [$nomi, $nomi_cyrl, $tavsif, $tavsif_cyrl, $tur, $qiymat, $narx, $eski, $mashhur, $tartib, $holat, $id]
             );
         } else {
             db_bajar(
-                'INSERT INTO tariflar (nomi, tavsif, tur, qiymat, narx, eski_narx, mashhur, tartib, holat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$nomi, $tavsif, $tur, $qiymat, $narx, $eski, $mashhur, $tartib, $holat]
+                'INSERT INTO tariflar (nomi, nomi_cyrl, tavsif, tavsif_cyrl, tur, qiymat, narx, eski_narx, mashhur, tartib, holat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [$nomi, $nomi_cyrl, $tavsif, $tavsif_cyrl, $tur, $qiymat, $narx, $eski, $mashhur, $tartib, $holat]
             );
         }
         flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
@@ -69,8 +73,12 @@ require_once __DIR__ . '/_layout.php';
 
     <div x-show="open" x-transition class="grid sm:grid-cols-2 gap-4 mt-4">
         <div>
-            <label class="field-label">Nomi *</label>
-            <input name="nomi" required value="<?= e($tahrir['nomi'] ?? '') ?>" class="field">
+            <label class="field-label">Nomi (lotin) *</label>
+            <input name="nomi" required value="<?= e($tahrir['nomi'] ?? '') ?>" class="field" data-translit="nomi_cyrl">
+        </div>
+        <div>
+            <label class="field-label">Nomi (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+            <input name="nomi_cyrl" value="<?= e($tahrir['nomi_cyrl'] ?? '') ?>" class="field" placeholder="Avto">
         </div>
         <div>
             <label class="field-label">Narxi (so'm) *</label>
@@ -97,8 +105,12 @@ require_once __DIR__ . '/_layout.php';
             <input name="tartib" type="number" value="<?= e($tahrir['tartib'] ?? 0) ?>" class="field">
         </div>
         <div class="sm:col-span-2">
-            <label class="field-label">Tavsif</label>
-            <textarea name="tavsif" rows="2" class="field"><?= e($tahrir['tavsif'] ?? '') ?></textarea>
+            <label class="field-label">Tavsif (lotin)</label>
+            <textarea name="tavsif" rows="2" class="field" data-translit="tavsif_cyrl"><?= e($tahrir['tavsif'] ?? '') ?></textarea>
+        </div>
+        <div class="sm:col-span-2">
+            <label class="field-label">Tavsif (kirill) <span class="text-xs text-brand-muted">— avto</span></label>
+            <textarea name="tavsif_cyrl" rows="2" class="field" placeholder="Avto"><?= e($tahrir['tavsif_cyrl'] ?? '') ?></textarea>
         </div>
         <div class="flex items-center gap-4 sm:col-span-2">
             <label class="flex items-center gap-2"><input type="checkbox" name="mashhur" value="1" <?= !empty($tahrir['mashhur']) ? 'checked' : '' ?>> Eng mashhur</label>
@@ -122,7 +134,7 @@ require_once __DIR__ . '/_layout.php';
     <?php foreach ($tariflar as $t): ?>
         <div class="glass-card p-5 fade-up <?= $t['holat'] === 'nofaol' ? 'opacity-50' : '' ?>">
             <div class="flex items-start justify-between">
-                <h3 class="font-display"><?= e($t['nomi']) ?></h3>
+                <h3 class="font-display"><?= e(tk($t, 'nomi')) ?></h3>
                 <?php if ($t['mashhur']): ?>
                     <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">★</span>
                 <?php endif; ?>
@@ -131,7 +143,7 @@ require_once __DIR__ . '/_layout.php';
             <?php if ($t['eski_narx']): ?>
                 <div class="line-through text-brand-muted text-xs"><?= e(pul($t['eski_narx'])) ?></div>
             <?php endif; ?>
-            <p class="text-xs text-brand-muted mt-2 line-clamp-2"><?= e($t['tavsif']) ?></p>
+            <p class="text-xs text-brand-muted mt-2 line-clamp-2"><?= e(tk($t, 'tavsif')) ?></p>
             <div class="flex gap-2 mt-4">
                 <a href="?tahrir=<?= (int)$t['id'] ?>" class="text-yellow-400 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
                 <form method="POST" class="inline" onsubmit="return confirm('O\'chirilsinmi?')">

@@ -9,6 +9,7 @@
  */
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/transliterator.php';
 
 /**
  * Summani UZS formatida chiqarish: 25 000 so'm
@@ -169,4 +170,69 @@ function bosh_harflar(?array $f): string {
     $i = mb_substr($f['ism'] ?? '?', 0, 1);
     $fa = mb_substr($f['familiya'] ?? '', 0, 1);
     return mb_strtoupper($i . $fa);
+}
+
+
+/**
+ * Tarjima kontent — DB qatoridan tilga mos maydon qiymatini olish.
+ *
+ * Misol:
+ *   $savol = db_qator('SELECT * FROM savollar WHERE id=?', [5]);
+ *   echo tk($savol, 'matn');           // joriy tilga qarab matn yoki matn_cyrl
+ *   echo tk($savol, 'variant_a');      // variant_a yoki variant_a_cyrl
+ *
+ * Qoidalar:
+ *   - $_SESSION['til'] === 'uz_cyrl' va `<maydon>_cyrl` mavjud bo'lsa — uni qaytaradi.
+ *   - Kirill maydoni bo'sh bo'lsa — lotin maydonini avtomatik kirillga o'giradi.
+ *   - Aks holda lotin maydonini qaytaradi.
+ *   - Qator yoki maydon bo'lmasa — bo'sh string qaytaradi.
+ *
+ * @param array<string,mixed>|null $qator   DB-dan kelgan qator
+ * @param string                   $maydon  Maydon nomi (lotin)
+ * @return string
+ */
+function tk(?array $qator, string $maydon): string {
+    if (!$qator) return '';
+
+    $til = $_SESSION['til'] ?? 'uz_latn';
+    $latn = (string) ($qator[$maydon] ?? '');
+
+    if ($til === 'uz_cyrl') {
+        $cyrl = (string) ($qator[$maydon . '_cyrl'] ?? '');
+        if ($cyrl !== '') return $cyrl;
+        // Kirill versiyasi yo'q — runtime'da konvertatsiya
+        return $latn === '' ? '' : lotin_dan_kirill($latn);
+    }
+
+    return $latn;
+}
+
+/**
+ * Sozlamalar uchun tilga mos qiymatni olish.
+ *
+ * Misol:
+ *   echo ts('sayt_nomi');   // 'sayt_nomi' yoki 'sayt_nomi_cyrl' (tilga qarab)
+ */
+function ts(string $kalit, string $standart = ''): string {
+    $til = $_SESSION['til'] ?? 'uz_latn';
+    if ($til === 'uz_cyrl') {
+        $cyrl = sozlama($kalit . '_cyrl', '');
+        if ($cyrl !== '') return $cyrl;
+        $latn = sozlama($kalit, $standart);
+        return $latn === '' ? '' : lotin_dan_kirill($latn);
+    }
+    return sozlama($kalit, $standart);
+}
+
+/**
+ * Foydalanuvchi ismini tilga mos ko'rsatish (ism + familiya).
+ * Foydalanuvchi ma'lumoti _cyrl ustunsiz, shu sababli runtime konvertatsiya.
+ */
+function fu_ism(?array $f): string {
+    if (!$f) return '';
+    $matn = trim(($f['ism'] ?? '') . ' ' . ($f['familiya'] ?? ''));
+    if (($_SESSION['til'] ?? 'uz_latn') === 'uz_cyrl') {
+        return lotin_dan_kirill($matn);
+    }
+    return $matn;
 }

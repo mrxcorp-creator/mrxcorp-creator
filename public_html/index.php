@@ -140,7 +140,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         </span>
                     <?php endif; ?>
 
-                    <h3 class="font-display text-xl mb-2"><?= e($tar['nomi']) ?></h3>
+                    <h3 class="font-display text-xl mb-2"><?= e(tk($tar, 'nomi')) ?></h3>
 
                     <div class="flex items-baseline gap-2 mb-3">
                         <span class="text-4xl font-display font-bold text-blue-400"><?= e(number_format($tar['narx'], 0, '.', ' ')) ?></span>
@@ -153,7 +153,7 @@ require_once __DIR__ . '/includes/navbar.php';
                         </div>
                     <?php endif; ?>
 
-                    <p class="text-sm text-brand-muted mb-5 min-h-[3rem]"><?= e($tar['tavsif']) ?></p>
+                    <p class="text-sm text-brand-muted mb-5 min-h-[3rem]"><?= e(tk($tar, 'tavsif')) ?></p>
 
                     <a href="<?= e(SAYT_URL) ?>/register" class="<?= $tar['mashhur'] ? 'btn-primary' : 'btn-ghost' ?> w-full">
                         <?= e(t('tarif_olish')) ?>
@@ -179,15 +179,15 @@ require_once __DIR__ . '/includes/navbar.php';
             <div class="glass-card p-6 fade-up" style="animation-delay:<?= 0.05 * ($i + 1) ?>s">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white">
-                        <?= e(mb_strtoupper(mb_substr($fikr['ism'], 0, 1))) ?>
+                        <?= e(mb_strtoupper(mb_substr(tk($fikr, 'ism'), 0, 1))) ?>
                     </div>
                     <div>
-                        <div class="font-medium"><?= e($fikr['ism']) ?></div>
+                        <div class="font-medium"><?= e(tk($fikr, 'ism')) ?></div>
                         <div class="text-yellow-400 text-sm"><?= str_repeat('★', (int)$fikr['baho']) ?></div>
                     </div>
                 </div>
                 <p class="text-brand-muted text-sm leading-relaxed">
-                    <?= e($fikr['matn']) ?>
+                    <?= e(tk($fikr, 'matn')) ?>
                 </p>
             </div>
         <?php endforeach; ?>

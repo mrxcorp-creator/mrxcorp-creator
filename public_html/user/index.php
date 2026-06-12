@@ -23,7 +23,7 @@ $oz_natija = round(($togri_javoblar / $umumiy) * 100);
 
 // ----- Faol obuna -----
 $obuna = db_qator(
-    'SELECT o.*, t.nomi AS tarif_nomi
+    'SELECT o.*, t.nomi AS tarif_nomi, t.nomi_cyrl AS tarif_nomi_cyrl
      FROM obunalar o JOIN tariflar t ON o.tarif_id = t.id
      WHERE o.foydalanuvchi_id = ? AND o.holat = "faol" AND o.tugash > NOW()
      ORDER BY o.tugash DESC LIMIT 1',
@@ -32,7 +32,7 @@ $obuna = db_qator(
 
 // ----- Davom etayotgan test -----
 $davom = db_qator(
-    'SELECT n.*, b.raqam, b.nomi
+    'SELECT n.*, b.raqam, b.nomi, b.nomi_cyrl
      FROM natijalar n JOIN biletlar b ON n.bilet_id = b.id
      WHERE n.foydalanuvchi_id = ? AND n.holat = "davom"
      ORDER BY n.boshlangan DESC LIMIT 1',
@@ -41,7 +41,7 @@ $davom = db_qator(
 
 // ----- Oxirgi natijalar (5 ta) -----
 $oxirgi = db_barcha(
-    'SELECT n.*, b.raqam, b.nomi
+    'SELECT n.*, b.raqam, b.nomi, b.nomi_cyrl
      FROM natijalar n JOIN biletlar b ON n.bilet_id = b.id
      WHERE n.foydalanuvchi_id = ? AND n.holat = "tugagan"
      ORDER BY n.tugagan DESC LIMIT 5',
@@ -66,7 +66,7 @@ require_once __DIR__ . '/../includes/navbar.php';
 <main class="max-w-7xl mx-auto px-4 py-8">
     <!-- Salomlashish -->
     <div class="mb-8 fade-up">
-        <h1 class="text-3xl mb-1"><?= e(t('salom')) ?>, <span class="text-blue-400"><?= e($f['ism']) ?></span> 👋</h1>
+        <h1 class="text-3xl mb-1"><?= e(t('salom')) ?>, <span class="text-blue-400"><?= e(fu_ism($f) ?: $f['ism']) ?></span> 👋</h1>
         <p class="text-brand-muted">Bugun nimani o'rganamiz?</p>
     </div>
 
@@ -110,7 +110,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <span class="text-xs text-brand-muted uppercase tracking-wider"><?= e(t('obuna_holati')) ?></span>
             </div>
             <?php if ($obuna): ?>
-                <div class="text-lg font-display font-bold text-yellow-400"><?= e($obuna['tarif_nomi']) ?></div>
+                <div class="text-lg font-display font-bold text-yellow-400"><?= e(tk(['nomi' => $obuna['tarif_nomi'], 'nomi_cyrl' => $obuna['tarif_nomi_cyrl']], 'nomi')) ?></div>
                 <div class="text-xs text-brand-muted mt-1"><?= e(t('tugaydigan_sana')) ?>: <?= e(sana($obuna['tugash'], 'd.m.Y')) ?></div>
             <?php else: ?>
                 <div class="text-lg font-display font-bold text-brand-muted"><?= e(t('obuna_yoq')) ?></div>
@@ -125,7 +125,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <div class="text-yellow-400 text-sm font-medium mb-1">⏳ Davom etayotgan test</div>
-                    <h3 class="text-xl font-display"><?= e($davom['nomi']) ?></h3>
+                    <h3 class="text-xl font-display"><?= e(tk($davom, 'nomi')) ?></h3>
                     <p class="text-sm text-brand-muted mt-1">Boshlangan: <?= e(vaqt_oldin($davom['boshlangan'])) ?></p>
                 </div>
                 <a href="<?= e(SAYT_URL) ?>/test?bilet=<?= (int)$davom['bilet_id'] ?>" class="btn-primary">
@@ -164,7 +164,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                                     <?= $foiz ?>%
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-medium truncate">№<?= (int)$r['raqam'] ?> — <?= e($r['nomi']) ?></div>
+                                    <div class="font-medium truncate">№<?= (int)$r['raqam'] ?> — <?= e(tk($r, 'nomi')) ?></div>
                                     <div class="text-xs text-brand-muted">
                                         <?= (int)$r['togri_son'] ?>/<?= (int)$r['umumiy_son'] ?> · <?= e(vaqt_oldin($r['tugagan'])) ?>
                                     </div>
