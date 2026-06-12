@@ -73,10 +73,8 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- Logo -->
         <div class="text-center mb-8">
-            <a href="<?= e(SAYT_URL) ?>" class="inline-flex items-center gap-2.5">
-                <span class="w-14 h-14 rounded-2xl flex items-center justify-center font-display font-extrabold text-white text-2xl shadow-lg"
-                      style="background: var(--gradient-primary); box-shadow: 0 12px 32px var(--accent-glow);">V</span>
-                <span class="font-display font-extrabold text-app text-2xl">VatanParvar</span>
+            <a href="<?= e(SAYT_URL) ?>" class="inline-block">
+                <?= logo_html('lg', false) ?>
             </a>
         </div>
 

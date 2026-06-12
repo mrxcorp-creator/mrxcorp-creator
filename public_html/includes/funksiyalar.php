@@ -236,3 +236,120 @@ function fu_ism(?array $f): string {
     }
     return $matn;
 }
+
+
+/**
+ * Sayt logosini HTML ko'rinishida qaytaradi.
+ *
+ * Agar admin logo yuklagan bo'lsa — rasm sifatida ko'rinadi.
+ * Aks holda — gradient "V" harf (default).
+ *
+ * @param string $olcham 'sm' (32px) | 'md' (40px) | 'lg' (56px)
+ * @param bool   $faqat_ikona  true bo'lsa, "VatanParvar" matni qo'shilmaydi
+ * @return string HTML
+ */
+function logo_html(string $olcham = 'md', bool $faqat_ikona = true): string {
+    $olchamlar = [
+        'sm' => ['box' => '32', 'rounded' => 'rounded-lg',  'matn' => 'text-base', 'gap' => '2'],
+        'md' => ['box' => '40', 'rounded' => 'rounded-xl',  'matn' => 'text-lg',   'gap' => '2.5'],
+        'lg' => ['box' => '56', 'rounded' => 'rounded-2xl', 'matn' => 'text-2xl',  'gap' => '2.5'],
+    ];
+    $o = $olchamlar[$olcham] ?? $olchamlar['md'];
+
+    $logo_fayl = sozlama('sayt_logo', '');
+    $bor = $logo_fayl && is_file(UPLOAD_PATH . '/dizayn/' . $logo_fayl);
+
+    $w = $o['box']; $h = $o['box'];
+
+    if ($bor) {
+        $rasm = '<img src="' . htmlspecialchars(SAYT_URL . '/uploads/dizayn/' . $logo_fayl, ENT_QUOTES) . '" '
+              . 'alt="Logo" class="' . $o['rounded'] . ' object-cover shadow-md" '
+              . 'style="width:' . $w . 'px;height:' . $h . 'px;">';
+    } else {
+        $rasm = '<span class="' . $o['rounded'] . ' flex items-center justify-center font-display font-bold text-white shadow-md '
+              . $o['matn']
+              . '" style="width:' . $w . 'px;height:' . $h . 'px;'
+              . 'background: var(--gradient-primary); box-shadow: 0 8px 24px var(--accent-glow);">V</span>';
+    }
+
+    if ($faqat_ikona) return $rasm;
+
+    return '<span class="flex items-center gap-' . $o['gap'] . '">'
+         . $rasm
+         . '<span class="font-display font-bold text-app ' . $o['matn'] . '">VatanParvar</span>'
+         . '</span>';
+}
+
+/**
+ * Bosh sahifa hero banner — agar admin yuklagan bo'lsa va faollashtirgan bo'lsa.
+ *
+ * @return array{rasm: string, havola: string}|null
+ */
+function banner_olish(): ?array {
+    if (sozlama('bosh_banner_aktiv', '0') !== '1') return null;
+    $rasm = sozlama('bosh_banner', '');
+    if (!$rasm || !is_file(UPLOAD_PATH . '/dizayn/' . $rasm)) return null;
+    return [
+        'rasm'   => SAYT_URL . '/uploads/dizayn/' . $rasm,
+        'havola' => sozlama('bosh_banner_havola', ''),
+    ];
+}
+
+/**
+ * Reklama chiqarish — joylashuvga qarab eng mos reklamani topadi.
+ *
+ * Agar bir nechta reklama bo'lsa, tartib bo'yicha (kichikdan kattaga) yoki
+ * tasodifiy tanlanadi. Ko'rish soni avtomatik oshiriladi.
+ *
+ * @param string $joylashuv  'bosh_yuqori' | 'bosh_pastki' | 'user_yon' | 'test_oraligi' | 'sidebar'
+ * @return string HTML (yoki bo'sh string agar reklama yo'q bo'lsa)
+ */
+function reklama_chiqar(string $joylashuv): string {
+    $joriy = db_qator(
+        'SELECT * FROM reklamalar
+         WHERE joylashuv = ? AND holat = "faol"
+           AND (boshlanish IS NULL OR boshlanish <= CURDATE())
+           AND (tugash IS NULL OR tugash >= CURDATE())
+         ORDER BY tartib ASC, RAND()
+         LIMIT 1',
+        [$joylashuv]
+    );
+    if (!$joriy) return '';
+
+    // Ko'rish sonini oshirish (silently)
+    @db_bajar('UPDATE reklamalar SET korish_soni = korish_soni + 1 WHERE id = ?', [$joriy['id']]);
+
+    $rasm_url = SAYT_URL . '/uploads/dizayn/' . $joriy['rasm'];
+    if (!is_file(UPLOAD_PATH . '/dizayn/' . $joriy['rasm'])) return '';
+
+    $havola = $joriy['havola'] ?: '';
+    $hedef  = $joriy['havola_yangi_oyna'] ? '_blank' : '_self';
+    $rel    = $joriy['havola_yangi_oyna'] ? 'noopener sponsored' : 'sponsored';
+
+    $bosish_url = SAYT_URL . '/api/reklama_bosish.php?id=' . (int)$joriy['id'];
+    $cls = 'reklama-blok';
+
+    $img = '<img src="' . htmlspecialchars($rasm_url, ENT_QUOTES) . '" '
+         . 'alt="' . htmlspecialchars($joriy['nomi'], ENT_QUOTES) . '" '
+         . 'class="w-full h-auto rounded-2xl shadow-md transition hover:scale-[1.02]" loading="lazy">';
+
+    $badge = '<span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-black/40 text-white/80 font-medium tracking-wider">REKLAMA</span>';
+
+    if ($havola) {
+        return '<a href="' . htmlspecialchars($bosish_url . '&u=' . urlencode($havola), ENT_QUOTES) . '" '
+             . 'target="' . $hedef . '" rel="' . $rel . '" '
+             . 'class="' . $cls . ' block relative my-6 group">'
+             . $img . $badge
+             . '</a>';
+    }
+
+    return '<div class="' . $cls . ' relative my-6">' . $img . $badge . '</div>';
+}
+
+/**
+ * Reklama bosildi — click count'ni oshiradi.
+ * (api/reklama_bosish.php tomonidan chaqiriladi)
+ */
+function reklama_bosildi(int $reklama_id): void {
+    @db_bajar('UPDATE reklamalar SET bosish_soni = bosish_soni + 1 WHERE id = ?', [$reklama_id]);
+}

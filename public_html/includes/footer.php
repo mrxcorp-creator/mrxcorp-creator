@@ -14,9 +14,7 @@ $bilan_til = function (string $til): string {
 
         <div class="md:col-span-2">
             <a href="<?= e(SAYT_URL) ?>" class="flex items-center gap-2.5 mb-4">
-                <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white text-lg shadow-md"
-                      style="background: var(--gradient-primary); box-shadow: 0 8px 24px var(--accent-glow);">V</span>
-                <span class="font-display font-bold text-app text-lg">VatanParvar Yaypan</span>
+                <?= logo_html('md', false) ?>
             </a>
             <p class="leading-relaxed max-w-md text-app-2">
                 <?= e(t('footer_haqida') ?: "Avto maktab nazariyasiga onlayn tayyorgarlik platformasi. Imtihonni birinchi urinishdan topshirish uchun barcha biletlar va testlar.") ?>

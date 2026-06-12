@@ -221,7 +221,31 @@ INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('payme_key', '', 'Payme test/prod kaliti'),
 ('referal_bonus', '5000', 'Referal bonus summasi'),
 ('test_vaqti_minut', '25', 'Bitta test uchun vaqt (daqiqada)'),
-('savol_soni_test', '20', 'Bitta testdagi savollar soni');
+('savol_soni_test', '20', 'Bitta testdagi savollar soni'),
+('sayt_logo', '', 'Sayt logo fayli (uploads/dizayn/)'),
+('sayt_favicon', '', 'Favicon fayli'),
+('bosh_banner', '', 'Bosh sahifa hero banner rasmi'),
+('bosh_banner_aktiv', '0', "Banner faol (1) yoki yo'q (0)"),
+('bosh_banner_havola', '', 'Banner bosilganda ochiladigan havola');
+
+-- ----------- 13. REKLAMALAR -----------
+CREATE TABLE IF NOT EXISTS `reklamalar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `nomi` VARCHAR(150) NOT NULL,
+    `rasm` VARCHAR(255) NOT NULL,
+    `havola` VARCHAR(500) DEFAULT NULL,
+    `havola_yangi_oyna` TINYINT(1) DEFAULT 1,
+    `joylashuv` ENUM('bosh_yuqori','bosh_pastki','user_yon','test_oraligi','sidebar') NOT NULL,
+    `boshlanish` DATE DEFAULT NULL,
+    `tugash` DATE DEFAULT NULL,
+    `holat` ENUM('faol','nofaol') DEFAULT 'faol',
+    `tartib` INT DEFAULT 0,
+    `korish_soni` INT UNSIGNED DEFAULT 0,
+    `bosish_soni` INT UNSIGNED DEFAULT 0,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_joylashuv_holat` (`joylashuv`, `holat`),
+    INDEX `idx_sana_oraliq` (`boshlanish`, `tugash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Standart tariflar
 INSERT INTO `tariflar` (`nomi`, `nomi_cyrl`, `tavsif`, `tavsif_cyrl`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES

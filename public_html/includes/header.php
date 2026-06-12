@@ -94,7 +94,14 @@ $html_lang       = $joriy_til === 'uz_cyrl' ? 'uz-Cyrl' : 'uz-Latn';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233B82F6'/><stop offset='1' stop-color='%237C3AED'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='50%25' y='54%25' text-anchor='middle' fill='white' font-family='Arial' font-size='34' font-weight='800'>V</text></svg>">
+    <?php
+    $favicon_fayl = sozlama('sayt_favicon', '');
+    if ($favicon_fayl && is_file(UPLOAD_PATH . '/dizayn/' . $favicon_fayl)):
+    ?>
+        <link rel="icon" href="<?= e(SAYT_URL) ?>/uploads/dizayn/<?= e($favicon_fayl) ?>">
+    <?php else: ?>
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233B82F6'/><stop offset='1' stop-color='%237C3AED'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='50%25' y='54%25' text-anchor='middle' fill='white' font-family='Arial' font-size='34' font-weight='800'>V</text></svg>">
+    <?php endif; ?>
 
     <style>
         /* ============================================================

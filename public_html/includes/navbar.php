@@ -23,9 +23,7 @@ $bilan_til = function (string $til): string {
 
         <!-- Logo -->
         <a href="<?= e(SAYT_URL) ?>" class="flex items-center gap-2.5 group">
-            <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white text-lg shadow-md transition-transform group-hover:scale-105"
-                  style="background: var(--gradient-primary); box-shadow: 0 8px 24px var(--accent-glow);">V</span>
-            <span class="font-display font-bold text-app text-lg hidden sm:inline">VatanParvar</span>
+            <?= logo_html('md', false) ?>
         </a>
 
         <!-- Markaziy menyu (desktop) -->

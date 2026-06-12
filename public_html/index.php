@@ -37,6 +37,7 @@ $fikrlar  = db_barcha('SELECT * FROM fikrlar WHERE tasdiq = 1 ORDER BY yaratilga
 $bilet_son         = (int) db_qiymat('SELECT COUNT(*) FROM biletlar WHERE holat = "faol"');
 $savol_son         = (int) db_qiymat('SELECT COUNT(*) FROM savollar');
 $foydalanuvchi_son = (int) db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar');
+$banner            = banner_olish();
 
 $sahifa_sarlavha = t('sayt_nomi') . ' — ' . t('hero_sarlavha');
 $sahifa_tavsif   = t('hero_tavsif');
@@ -46,9 +47,29 @@ require_once __DIR__ . '/includes/navbar.php';
 ?>
 
 <!-- ============================================================
+     ADMIN BANNER (agar yuklangan va faol bo'lsa)
+     ============================================================ -->
+<?php if ($banner): ?>
+    <section class="max-w-7xl mx-auto px-4 pt-6">
+        <?php if ($banner['havola']): ?>
+            <a href="<?= e($banner['havola']) ?>" target="_blank" rel="noopener" class="block group">
+        <?php else: ?>
+            <div class="block">
+        <?php endif; ?>
+            <img src="<?= e($banner['rasm']) ?>" alt="Banner"
+                 class="w-full h-auto rounded-3xl shadow-2xl transition group-hover:scale-[1.01] fade-up">
+        <?php if ($banner['havola']): ?>
+            </a>
+        <?php else: ?>
+            </div>
+        <?php endif; ?>
+    </section>
+<?php endif; ?>
+
+<!-- ============================================================
      HERO
      ============================================================ -->
-<section class="relative max-w-7xl mx-auto px-4 pt-20 pb-28 text-center">
+<section class="relative max-w-7xl mx-auto px-4 pt-20 pb-16 text-center">
     <div class="fade-up">
         <span class="badge badge-accent mb-6 text-sm">
             <span class="relative flex w-2 h-2">
@@ -96,6 +117,15 @@ require_once __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </section>
+
+<!-- ============================================================
+     REKLAMA — bosh sahifa yuqori
+     ============================================================ -->
+<?php $rek_yuqori = reklama_chiqar('bosh_yuqori'); if ($rek_yuqori): ?>
+    <section class="max-w-7xl mx-auto px-4">
+        <?= $rek_yuqori ?>
+    </section>
+<?php endif; ?>
 
 <!-- ============================================================
      XUSUSIYATLAR (premium SVG ikonalar)
@@ -233,6 +263,15 @@ require_once __DIR__ . '/includes/navbar.php';
         <?php endforeach; ?>
     </div>
 </section>
+<?php endif; ?>
+
+<!-- ============================================================
+     REKLAMA — bosh sahifa pastki (CTA dan oldin)
+     ============================================================ -->
+<?php $rek_pastki = reklama_chiqar('bosh_pastki'); if ($rek_pastki): ?>
+    <section class="max-w-7xl mx-auto px-4">
+        <?= $rek_pastki ?>
+    </section>
 <?php endif; ?>
 
 <!-- ============================================================

@@ -147,6 +147,11 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
     </div>
 
+    <!-- Reklama (foydalanuvchi paneli) -->
+    <?php $rek = reklama_chiqar('user_yon'); if ($rek): ?>
+        <div class="mb-8"><?= $rek ?></div>
+    <?php endif; ?>
+
     <!-- Davom etayotgan test -->
     <?php if ($davom): ?>
         <div class="glass-card-premium p-6 mb-8 fade-up relative overflow-hidden"
