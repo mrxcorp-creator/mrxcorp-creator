@@ -14,12 +14,12 @@ require_once __DIR__ . '/../includes/funksiyalar.php';
 sessiya_boshla();
 
 // ----- Til tanlash -----
-if (isset($_GET['til']) && in_array($_GET['til'], ['uz_latn', 'uz_cyrl', 'ru'], true)) {
+if (isset($_GET['til']) && in_array($_GET['til'], ['uz_latn', 'uz_cyrl'], true)) {
     $_SESSION['til'] = $_GET['til'];
     setcookie('til', $_GET['til'], time() + 60 * 60 * 24 * 365, '/');
 }
 $TIL = $_SESSION['til'] ?? $_COOKIE['til'] ?? 'uz_latn';
-if (!in_array($TIL, ['uz_latn', 'uz_cyrl', 'ru'], true)) {
+if (!in_array($TIL, ['uz_latn', 'uz_cyrl'], true)) {
     $TIL = 'uz_latn';
 }
 $_SESSION['til'] = $TIL;

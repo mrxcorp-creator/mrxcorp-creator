@@ -100,9 +100,8 @@ $sayt_nomi_f = sozlama('sayt_nomi', 'VatanParvar Yaypan');
                 </p>
                 <div class="flex gap-1.5 items-center bg-white rounded-xl p-1 border border-brand-border shadow-sm">
                     <span class="text-xs text-brand-muted px-2"><?= e(t('til_tanlash')) ?>:</span>
-                    <a href="?til=uz_latn" class="px-3 py-1 rounded-lg text-xs font-semibold transition <?= ($_SESSION['til'] ?? '') === 'uz_latn' ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-soft' : 'text-brand-muted hover:bg-sky-50' ?>">Lat</a>
-                    <a href="?til=uz_cyrl" class="px-3 py-1 rounded-lg text-xs font-semibold transition <?= ($_SESSION['til'] ?? '') === 'uz_cyrl' ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-soft' : 'text-brand-muted hover:bg-sky-50' ?>">Кир</a>
-                    <a href="?til=ru" class="px-3 py-1 rounded-lg text-xs font-semibold transition <?= ($_SESSION['til'] ?? '') === 'ru' ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-soft' : 'text-brand-muted hover:bg-sky-50' ?>">Рус</a>
+                    <a href="?til=uz_latn" class="px-3 py-1 rounded-lg text-xs font-semibold transition <?= ($_SESSION['til'] ?? '') === 'uz_latn' ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-soft' : 'text-brand-muted hover:bg-sky-50' ?>">Lotin</a>
+                    <a href="?til=uz_cyrl" class="px-3 py-1 rounded-lg text-xs font-semibold transition <?= ($_SESSION['til'] ?? '') === 'uz_cyrl' ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-soft' : 'text-brand-muted hover:bg-sky-50' ?>">Кирилл</a>
                 </div>
             </div>
         </div>

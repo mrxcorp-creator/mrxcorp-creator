@@ -119,6 +119,16 @@ $flash           = flash_ol();
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
 
+    <script>
+        // Dark mode boshlang'ich (cookie/localStorage'dan)
+        (function () {
+            try {
+                const saved = localStorage.getItem('tema') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                if (saved === 'dark') document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
+
     <style>
         /* ============================================================
            DIZAYN TIZIMI — Yorqin (oq + havorang) tema
@@ -138,7 +148,67 @@ $flash           = flash_ol();
             --clr-body:       #334155;
             --clr-muted:      #64748B;
             --clr-light:      #94A3B8;
+        }
 
+        /* ============================================================
+           DARK MODE
+           ============================================================ */
+        html.dark {
+            --clr-bg:         #0F172A;
+            --clr-bg-soft:    #1E293B;
+            --clr-surface:    #1E293B;
+            --clr-border:     #334155;
+            --clr-border-hov: #475569;
+            --clr-text:       #F8FAFC;
+            --clr-body:       #CBD5E1;
+            --clr-muted:      #94A3B8;
+            --clr-light:      #64748B;
+        }
+        html.dark body { background: var(--clr-bg); color: var(--clr-body); }
+        html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6 { color: var(--clr-text); }
+        html.dark .glass-card {
+            background: rgba(30, 41, 59, 0.85);
+            border-color: rgba(71, 85, 105, 0.5);
+        }
+        html.dark .glass-card:hover { border-color: rgba(100, 116, 139, 0.6); }
+        html.dark .field {
+            background: #1E293B;
+            border-color: #334155;
+            color: #F8FAFC;
+        }
+        html.dark .field::placeholder { color: #64748B; }
+        html.dark .btn-ghost {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: #334155;
+            color: #F8FAFC;
+        }
+        html.dark .btn-ghost:hover { background: #1E293B; border-color: var(--clr-primary); }
+        html.dark .aurora-bg {
+            background:
+                radial-gradient(ellipse 800px 600px at 10% -10%, rgba(56,189,248,0.15), transparent 50%),
+                radial-gradient(ellipse 700px 500px at 90% 10%, rgba(99,102,241,0.12), transparent 50%),
+                radial-gradient(ellipse 600px 400px at 50% 100%, rgba(139,92,246,0.10), transparent 50%),
+                linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+        }
+        html.dark nav.sticky { background: rgba(30, 41, 59, 0.85) !important; }
+        html.dark nav.sticky a { color: var(--clr-body); }
+        html.dark .text-brand-text { color: var(--clr-text); }
+        html.dark .text-brand-body { color: var(--clr-body); }
+        html.dark .text-brand-muted { color: var(--clr-muted); }
+        html.dark .border-brand-border { border-color: var(--clr-border); }
+        html.dark .bg-white { background: var(--clr-surface); }
+        html.dark .bg-sky-50 { background: rgba(56, 189, 248, 0.08); }
+        html.dark .bg-sky-50\/30 { background: rgba(56, 189, 248, 0.05); }
+        html.dark .bg-sky-50\/50 { background: rgba(56, 189, 248, 0.07); }
+        html.dark .hover\:bg-sky-50:hover { background: rgba(56, 189, 248, 0.12); }
+        html.dark .hover\:bg-sky-50\/50:hover { background: rgba(56, 189, 248, 0.08); }
+        html.dark .bg-emerald-50 { background: rgba(16, 185, 129, 0.10); }
+        html.dark .bg-rose-50 { background: rgba(239, 68, 68, 0.10); }
+        html.dark .bg-amber-50 { background: rgba(251, 146, 60, 0.10); }
+        html.dark .bg-violet-50 { background: rgba(139, 92, 246, 0.10); }
+        html.dark .bg-brand-bg-soft { background: rgba(30, 41, 59, 0.5); }
+
+        :root {
             --shadow-sm:  0 1px 2px rgba(15,23,42,.04);
             --shadow:     0 2px 8px -2px rgba(14,165,233,.08), 0 4px 16px -4px rgba(15,23,42,.06);
             --shadow-md:  0 4px 16px -4px rgba(14,165,233,.12), 0 8px 32px -8px rgba(15,23,42,.08);

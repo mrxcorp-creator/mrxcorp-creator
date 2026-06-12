@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `foydalanuvchilar` (
     `bonus_balans` DECIMAL(10,2) DEFAULT 0,
     `telegram_id` BIGINT DEFAULT NULL,
     `telegram_hash` VARCHAR(64) DEFAULT NULL,
-    `til` ENUM('uz_latn','uz_cyrl','ru') DEFAULT 'uz_latn',
+    `til` ENUM('uz_latn','uz_cyrl') DEFAULT 'uz_latn',
     `oxirgi_kirish` DATETIME DEFAULT NULL,
     `holat` ENUM('faol','bloklangan') DEFAULT 'faol',
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
