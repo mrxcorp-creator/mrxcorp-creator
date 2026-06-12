@@ -9,6 +9,11 @@
     <!-- Yumshoq gradient ajratuvchi -->
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-sky-300 to-transparent"></div>
 
+<?php
+$logo_url_f = sozlama('logo_url');
+$sayt_nomi_f = sozlama('sayt_nomi', 'VatanParvar Yaypan');
+?>
+
     <div class="bg-gradient-to-b from-transparent via-sky-50/40 to-sky-50/80 pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-4">
 
@@ -18,8 +23,14 @@
                 <!-- Logo + tavsif -->
                 <div class="md:col-span-2">
                     <a href="<?= e(SAYT_URL) ?>" class="inline-flex items-center gap-2.5 mb-4 group">
-                        <span class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 flex items-center justify-center font-display font-bold text-white text-lg shadow-soft group-hover:shadow-glow transition-all">V</span>
-                        <span class="font-display font-bold text-brand-text text-xl">VatanParvar Yaypan</span>
+                        <?php if ($logo_url_f && is_file(UPLOAD_PATH . '/' . $logo_url_f)): ?>
+                            <span class="w-11 h-11 rounded-xl overflow-hidden bg-white shadow-soft group-hover:shadow-glow transition-all">
+                                <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($logo_url_f) ?>" alt="<?= e($sayt_nomi_f) ?>" class="w-full h-full object-contain">
+                            </span>
+                        <?php else: ?>
+                            <span class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 flex items-center justify-center font-display font-bold text-white text-lg shadow-soft group-hover:shadow-glow transition-all"><?= e(mb_substr($sayt_nomi_f, 0, 1)) ?></span>
+                        <?php endif; ?>
+                        <span class="font-display font-bold text-brand-text text-xl"><?= e($sayt_nomi_f) ?></span>
                     </a>
                     <p class="leading-relaxed max-w-md text-brand-muted text-sm">
                         <?= e(t('footer_haqida') ?: "Avto maktab nazariyasiga onlayn tayyorgarlik platformasi. Imtihonni birinchi urinishdan topshirish uchun barcha biletlar va testlar.") ?>
@@ -47,9 +58,12 @@
                     <h4 class="text-brand-text font-display font-bold mb-4 text-sm uppercase tracking-wider"><?= e(t('havolalar')) ?></h4>
                     <ul class="space-y-2.5 text-sm">
                         <li><a href="<?= e(SAYT_URL) ?>/" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('bosh_sahifa')) ?></a></li>
+                        <li><a href="<?= e(SAYT_URL) ?>/tariflar" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('tariflar')) ?></a></li>
+                        <?php if ((int) sozlama('blog_aktiv', 1)): ?>
+                            <li><a href="<?= e(SAYT_URL) ?>/blog" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span>Blog</a></li>
+                        <?php endif; ?>
+                        <li><a href="<?= e(SAYT_URL) ?>/aloqa" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('aloqa')) ?></a></li>
                         <li><a href="<?= e(SAYT_URL) ?>/login" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('kirish')) ?></a></li>
-                        <li><a href="<?= e(SAYT_URL) ?>/register" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('royxatdan_otish')) ?></a></li>
-                        <li><a href="<?= e(SAYT_URL) ?>/#tariflar" class="text-brand-muted hover:text-sky-600 transition flex items-center gap-2 group"><span class="w-1 h-1 rounded-full bg-sky-400 group-hover:w-3 transition-all"></span><?= e(t('tariflar')) ?></a></li>
                     </ul>
                 </div>
 

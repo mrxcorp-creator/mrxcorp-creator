@@ -29,6 +29,14 @@ RewriteRule ^profil/?$ user/profil.php [L]
 RewriteRule ^tolov/?$ user/payment.php [L]
 RewriteRule ^referal/?$ user/referal.php [L]
 
+# Yangi public sahifalar
+RewriteRule ^tariflar/?$ tariflar.php [L]
+RewriteRule ^blog/?$ blog.php [L]
+RewriteRule ^aloqa/?$ aloqa.php [L]
+
+# Bitta blog post: /blog/{slug}
+RewriteRule ^blog/([a-z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+
 # ----- Maxfiy fayllarni himoyalash -----
 <FilesMatch "\.(env|sql|md|log|gitignore|json)$">
     Require all denied

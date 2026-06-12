@@ -5,6 +5,8 @@
  * Yorqin (oq + havorang) tema bilan zamonaviy navbar.
  */
 $f = $f ?? joriy_foydalanuvchi();
+$logo_url = sozlama('logo_url');
+$sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
 ?>
 
 <nav x-data="{open:false, scrolled:false}"
@@ -16,11 +18,17 @@ $f = $f ?? joriy_foydalanuvchi();
 
         <!-- Logo -->
         <a href="<?= e(SAYT_URL) ?>" class="flex items-center gap-2.5 group">
-            <span class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 flex items-center justify-center font-display font-bold text-white shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-110">
-                V
-                <span class="absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-500 opacity-0 group-hover:opacity-100 blur-md -z-10 transition-opacity duration-300"></span>
-            </span>
-            <span class="font-display font-bold text-brand-text text-lg hidden sm:inline">VatanParvar</span>
+            <?php if ($logo_url && is_file(UPLOAD_PATH . '/' . $logo_url)): ?>
+                <span class="relative w-10 h-10 rounded-xl overflow-hidden shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-110 bg-white">
+                    <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($logo_url) ?>" alt="<?= e($sayt_nomi) ?>" class="w-full h-full object-contain">
+                </span>
+            <?php else: ?>
+                <span class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 flex items-center justify-center font-display font-bold text-white shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-110">
+                    <?= e(mb_substr($sayt_nomi, 0, 1)) ?>
+                    <span class="absolute inset-0 rounded-xl bg-gradient-to-br from-sky-300 to-blue-500 opacity-0 group-hover:opacity-100 blur-md -z-10 transition-opacity duration-300"></span>
+                </span>
+            <?php endif; ?>
+            <span class="font-display font-bold text-brand-text text-lg hidden sm:inline"><?= e($sayt_nomi) ?></span>
         </a>
 
         <!-- Markaziy menyu (desktop) -->
@@ -36,10 +44,12 @@ $f = $f ?? joriy_foydalanuvchi();
                     </a>
                 <?php endif; ?>
             <?php else: ?>
-                <a href="<?= e(SAYT_URL) ?>/#xususiyatlar" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 transition link-anim font-medium text-sm">Xususiyatlar</a>
-                <a href="<?= e(SAYT_URL) ?>/#tariflar" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 transition link-anim font-medium text-sm"><?= e(t('tariflar')) ?></a>
-                <a href="<?= e(SAYT_URL) ?>/#fikrlar" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 transition link-anim font-medium text-sm"><?= e(t('fikrlar')) ?></a>
-                <a href="<?= e(SAYT_URL) ?>/#aloqa" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 transition link-anim font-medium text-sm"><?= e(t('aloqa')) ?></a>
+                <a href="<?= e(SAYT_URL) ?>/" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm">Bosh</a>
+                <a href="<?= e(SAYT_URL) ?>/tariflar" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('tariflar')) ?></a>
+                <?php if ((int) sozlama('blog_aktiv', 1)): ?>
+                    <a href="<?= e(SAYT_URL) ?>/blog" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm">Blog</a>
+                <?php endif; ?>
+                <a href="<?= e(SAYT_URL) ?>/aloqa" class="px-4 py-2 rounded-lg text-brand-body hover:text-sky-600 hover:bg-sky-50 transition-all duration-200 font-medium text-sm"><?= e(t('aloqa')) ?></a>
             <?php endif; ?>
         </div>
 
@@ -156,6 +166,21 @@ $f = $f ?? joriy_foydalanuvchi();
                 <?= e(t('chiqish')) ?>
             </a>
         <?php else: ?>
+            <a href="<?= e(SAYT_URL) ?>/" class="block px-4 py-3 rounded-lg hover:bg-sky-50 text-brand-text transition font-medium">
+                Bosh sahifa
+            </a>
+            <a href="<?= e(SAYT_URL) ?>/tariflar" class="block px-4 py-3 rounded-lg hover:bg-sky-50 text-brand-text transition font-medium">
+                <?= e(t('tariflar')) ?>
+            </a>
+            <?php if ((int) sozlama('blog_aktiv', 1)): ?>
+                <a href="<?= e(SAYT_URL) ?>/blog" class="block px-4 py-3 rounded-lg hover:bg-sky-50 text-brand-text transition font-medium">
+                    Blog
+                </a>
+            <?php endif; ?>
+            <a href="<?= e(SAYT_URL) ?>/aloqa" class="block px-4 py-3 rounded-lg hover:bg-sky-50 text-brand-text transition font-medium">
+                <?= e(t('aloqa')) ?>
+            </a>
+            <hr class="my-2 border-brand-border">
             <a href="<?= e(SAYT_URL) ?>/login" class="block px-4 py-3 rounded-lg hover:bg-sky-50 text-brand-text transition font-medium text-center">
                 <?= e(t('kirish')) ?>
             </a>

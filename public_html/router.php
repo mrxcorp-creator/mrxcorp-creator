@@ -24,7 +24,19 @@ $routes = [
     '/profil'          => '/user/profil.php',
     '/tolov'           => '/user/payment.php',
     '/referal'         => '/user/referal.php',
+    // Yangi public sahifalar
+    '/tariflar'        => '/tariflar.php',
+    '/blog'            => '/blog.php',
+    '/aloqa'           => '/aloqa.php',
 ];
+
+// ----- /blog/{slug} — bitta blog post -----
+if (preg_match('#^/blog/([a-z0-9_-]+)/?$#i', $uri_trimmed, $m)) {
+    $_GET['slug'] = $m[1];
+    $_SERVER['SCRIPT_NAME'] = '/blog-post.php';
+    require __DIR__ . '/blog-post.php';
+    return true;
+}
 
 // ----- Tegishli marshrutni topish -----
 if (isset($routes[$uri_trimmed])) {

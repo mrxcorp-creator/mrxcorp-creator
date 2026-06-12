@@ -235,3 +235,67 @@ INSERT IGNORE INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash
 VALUES ('Bosh', 'Dasturchi', '+998900000000',
 '$2y$12$EaiIphQotqSMPzVymtHBBOwXEuI3iyopH4pN3Re4HdEG2bt6F10PO',
 'developer', 'DEV0000');
+
+
+
+-- ============================================================
+-- 13. BLOGLAR — Maqolalar
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `bloglar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `slug` VARCHAR(200) UNIQUE NOT NULL,
+    `sarlavha` VARCHAR(255) NOT NULL,
+    `qisqa` TEXT DEFAULT NULL,
+    `matn` LONGTEXT NOT NULL,
+    `rasm` VARCHAR(255) DEFAULT NULL,
+    `muallif_id` INT UNSIGNED DEFAULT NULL,
+    `kategoriya` VARCHAR(80) DEFAULT 'Umumiy',
+    `koruv` INT UNSIGNED DEFAULT 0,
+    `holat` ENUM('chop','qoralama') DEFAULT 'chop',
+    `seo_keyword` VARCHAR(255) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `yangilangan` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_slug` (`slug`),
+    INDEX `idx_holat` (`holat`),
+    FOREIGN KEY (`muallif_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- 14. SO'ROVLAR — Aloqa formasidan kelgan xabarlar
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `sorovlar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ism` VARCHAR(100) NOT NULL,
+    `telefon` VARCHAR(20) NOT NULL,
+    `email` VARCHAR(150) DEFAULT NULL,
+    `mavzu` VARCHAR(150) DEFAULT NULL,
+    `xabar` TEXT NOT NULL,
+    `holat` ENUM('yangi','korilgan','javoblangan') DEFAULT 'yangi',
+    `admin_javob` TEXT DEFAULT NULL,
+    `ip` VARCHAR(45) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_holat` (`holat`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- Yangi sozlamalar: logo, banner, ijtimoiy tarmoqlar, manzil
+-- ============================================================
+INSERT IGNORE INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
+('logo_url', '', 'Sayt logosi (uploads/ ichidagi yo''l)'),
+('banner_url', '', 'Bosh sahifa banner rasmi'),
+('manzil', 'Yaypan shahri, Farg''ona viloyati', 'Aloqa manzili'),
+('ish_vaqti', 'Du-Sha 09:00 - 18:00', 'Ish vaqti'),
+('xarita_url', '', 'Google maps/Yandex iframe URL'),
+('telegram_link', '', 'Telegram do''st aloqa havolasi'),
+('instagram_link', '', 'Instagram havolasi'),
+('youtube_link', '', 'YouTube havolasi'),
+('blog_aktiv', '1', 'Blog bo''limini ko''rsatish (1/0)'),
+('hero_video_url', '', 'Hero qismida ko''rinadigan YouTube video URL'),
+('about_matn', 'Avto maktab nazariyasiga onlayn tayyorgarlik platformasi.', 'Sayt haqida qisqacha matn');
+
+-- Demo blog post
+INSERT IGNORE INTO `bloglar` (`slug`, `sarlavha`, `qisqa`, `matn`, `kategoriya`, `holat`) VALUES
+('imtihon-tayyorgarlik-maslahatlar', 'Imtihonga tayyorgarlik: 5 ta muhim maslahat',
+'Avto maktab imtihonidan birinchi urinishdan o''tish uchun amaliy maslahatlar.',
+'<p>Avto maktab nazariyasi imtihoni — har bir haydovchi uchun muhim qadam. Quyidagi maslahatlarga amal qiling:</p><h3>1. Har kuni mashq qiling</h3><p>Kuniga 1 soat test yechish — eng yaxshi natija.</p><h3>2. Xato qilgan savollarni qayta ko''ring</h3><p>Bizning platformada barcha xato javoblar saqlanadi.</p><h3>3. Yo''l belgilarini yodlang</h3><p>Belgilar imtihonning 30% ini tashkil qiladi.</p><h3>4. Sokin xonada mashq qiling</h3><p>Konsentratsiya muhim.</p><h3>5. Imtihondan oldin yaxshi uxlang</h3><p>Charchoqsiz aql aniqroq ishlaydi.</p>',
+'Maslahatlar', 'chop');

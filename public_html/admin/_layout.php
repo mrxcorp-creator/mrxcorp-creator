@@ -39,25 +39,37 @@ require_once __DIR__ . '/../includes/header.php';
 
         <nav class="p-3 flex-1 space-y-1 text-sm">
             <?php
+            // Yangi so'rovlar soni (sidebar badge uchun)
+            $yangi_sorov_son = (int) db_qiymat('SELECT COUNT(*) FROM sorovlar WHERE holat = "yangi"');
+            $kutayotgan_fikr = (int) db_qiymat('SELECT COUNT(*) FROM fikrlar WHERE tasdiq = 0');
+            $kutayotgan_tolov = (int) db_qiymat('SELECT COUNT(*) FROM tolovlar WHERE holat = "kutilmoqda"');
+
             $menyu = [
-                'index'           => ['🏠', t('boshqaruv_paneli'), 'index.php'],
-                'biletlar'        => ['🎫', 'Biletlar',            'biletlar.php'],
-                'savollar'        => ['❓', 'Savollar',             'savollar.php'],
-                'foydalanuvchilar'=> ['👥', 'Foydalanuvchilar',     'foydalanuvchilar.php'],
-                'tariflar'        => ['💎', t('tariflar'),          'tariflar.php'],
-                'tolovlar'        => ['💳', "To'lovlar",            'tolovlar.php'],
-                'fikrlar'         => ['💬', t('fikrlar'),           'fikrlar.php'],
-                'sozlamalar'      => ['⚙️', 'Sozlamalar',           'sozlamalar.php'],
+                'index'           => ['🏠', t('boshqaruv_paneli'), 'index.php', 0],
+                'biletlar'        => ['🎫', 'Biletlar',            'biletlar.php', 0],
+                'savollar'        => ['❓', 'Savollar',             'savollar.php', 0],
+                'foydalanuvchilar'=> ['👥', 'Foydalanuvchilar',     'foydalanuvchilar.php', 0],
+                'tariflar'        => ['💎', t('tariflar'),          'tariflar.php', 0],
+                'tolovlar'        => ['💳', "To'lovlar",            'tolovlar.php', $kutayotgan_tolov],
+                'bloglar'         => ['📰', 'Bloglar',              'bloglar.php', 0],
+                'sorovlar'        => ['📩', "So'rovlar",            'sorovlar.php', $yangi_sorov_son],
+                'fikrlar'         => ['💬', t('fikrlar'),           'fikrlar.php', $kutayotgan_fikr],
+                'dizayn'          => ['🎨', 'Dizayn',                'dizayn.php', 0],
+                'sozlamalar'      => ['⚙️', 'Sozlamalar',           'sozlamalar.php', 0],
             ];
-            foreach ($menyu as $key => [$emoji, $nomi, $url]):
+            foreach ($menyu as $key => [$emoji, $nomi, $url, $badge]):
                 $aktiv = $admin_sahifa === $key;
             ?>
                 <a href="<?= e(SAYT_URL) ?>/admin/<?= $url ?>"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 <?= $aktiv ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold shadow-soft' : 'hover:bg-sky-50 text-brand-body hover:text-sky-700' ?>">
                     <span class="text-lg w-7 h-7 flex items-center justify-center <?= $aktiv ? '' : 'bg-sky-50 rounded-lg' ?>"><?= $emoji ?></span>
-                    <span><?= e($nomi) ?></span>
-                    <?php if ($aktiv): ?>
-                        <span class="ml-auto text-white/80">→</span>
+                    <span class="flex-1"><?= e($nomi) ?></span>
+                    <?php if ($badge > 0): ?>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold <?= $aktiv ? 'bg-white text-sky-700' : 'bg-rose-500 text-white animate-pulse-soft' ?>">
+                            <?= $badge > 99 ? '99+' : $badge ?>
+                        </span>
+                    <?php elseif ($aktiv): ?>
+                        <span class="text-white/80">→</span>
                     <?php endif; ?>
                 </a>
             <?php endforeach; ?>
