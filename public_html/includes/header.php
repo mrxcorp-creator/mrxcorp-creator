@@ -19,6 +19,11 @@ $sahifa_tavsif   = $sahifa_tavsif   ?? t('sayt_shior');
 $body_class      = $body_class      ?? '';
 $f               = joriy_foydalanuvchi();
 $flash           = flash_ol();
+
+// Foydalanuvchi kirill alifbosini tanlagan bo'lsa — sahifaning butun chiqishini transliteratsiya qilamiz
+if (($_SESSION['til'] ?? 'uz_latn') === 'uz_cyrl') {
+    ob_start('transliteratsiya_filtri');
+}
 ?>
 <!DOCTYPE html>
 <html lang="uz">

@@ -461,3 +461,99 @@ function audit_yoz(int $foydalanuvchi_id, string $amal, ?string $obyekt = null,
         ]
     );
 }
+
+
+
+/**
+ * ============================================================
+ *  TRANSLITERATSIYA (Lotin → Kirill)
+ * ============================================================
+ *
+ *  Sayt kontenti faqat O'zbek lotin alifbosida yoziladi.
+ *  Foydalanuvchi kirill alifbosini tanlasa — output buffer
+ *  orqali avtomatik konvertatsiya qilinadi.
+ */
+
+/**
+ * O'zbek lotin matnni kirill alifbosiga o'tkazish.
+ */
+function lotin_kirill(string $matn): string {
+    // Apostrof variantlari: '  ʻ  ' '
+    $matn = strtr($matn, [
+        "ʻ" => "'", "ʼ" => "'", "‘" => "'", "’" => "'", "`" => "'",
+    ]);
+
+    // Multi-char (uzunroq kalitlar avval mos keladi)
+    static $jadval = null;
+    if ($jadval === null) {
+        $jadval = [
+            "Sh"  => "Ш",  "SH"  => "Ш",  "sh"  => "ш",
+            "Ch"  => "Ч",  "CH"  => "Ч",  "ch"  => "ч",
+            "Yo"  => "Ё",  "YO"  => "Ё",  "yo"  => "ё",
+            "Ya"  => "Я",  "YA"  => "Я",  "ya"  => "я",
+            "Yu"  => "Ю",  "YU"  => "Ю",  "yu"  => "ю",
+            "Ts"  => "Ц",  "TS"  => "Ц",  "ts"  => "ц",
+            "O'"  => "Ў",  "o'"  => "ў",
+            "G'"  => "Ғ",  "g'"  => "ғ",
+            "A"=>"А","a"=>"а", "B"=>"Б","b"=>"б", "V"=>"В","v"=>"в",
+            "G"=>"Г","g"=>"г", "D"=>"Д","d"=>"д", "E"=>"Е","e"=>"е",
+            "J"=>"Ж","j"=>"ж", "Z"=>"З","z"=>"з", "I"=>"И","i"=>"и",
+            "Y"=>"Й","y"=>"й", "K"=>"К","k"=>"к", "L"=>"Л","l"=>"л",
+            "M"=>"М","m"=>"м", "N"=>"Н","n"=>"н", "O"=>"О","o"=>"о",
+            "P"=>"П","p"=>"п", "R"=>"Р","r"=>"р", "S"=>"С","s"=>"с",
+            "T"=>"Т","t"=>"т", "U"=>"У","u"=>"у", "F"=>"Ф","f"=>"ф",
+            "X"=>"Х","x"=>"х", "H"=>"Ҳ","h"=>"ҳ", "Q"=>"Қ","q"=>"қ",
+        ];
+    }
+    return strtr($matn, $jadval);
+}
+
+/**
+ * HTML kontentni transliteratsiya qilish — tag/atribut/script/style/url'larga tegmaydi.
+ */
+function lotin_kirill_html(string $html): string {
+    $tilim = $_SESSION['til'] ?? 'uz_latn';
+    if ($tilim !== 'uz_cyrl') {
+        return $html;
+    }
+
+    $saqlash = [];
+    $i = 0;
+    $marker = function ($m) use (&$saqlash, &$i) {
+        // Marker faqat raqamlar va boshqaruv belgilaridan iborat — transliteratsiyaga uchramaydi
+        $key = "\x02" . $i . "\x03";
+        $i++;
+        $saqlash[$key] = $m[0];
+        return $key;
+    };
+
+    // 1) Saqlanadigan elementlar (script, style, code, pre va h.k.)
+    $html = preg_replace_callback(
+        '#<(script|style|noscript|code|pre|kbd|samp)\b[^>]*>.*?</\1>#is',
+        $marker, $html
+    );
+    // 2) HTML komentlar
+    $html = preg_replace_callback('/<!--.*?-->/s', $marker, $html);
+    // 3) HTML tag'lari (atributlar bilan)
+    $html = preg_replace_callback('/<[^>]+>/i', $marker, $html);
+    // 4) HTML entity'lari
+    $html = preg_replace_callback('/&(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);/', $marker, $html);
+    // 5) URL'lar oddiy matnda
+    $html = preg_replace_callback('#(?:https?://|mailto:|tel:)[^\s<]+#i', $marker, $html);
+
+    // 6) Qolgan matnni transliteratsiya
+    $html = lotin_kirill($html);
+
+    // 7) Saqlanganlarni qaytarish
+    if (!empty($saqlash)) {
+        $html = strtr($html, $saqlash);
+    }
+    return $html;
+}
+
+/**
+ * Output buffer callback — header.php boshida ishlatiladi.
+ */
+function transliteratsiya_filtri(string $buffer): string {
+    return lotin_kirill_html($buffer);
+}
