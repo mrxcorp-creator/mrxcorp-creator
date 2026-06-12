@@ -193,7 +193,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================
 
 -- Standart sozlamalar
-INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
+INSERT IGNORE INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('sayt_nomi', 'VatanParvar Yaypan', 'Sayt nomi'),
 ('sayt_shior', 'Avto maktab nazariyasiga eng tezkor tayyorgarlik', 'Bosh sahifa shiori'),
 ('aloqa_telefon', '+998 90 123 45 67', 'Aloqa telefoni'),
@@ -210,18 +210,18 @@ INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('savol_soni_test', '20', 'Bitta testdagi savollar soni');
 
 -- Standart tariflar
-INSERT INTO `tariflar` (`nomi`, `tavsif`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES
+INSERT IGNORE INTO `tariflar` (`nomi`, `tavsif`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES
 ('1 kunlik', 'Bir kunlik to''liq kirish', 'kun', 1, 5000, 8000, 0, 1),
 ('1 oylik', 'Bir oylik to''liq kirish', 'oy', 1, 25000, 40000, 1, 2),
 ('3 oylik', 'Uch oylik chegirmali tarif', 'oy', 3, 60000, 120000, 0, 3),
 ('Cheksiz', 'Imtihon topshirilguncha', 'oy', 12, 99000, 200000, 0, 4);
 
 -- Demo bilet
-INSERT INTO `biletlar` (`raqam`, `nomi`, `tavsif`, `tur`) VALUES
+INSERT IGNORE INTO `biletlar` (`raqam`, `nomi`, `tavsif`, `tur`) VALUES
 (1, 'Bilet №1 (demo)', 'Bepul tanishuv bileti', 'bepul');
 
 -- Demo savol
-INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c`, `variant_d`, `togri_javob`, `izoh`) VALUES
+INSERT IGNORE INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c`, `variant_d`, `togri_javob`, `izoh`) VALUES
 (1, 'Yo''l harakati qoidalariga binoan, qaysi belgi xavf belgilarini bildiradi?',
  'Uchburchak shaklidagi qizil hoshiyali belgilar',
  'Doira shaklidagi ko''k belgilar',
@@ -231,7 +231,7 @@ INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c
  'Xavf belgilari uchburchak shaklida bo''lib, qizil hoshiya bilan o''ralgan.');
 
 -- Developer akkaunt (parol: admin12345)
-INSERT INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash`, `rol`, `referal_kod`)
+INSERT IGNORE INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash`, `rol`, `referal_kod`)
 VALUES ('Bosh', 'Dasturchi', '+998900000000',
 '$2y$12$EaiIphQotqSMPzVymtHBBOwXEuI3iyopH4pN3Re4HdEG2bt6F10PO',
 'developer', 'DEV0000');
