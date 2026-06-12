@@ -1,0 +1,14 @@
+# Faqat rasmlarga ruxsat
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+    Require all granted
+</FilesMatch>
+
+# PHP fayllarni bloklash
+<FilesMatch "\.(php|phtml|php3|php4|php5|phar)$">
+    Require all denied
+</FilesMatch>
+
+# PHP'ni o'chirish
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>

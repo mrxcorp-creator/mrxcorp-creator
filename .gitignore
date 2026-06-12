@@ -1,0 +1,33 @@
+# PHP
+*.log
+*.swp
+*.bak
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Sayt o'ziga xos
+public_html/kesh/*
+!public_html/kesh/.gitkeep
+!public_html/kesh/.htaccess
+
+public_html/zaxira_nusxalari/*
+!public_html/zaxira_nusxalari/.htaccess
+
+public_html/uploads/avatars/*
+!public_html/uploads/avatars/.gitkeep
+
+public_html/uploads/savollar/*
+!public_html/uploads/savollar/.gitkeep
+
+# Sezgir ma'lumot (agar bo'lsa)
+.env
+.env.local
+config/secrets.php
