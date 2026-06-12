@@ -195,16 +195,28 @@ $sayt_nomi = sozlama('sayt_nomi', 'VatanParvar');
         </div>
 
         <!-- Mobil menyu tugmasi -->
-        <button @click="open=!open"
-                class="md:hidden p-2 rounded-lg hover:bg-sky-50 transition"
-                aria-label="Menyu">
-            <svg x-show="!open" class="w-6 h-6 text-brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-            <svg x-show="open" class="w-6 h-6 text-brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
+        <div class="md:hidden flex items-center gap-1">
+            <!-- Mobil dark mode toggle -->
+            <button @click="
+                        const dark = document.documentElement.classList.toggle('dark');
+                        localStorage.setItem('tema', dark ? 'dark' : 'light');
+                    "
+                    class="p-2 rounded-lg hover:bg-sky-50" aria-label="Tema">
+                <svg class="w-5 h-5 text-brand-body dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                <svg class="w-5 h-5 text-amber-400 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            </button>
+
+            <button @click="open=!open"
+                    class="p-2 rounded-lg hover:bg-sky-50 transition"
+                    aria-label="Menyu">
+                <svg x-show="!open" class="w-6 h-6 text-brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg x-show="open" class="w-6 h-6 text-brand-text" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <!-- Mobil ochiluvchi menyu -->
