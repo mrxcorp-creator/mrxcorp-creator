@@ -2,6 +2,9 @@
 /**
  * Admin — boshqaruv paneli (statistika)
  */
+require_once __DIR__ . '/../config/auth.php';
+$f = admin_bolish_kerak();
+
 $admin_sahifa = 'index';
 $sahifa_sarlavha = t('boshqaruv_paneli');
 require_once __DIR__ . '/_layout.php';
