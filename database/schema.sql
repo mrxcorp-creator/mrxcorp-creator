@@ -233,5 +233,5 @@ INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c
 -- Developer akkaunt (parol: admin12345)
 INSERT INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash`, `rol`, `referal_kod`)
 VALUES ('Bosh', 'Dasturchi', '+998900000000',
-'$2y$10$Iq2QwQ7yT9tFh1cP3wXJ8.6XK8Xz4w9Qm0o8A5xN3Yx9c2Yf3eL9G',
+'$2y$12$EaiIphQotqSMPzVymtHBBOwXEuI3iyopH4pN3Re4HdEG2bt6F10PO',
 'developer', 'DEV0000');
