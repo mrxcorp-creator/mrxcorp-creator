@@ -4,7 +4,8 @@
 #  Foydalanish:
 #       bash run.sh
 #       PORT=9000 bash run.sh         # boshqa port
-#       SKIP_DB=1 bash run.sh         # DB import-ni o'tkazib yuborish
+#       SKIP_DB=1 bash run.sh         # DB sozlashni o'tkazib yuborish
+#       RESET_DB=1 bash run.sh        # bazani DROP qilib qaytadan yaratish
 # ============================================================
 set -euo pipefail
 
@@ -74,6 +75,13 @@ if [ "${SKIP_DB:-0}" != "1" ]; then
     fi
     ok "MySQL ga ulanildi"
 
+    # RESET_DB=1 bo'lsa — eski bazani butunlay o'chiramiz
+    if [ "${RESET_DB:-0}" = "1" ]; then
+        warn "RESET_DB=1 — eski baza o'chirilmoqda..."
+        sudo mysql -e "DROP DATABASE IF EXISTS \`$DB_NAME\`;"
+        ok "Eski baza o'chirildi"
+    fi
+
     info "Baza va foydalanuvchini yaratish: $DB_NAME"
     sudo mysql <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`
@@ -84,12 +92,19 @@ FLUSH PRIVILEGES;
 SQL
     ok "Baza tayyor (DB: $DB_NAME, user: $DB_USER)"
 
-    if [ -f "$SCHEMA" ]; then
+    # Bazada jadvallar bor-yo'qligini tekshirish
+    TABLE_COUNT=$(sudo mysql -N -B -e \
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME';" 2>/dev/null || echo "0")
+
+    if [ ! -f "$SCHEMA" ]; then
+        warn "$SCHEMA topilmadi — import o'tkazib yuborildi"
+    elif [ "$TABLE_COUNT" -gt "0" ]; then
+        warn "Bazada allaqachon $TABLE_COUNT ta jadval mavjud — schema import o'tkazib yuborildi"
+        echo "         To'liq qayta yaratish uchun: RESET_DB=1 bash run.sh"
+    else
         info "Schema import qilinmoqda: $SCHEMA"
         sudo mysql "$DB_NAME" < "$SCHEMA"
         ok "Schema muvaffaqiyatli import qilindi"
-    else
-        warn "$SCHEMA topilmadi — import o'tkazib yuborildi"
     fi
 else
     warn "SKIP_DB=1 — bazani sozlash bosqichi o'tkazib yuborildi"
