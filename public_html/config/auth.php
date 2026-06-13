@@ -8,7 +8,16 @@
  */
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../includes/log.php';
+require_once __DIR__ . '/../includes/xato_kuzatuv.php';
 require_once __DIR__ . '/../includes/security.php';
+require_once __DIR__ . '/../includes/xujum_himoya.php';
+
+// Xavfsizlik HTTP sarlavhalarini chiqarish
+xavfsizlik_sarlavhalar();
+
+// WAF — har bir so'rovni shubhali pattern uchun tekshiradi
+xujum_himoya_ishga_tushir();
 
 sessiya_boshla();
 

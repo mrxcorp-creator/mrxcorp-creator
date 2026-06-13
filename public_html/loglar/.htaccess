@@ -1,0 +1,8 @@
+# Loglarga to'g'ridan-to'g'ri kirishni bloklash
+Require all denied
+Order Deny,Allow
+Deny from all
+
+<FilesMatch "\.(json|jsonl|log|txt)$">
+    Require all denied
+</FilesMatch>
