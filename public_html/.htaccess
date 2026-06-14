@@ -1,72 +1,153 @@
 # ============================================================
-# VatanParvar Yaypan — Apache konfiguratsiya
+# VatanParvar Yaypan — Apache konfiguratsiya (production)
 # ============================================================
 
-# PHP versiyasi (Xost-1000 da PHP 8.x)
-AddHandler application/x-httpd-php82 .php
+# PHP versiyasi (cPanel'ga bog'liq — kerak bo'lsa o'zgartiring)
+# AddHandler application/x-httpd-php82 .php
 
-# UTF-8 standart kodlash
 AddDefaultCharset UTF-8
+DirectoryIndex index.php
 
-# ----- HTTPS ga majburiy yo'naltirish -----
+# Xato sahifalari
+ErrorDocument 403 /403.php
+ErrorDocument 404 /404.php
+ErrorDocument 500 /500.php
+
+# Direktoriya listingni yopish
+Options -Indexes
+
+# ----- Rewrite engine -----
 RewriteEngine On
+
+# ============================================================
+#                 1) HTTPS / WWW MAJBURIY
+# ============================================================
+# install.php uchun HTTPS majbur emas (SSL hali sozlanmagan bo'lishi mumkin)
+RewriteCond %{REQUEST_URI} !^/install\.php$ [NC]
 RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP_HOST} !^localhost [NC]
+RewriteCond %{HTTP_HOST} !^127\. [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # www. prefiksini olib tashlash
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 
-# ----- Chiroyli URL'lar -----
-# /login -> /auth/login.php
-RewriteRule ^login/?$ auth/login.php [L]
-RewriteRule ^register/?$ auth/register.php [L]
+# ============================================================
+#                 2) CHIROYLI URL'LAR
+# ============================================================
+RewriteRule ^login/?$           auth/login.php           [L]
+RewriteRule ^register/?$        auth/register.php        [L]
 RewriteRule ^forgot-password/?$ auth/forgot-password.php [L]
-RewriteRule ^logout/?$ auth/logout.php [L]
-RewriteRule ^dashboard/?$ user/index.php [L]
-RewriteRule ^test/?$ user/test.php [L]
-RewriteRule ^profil/?$ user/profil.php [L]
-RewriteRule ^tolov/?$ user/payment.php [L]
-RewriteRule ^referal/?$ user/referal.php [L]
+RewriteRule ^logout/?$          auth/logout.php          [L]
+RewriteRule ^dashboard/?$       user/index.php           [L]
+RewriteRule ^test/?$            user/test.php            [L]
+RewriteRule ^profil/?$          user/profil.php          [L]
+RewriteRule ^tolov/?$           user/payment.php         [L]
+RewriteRule ^referal/?$         user/referal.php         [L]
 
-# ----- Maxfiy fayllarni himoyalash -----
-<FilesMatch "\.(env|sql|md|log|gitignore|json)$">
+# ============================================================
+#                 3) MAXFIY FAYL/PAPKALARNI HIMOYA
+# ============================================================
+<FilesMatch "\.(env|sql|md|log|jsonl|gitignore|json|lock|ini|bak|sh|yml|yaml)$">
     Require all denied
 </FilesMatch>
 
-# config/, cron/, zaxira_nusxalari/ papkalarini bloklash
-RedirectMatch 403 ^/config/.*$
-RedirectMatch 403 ^/cron/.*$
-RedirectMatch 403 ^/zaxira_nusxalari/.*$
+# Maxsus fayllar
+<FilesMatch "^(composer\.(json|lock)|package\.json|\.htaccess|\.htpasswd|\.git.*|run\.sh|router\.php|install\.lock)$">
+    Require all denied
+</FilesMatch>
 
-# ----- Xavfsizlik sarlavhalari -----
+# Maxfiy papkalar — to'liq blok
+RedirectMatch 403 ^/(config|cron|database|loglar|zaxira_nusxalari|\.git|\.kiro|node_modules|vendor)/.*$
+
+# ============================================================
+#                 4) HUJUMLARDAN HIMOYA (mod_rewrite WAF)
+# ============================================================
+# So'rovdagi shubhali patternlar
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E)              [NC,OR]
+RewriteCond %{QUERY_STRING} (union\s+select|union\s+all\s+select)   [NC,OR]
+RewriteCond %{QUERY_STRING} (\.\./|\.\.\\|/etc/passwd|/proc/self)   [NC,OR]
+RewriteCond %{QUERY_STRING} (base64_(en|de)code|eval\(|gzinflate\() [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|\%3C)(.*)(\>|\%3E)                  [NC,OR]
+RewriteCond %{QUERY_STRING} (php://(input|filter|memory))           [NC,OR]
+RewriteCond %{QUERY_STRING} (concat\(|information_schema|0x[0-9a-f]{16,}) [NC]
+RewriteRule ^ - [F,L]
+
+# Yomon User-Agentlar
+RewriteCond %{HTTP_USER_AGENT} (sqlmap|nikto|acunetix|havij|nessus|openvas|w3af|whatweb|wpscan|nuclei|jaeles|zgrab|masscan|dirb|gobuster|feroxbuster|x-?ray|morfeus|libwww-perl|zmeu) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^$
+RewriteRule ^ - [F,L]
+
+# So'rov metodlari (faqat oddiylari)
+RewriteCond %{REQUEST_METHOD} !^(GET|POST|HEAD|OPTIONS)$
+RewriteRule ^ - [F,L]
+
+# Hotlinking himoyasi (rasmlar)
+RewriteCond %{HTTP_REFERER} !^$
+RewriteCond %{HTTP_REFERER} !^https?://(www\.)?vatanparvaryaypan\.uz [NC]
+RewriteCond %{HTTP_REFERER} !^https?://([^.]+\.)?google\.            [NC]
+RewriteCond %{HTTP_REFERER} !^https?://([^.]+\.)?yandex\.            [NC]
+RewriteCond %{HTTP_REFERER} !^https?://([^.]+\.)?bing\.              [NC]
+RewriteCond %{HTTP_REFERER} !^https?://([^.]+\.)?facebook\.          [NC]
+RewriteCond %{HTTP_REFERER} !^https?://([^.]+\.)?t\.me               [NC]
+RewriteRule \.(jpe?g|png|gif|webp|svg)$ - [F,L]
+
+# ============================================================
+#                 5) XAVFSIZLIK SARLAVHALARI
+# ============================================================
 <IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header set X-Content-Type-Options       "nosniff"
+    Header set X-Frame-Options              "SAMEORIGIN"
+    Header set X-XSS-Protection             "1; mode=block"
+    Header set Referrer-Policy              "strict-origin-when-cross-origin"
+    Header set Permissions-Policy           "camera=(), microphone=(), geolocation=()"
+    Header set Strict-Transport-Security    "max-age=31536000; includeSubDomains"
+
+    # xak.php va install.php — qidiruv tizimlariga indekslanmasin
+    <FilesMatch "^(xak|install)\.php$">
+        Header set X-Robots-Tag             "noindex, nofollow, noarchive"
+        Header set Cache-Control            "no-store, no-cache, must-revalidate, max-age=0"
+    </FilesMatch>
+
+    # Loglar va backup'lar — keshlanmasin
+    Header set Cache-Control "no-store" "expr=%{REQUEST_URI} =~ /^\/(loglar|zaxira_nusxalari)/"
 </IfModule>
 
-# ----- Brauzer keshi (statik fayllar uchun) -----
+# ============================================================
+#                 6) GZIP SIQISH
+# ============================================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json text/xml application/xml image/svg+xml
+</IfModule>
+
+# ============================================================
+#                 7) BRAUZER KESHI
+# ============================================================
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType image/webp "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/svg+xml "access plus 1 month"
-    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType image/webp     "access plus 1 month"
+    ExpiresByType image/png      "access plus 1 month"
+    ExpiresByType image/jpeg     "access plus 1 month"
+    ExpiresByType image/svg+xml  "access plus 1 month"
+    ExpiresByType image/x-icon   "access plus 1 year"
+    ExpiresByType text/css       "access plus 1 week"
     ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType font/woff2     "access plus 1 year"
+    ExpiresByType font/woff      "access plus 1 year"
 </IfModule>
 
-# ----- Gzip siqish -----
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+# ============================================================
+#                 8) PHP SOZLAMALARI (ixtiyoriy)
+# ============================================================
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size       12M
+    php_value memory_limit        256M
+    php_flag  display_errors      Off
+    php_flag  log_errors          On
+    php_flag  expose_php          Off
+    php_value session.cookie_httponly  1
+    php_value session.cookie_secure    1
+    php_value session.use_strict_mode  1
 </IfModule>
-
-# Standart fayl
-DirectoryIndex index.php
-
-# Xato sahifalari
-ErrorDocument 404 /404.php
-ErrorDocument 403 /403.php

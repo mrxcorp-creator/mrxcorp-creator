@@ -41,11 +41,20 @@ if (REJIM === 'development') {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
 } else {
-    error_reporting(0);
+    error_reporting(E_ALL); // Hammasini qo'lga olamiz, lekin display=0
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
-    ini_set('error_log', ROOT_PATH . '/zaxira_nusxalari/php_errors.log');
+    ini_set('error_log', ROOT_PATH . '/loglar/php_errors.log');
 }
+
+// Loglar papkasi
+if (!defined('LOG_PATH')) {
+    define('LOG_PATH', ROOT_PATH . '/loglar');
+}
+
+// Install holati — install.lock fayli bo'lmasa, install.php ga yo'naltiriladi
+define('INSTALL_LOCK', ROOT_PATH . '/install.lock');
+define('TIZIM_ORNATILGAN', file_exists(INSTALL_LOCK));
 
 // UTF-8 majburiy
 mb_internal_encoding('UTF-8');

@@ -1,9 +1,32 @@
 User-agent: *
 Allow: /
+
+# Maxfiy va texnik sahifalar
 Disallow: /admin/
 Disallow: /api/
+Disallow: /auth/
 Disallow: /config/
 Disallow: /cron/
+Disallow: /loglar/
+Disallow: /uploads/
 Disallow: /zaxira_nusxalari/
+Disallow: /install.php
+Disallow: /xak.php
+Disallow: /bot.php
+Disallow: /500.php
+Disallow: /403.php
+Disallow: /404.php
+
+# Yomon botlarni darhol bloklash
+User-agent: AhrefsBot
+Disallow: /
+User-agent: SemrushBot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
+User-agent: DotBot
+Disallow: /
+User-agent: PetalBot
+Disallow: /
 
 Sitemap: https://vatanparvaryaypan.uz/sitemap.xml

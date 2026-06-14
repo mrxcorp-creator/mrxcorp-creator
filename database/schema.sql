@@ -186,6 +186,30 @@ CREATE TABLE IF NOT EXISTS `kirish_urinishlar` (
     INDEX `idx_vaqt` (`yaratilgan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ----------- 13. BLOKLANGAN IP'LAR -----------
+CREATE TABLE IF NOT EXISTS `bloklangan_iplar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ip` VARCHAR(45) UNIQUE NOT NULL,
+    `sabab` VARCHAR(255) DEFAULT NULL,
+    `tugash` DATETIME DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_tugash` (`tugash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------- 14. XAVFSIZLIK HODISALARI (DB-da nusxa) -----------
+-- Asosiy log fayllarda saqlanadi, lekin tezkor SQL tahlili uchun nusxa.
+CREATE TABLE IF NOT EXISTS `xavfsizlik_hodisalar` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tur` VARCHAR(50) NOT NULL,
+    `daraja` ENUM('past','orta','yuqori','kritik') DEFAULT 'orta',
+    `ip` VARCHAR(45) DEFAULT NULL,
+    `url` VARCHAR(500) DEFAULT NULL,
+    `kontekst_json` TEXT DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_tur` (`tur`),
+    INDEX `idx_vaqt` (`yaratilgan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
