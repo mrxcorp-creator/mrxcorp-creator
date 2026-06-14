@@ -6,10 +6,18 @@
  * register_shutdown_function orqali HAR QANDAY xatoni
  * markaziy log tizimiga yo'naltiradi.
  *
+ * Shuningdek, har bir so'rovning bajarilish vaqtini o'lchaydi
+ * va 500ms+ bo'lsa "sekin" log'ga yozadi (xak.php yuklama tabi uchun).
+ *
  * `config/auth.php` ning eng boshida ulanadi.
  */
 
 require_once __DIR__ . '/log.php';
+
+// So'rov boshlanish vaqti
+if (!defined('SOROV_BOSHI')) {
+    define('SOROV_BOSHI', microtime(true));
+}
 
 // ---------- 1. Oddiy PHP xatolari ----------
 set_error_handler(function (int $kod, string $matn, string $fayl, int $satr): bool {
@@ -82,5 +90,19 @@ register_shutdown_function(function (): void {
                 'satr'   => $oxirgi['line'] ?? null,
                 'turi'   => $oxirgi['type'] ?? null,
             ]);
+    }
+
+    // ---------- 4. Sekin so'rovlarni qayd qilish ----------
+    // Static fayllar va ajax-pollinglar uchun emas
+    $uri = $_SERVER['REQUEST_URI'] ?? '';
+    if (preg_match('/\.(css|js|png|jpe?g|gif|webp|svg|woff2?|ico|map)(\?|$)/i', $uri)) {
+        return;
+    }
+    $vaqt_ms = (int) ((microtime(true) - SOROV_BOSHI) * 1000);
+    if ($vaqt_ms > 500) {
+        log_info('sekin_sorov', 'Sekin so\'rov', [
+            'vaqt_ms' => $vaqt_ms,
+            'memory'  => memory_get_peak_usage(true),
+        ]);
     }
 });

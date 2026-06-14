@@ -20,6 +20,7 @@
  */
 
 require_once __DIR__ . '/config/auth.php';
+require_once __DIR__ . '/includes/funksiyalar.php';
 
 // ---------- Avtorizatsiya ----------
 header('X-Robots-Tag: noindex, nofollow', true);
@@ -799,15 +800,16 @@ function xak_xavfsizlik_holati(): array {
 }
 
 function xak_sekin_soriqlar(): array {
-    // Bizda alohida slow-query log yo'q, lekin xato logidan
-    // "vaqt_ms" maydoni bo'lganlarini olishga harakat qilamiz
+    // xato_kuzatuv.php register_shutdown_function orqali
+    // log_info('sekin_sorov', ...) bilan yozadi
     $loglar = log_oq('info', date('Y-m-d'), 5000);
     $sekin = [];
     foreach ($loglar as $l) {
-        if (!empty($l['kontekst']['vaqt_ms']) && $l['kontekst']['vaqt_ms'] > 500) {
+        if (($l['manba'] ?? '') === 'sekin_sorov'
+            && !empty($l['kontekst']['vaqt_ms'])) {
             $sekin[] = [
-                'url'     => $l['url']     ?? '',
-                'vaqt_ms' => (int)$l['kontekst']['vaqt_ms'],
+                'url'     => $l['url'] ?? '',
+                'vaqt_ms' => (int) $l['kontekst']['vaqt_ms'],
             ];
         }
     }
@@ -821,6 +823,14 @@ function xak_head_html(string $titul): void { ?>
     <meta name="robots" content="noindex,nofollow,noarchive">
     <title><?= htmlspecialchars($titul, ENT_QUOTES) ?> · VatanParvar Monitoring</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    // Tailwind safelist — xak_kart() dinamik ranglari uchun kafolat
+    tailwind.config = {
+        safelist: [
+            { pattern: /(bg|border|text)-(blue|emerald|amber|red|rose|orange|purple|cyan|slate)-(100|200|300|400|500)\/?(10|20|30)?/ },
+        ],
+    };
+    </script>
     <style>code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
            details>summary{list-style:none}details>summary::-webkit-details-marker{display:none}</style>
 <?php }

@@ -67,7 +67,16 @@ $qadam = isset($_GET['qadam']) ? max(0, min(6, (int) $_GET['qadam'])) : 0;
 // Ish boshlanganda telegramdek qildi: agar oldingi qadam to'liq bajarilmagan bo'lsa, ortga qaytariladi
 $_SESSION['oxirgi_qadam'] = $_SESSION['oxirgi_qadam'] ?? 0;
 if ($qadam > $_SESSION['oxirgi_qadam'] + 1) {
-    $qadam = $_SESSION['oxirgi_qadam'];
+    // Foydalanuvchi qadamlarni o'tkazib yubora olmaydi — eng oxirgisidan boshlang'ich qadamga
+    $qadam = $_SESSION['oxirgi_qadam'] + 1;
+}
+
+// Step 1 ko'rilganda va talablar OK bo'lsa — step 2 ga ruxsat
+if ($qadam === 1) {
+    $_t = i_talablar_tekshir();
+    if (!in_array(false, array_column($_t, 'ok'), true)) {
+        $_SESSION['oxirgi_qadam'] = max(1, (int) $_SESSION['oxirgi_qadam']);
+    }
 }
 
 // Brute-force himoyasi: 15 daqiqada 10 dan ortiq POST xatolari
@@ -271,6 +280,8 @@ if ($qadam === 5 && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     'payme_merchant_id'  => trim($_POST['payme_id']      ?? ''),
                     'payme_key'          => trim($_POST['payme_key']     ?? ''),
                     'xak_parol'          => password_hash(trim($_POST['xak_parol'] ?? bin2hex(random_bytes(8))), PASSWORD_BCRYPT),
+                    // Cron jobs uchun maxfiy kalit (HTTP orqali ishga tushirish uchun)
+                    'cron_kalit'         => bin2hex(random_bytes(16)),
                 ];
                 $st = $pdo->prepare(
                     'INSERT INTO sozlamalar (kalit, qiymat) VALUES (?, ?)
@@ -297,48 +308,85 @@ if ($qadam === 5 && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ---------- QADAM 6: TUGALLASH (lock) ----------
-if ($qadam === 6 && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!i_csrf_ok()) {
-        $xato = 'CSRF token noto\'g\'ri.';
-    } else {
-        // install.lock yaratish
-        @file_put_contents(I_LOCK, json_encode([
-            'vaqt'    => date('c'),
-            'admin'   => $_SESSION['admin']['telefon'] ?? '',
-            'sayt'    => $_SESSION['db']['name'] ?? '',
-            'versiya' => '1.0.0',
-        ], JSON_UNESCAPED_UNICODE));
+if ($qadam === 6) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!i_csrf_ok()) {
+            $xato = 'CSRF token noto\'g\'ri.';
+        } else {
+            // install.lock yaratish
+            @file_put_contents(I_LOCK, json_encode([
+                'vaqt'    => date('c'),
+                'admin'   => $_SESSION['admin']['telefon'] ?? '',
+                'sayt'    => $_SESSION['db']['name'] ?? '',
+                'versiya' => '1.0.0',
+            ], JSON_UNESCAPED_UNICODE));
 
-        $xak_parol = $_SESSION['xak_parol_oddiy'] ?? '';
-        $admin_tel = $_SESSION['admin']['telefon'] ?? '';
-        // Sessiyani tozalash
-        $_SESSION = [];
-        session_destroy();
+            $xak_parol = $_SESSION['xak_parol_oddiy'] ?? '';
+            $admin_tel = $_SESSION['admin']['telefon'] ?? '';
+            // Sessiyani tozalash
+            $_SESSION = [];
+            session_destroy();
 
-        ?><!DOCTYPE html><html lang="uz"><head><?= i_head_html('Tugadi') ?></head><body class="bg-slate-950 text-slate-100">
+            ?><!DOCTYPE html><html lang="uz"><head><?= i_head_html('Tugadi') ?></head><body class="bg-slate-950 text-slate-100">
+            <?php i_header_html(6) ?>
+            <div class="max-w-2xl mx-auto px-4 py-12">
+                <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
+                    <div class="text-6xl mb-4">✅</div>
+                    <h2 class="text-2xl font-bold mb-2">O'rnatish muvaffaqiyatli yakunlandi!</h2>
+                    <p class="text-slate-300 mb-6">
+                        <code class="px-2 py-1 bg-slate-800 rounded text-sm">install.lock</code> fayli yaratildi va sahifa qulflandi.
+                    </p>
+                    <div class="text-left bg-slate-900 rounded-xl p-5 mb-6 space-y-2 text-sm">
+                        <div><span class="text-slate-400">Admin telefon:</span> <code><?= htmlspecialchars($admin_tel, ENT_QUOTES) ?></code></div>
+                        <?php if ($xak_parol): ?>
+                        <div><span class="text-slate-400">xak.php paroli:</span> <code><?= htmlspecialchars($xak_parol, ENT_QUOTES) ?></code></div>
+                        <div class="text-amber-300">⚠️ Bu parolni xavfsiz joyda saqlang — boshqa ko'rsatilmaydi.</div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex gap-3 justify-center flex-wrap">
+                        <a href="/" class="inline-block px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 font-semibold">Bosh sahifa</a>
+                        <a href="/login" class="inline-block px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Tizimga kirish</a>
+                        <a href="/xak.php" class="inline-block px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Monitoring (xak.php)</a>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-6">
+                        Xavfsizlik uchun: <code>install.php</code> faylini serverdan o'chirib tashlang.
+                    </p>
+                </div>
+            </div>
+            </body></html><?php
+            exit;
+        }
+    }
+    // GET — yakunlash sahifasini ko'rsatamiz (foydalanuvchi tugmani bossin)
+    if ($qadam === 6 && empty($xato)) {
+        ?><!DOCTYPE html><html lang="uz"><head><?= i_head_html('Yakunlash') ?></head><body class="bg-slate-950 text-slate-100">
         <?php i_header_html(6) ?>
-        <div class="max-w-2xl mx-auto px-4 py-12">
-            <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center">
-                <div class="text-6xl mb-4">✅</div>
-                <h2 class="text-2xl font-bold mb-2">O'rnatish muvaffaqiyatli yakunlandi!</h2>
-                <p class="text-slate-300 mb-6">
-                    <code class="px-2 py-1 bg-slate-800 rounded text-sm">install.lock</code> fayli yaratildi va sahifa qulflandi.
+        <div class="max-w-2xl mx-auto px-4 py-10">
+            <div class="rounded-2xl bg-slate-900/70 border border-slate-800 p-8">
+                <h2 class="text-2xl font-bold mb-2">6. Yakunlash</h2>
+                <p class="text-slate-400 mb-6">
+                    Hammasi tayyor! Quyidagi tugmani bosib, o'rnatishni qulflaymiz va
+                    <code>install.lock</code> faylini yaratamiz. Shundan so'ng <code>install.php</code>
+                    sahifasi qaytadan ishga tushmaydi.
                 </p>
-                <div class="text-left bg-slate-900 rounded-xl p-5 mb-6 space-y-2 text-sm">
-                    <div><span class="text-slate-400">Admin telefon:</span> <code><?= htmlspecialchars($admin_tel, ENT_QUOTES) ?></code></div>
-                    <?php if ($xak_parol): ?>
-                    <div><span class="text-slate-400">xak.php paroli:</span> <code><?= htmlspecialchars($xak_parol, ENT_QUOTES) ?></code></div>
-                    <div class="text-amber-300">⚠️ Bu parolni xavfsiz joyda saqlang — boshqa ko'rsatilmaydi.</div>
-                    <?php endif; ?>
-                </div>
-                <div class="flex gap-3 justify-center flex-wrap">
-                    <a href="/" class="inline-block px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-400 font-semibold">Bosh sahifa</a>
-                    <a href="/login" class="inline-block px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Tizimga kirish</a>
-                    <a href="/xak.php" class="inline-block px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Monitoring (xak.php)</a>
-                </div>
-                <p class="text-xs text-slate-500 mt-6">
-                    Xavfsizlik uchun: <code>install.php</code> faylini serverdan o'chirib tashlang.
-                </p>
+
+                <ul class="text-sm space-y-2 mb-6 text-slate-300">
+                    <li>✓ Tizim talablari tekshirildi</li>
+                    <li>✓ Ma'lumotlar bazasi sozlandi</li>
+                    <li>✓ Schema import qilindi</li>
+                    <li>✓ Admin akkaunti yaratildi: <code><?= htmlspecialchars($_SESSION['admin']['telefon'] ?? '', ENT_QUOTES) ?></code></li>
+                    <li>✓ Sayt sozlamalari saqlandi</li>
+                </ul>
+
+                <form method="POST" action="?qadam=6">
+                    <?= i_csrf_input() ?>
+                    <div class="flex gap-3 justify-between">
+                        <a href="?qadam=5" class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">← Orqaga</a>
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 font-semibold text-slate-900">
+                            🔒 O'rnatishni yakunlash
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
         </body></html><?php
@@ -702,6 +750,12 @@ function i_talablar_tekshir(): array {
             'ok'     => extension_loaded('json'),
             'izoh'   => 'Loglar va API uchun',
         ],
+        [
+            'nom'    => 'fileinfo',
+            'qiymat' => extension_loaded('fileinfo') ? 'mavjud' : 'YO\'Q',
+            'ok'     => extension_loaded('fileinfo'),
+            'izoh'   => 'Yuklangan fayl mime tekshiruvi uchun',
+        ],
         $papka_yoz(I_CONFIG),
         $papka_yoz(I_LOG),
         $papka_yoz(__DIR__ . '/uploads'),
@@ -797,19 +851,20 @@ function i_sql_bo_lish(string $sql): array {
 
 /**
  * config/database.php ni yangi DB credentials bilan yozish.
+ *  Parol var_export bilan yozildi — ichida ' yoki \\ bo'lsa ham xavfsiz.
  */
 function i_database_php_yoz(array $db): void {
-    $h = addslashes($db['host']);
-    $n = addslashes($db['name']);
-    $u = addslashes($db['user']);
-    $p = addslashes($db['pass']);
+    $h = var_export($db['host'], true);
+    $n = var_export($db['name'], true);
+    $u = var_export($db['user'], true);
+    $p = var_export($db['pass'], true);
     $eski = is_file(I_DB_FAYL) ? file_get_contents(I_DB_FAYL) : '';
 
     if ($eski && preg_match('/define\(\s*[\'"]DB_HOST[\'"]/', $eski)) {
-        $yangi = preg_replace('/define\(\s*[\'"]DB_HOST[\'"]\s*,.*?\)\s*;/',  "define('DB_HOST', '$h');", $eski);
-        $yangi = preg_replace('/define\(\s*[\'"]DB_NAME[\'"]\s*,.*?\)\s*;/',  "define('DB_NAME', '$n');", $yangi);
-        $yangi = preg_replace('/define\(\s*[\'"]DB_USER[\'"]\s*,.*?\)\s*;/',  "define('DB_USER', '$u');", $yangi);
-        $yangi = preg_replace('/define\(\s*[\'"]DB_PASS[\'"]\s*,.*?\)\s*;/',  "define('DB_PASS', '$p');", $yangi);
+        $yangi = preg_replace('/define\(\s*[\'"]DB_HOST[\'"]\s*,.*?\)\s*;/', "define('DB_HOST', $h);", $eski);
+        $yangi = preg_replace('/define\(\s*[\'"]DB_NAME[\'"]\s*,.*?\)\s*;/', "define('DB_NAME', $n);", $yangi);
+        $yangi = preg_replace('/define\(\s*[\'"]DB_USER[\'"]\s*,.*?\)\s*;/', "define('DB_USER', $u);", $yangi);
+        $yangi = preg_replace('/define\(\s*[\'"]DB_PASS[\'"]\s*,.*?\)\s*;/', "define('DB_PASS', $p);", $yangi);
         @file_put_contents(I_DB_FAYL, $yangi);
         return;
     }
@@ -819,15 +874,15 @@ function i_database_php_yoz(array $db): void {
 <?php
 /**
  * VatanParvar Yaypan — Ma'lumotlar bazasi (PDO)
- * O'rnatish ustasi tomonidan {$h} uchun yaratildi.
+ * O'rnatish ustasi tomonidan yaratildi.
  */
 
 require_once __DIR__ . '/config.php';
 
-define('DB_HOST', '$h');
-define('DB_NAME', '$n');
-define('DB_USER', '$u');
-define('DB_PASS', '$p');
+define('DB_HOST', $h);
+define('DB_NAME', $n);
+define('DB_USER', $u);
+define('DB_PASS', $p);
 define('DB_CHARSET', 'utf8mb4');
 
 PHP;

@@ -13,6 +13,14 @@ require_once __DIR__ . '/../includes/xato_kuzatuv.php';
 require_once __DIR__ . '/../includes/security.php';
 require_once __DIR__ . '/../includes/xujum_himoya.php';
 
+// ----- Tizim hali o'rnatilmaganmi? -----
+$_skip = ['install.php', '403.php', '404.php', '500.php'];
+$_script = basename($_SERVER['SCRIPT_NAME'] ?? '');
+if (!file_exists(INSTALL_LOCK) && !in_array($_script, $_skip, true)) {
+    header('Location: /install.php');
+    exit;
+}
+
 // Xavfsizlik HTTP sarlavhalarini chiqarish
 xavfsizlik_sarlavhalar();
 
