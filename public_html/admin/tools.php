@@ -49,26 +49,41 @@ foreach (glob(CACHE_PATH . '/*.html') ?: [] as $fayl) {
     $kesh_hajm += filesize($fayl);
 }
 
-$kirish_urinishlar_son = (int) db_qiymat('SELECT COUNT(*) FROM kirish_urinishlar WHERE yaratilgan < DATE_SUB(NOW(), INTERVAL 1 HOUR)');
+$kirish_urinishlar_son = 0;
+try {
+    $kirish_urinishlar_son = (int) db_qiymat('SELECT COUNT(*) FROM kirish_urinishlar WHERE yaratilgan < DATE_SUB(NOW(), INTERVAL 1 HOUR)');
+} catch (Throwable $e) {}
+
 try {
     $auditlar_eski = (int) db_qiymat('SELECT COUNT(*) FROM auditlar WHERE yaratilgan < DATE_SUB(NOW(), INTERVAL 30 DAY)');
 } catch (Throwable $e) {
     $auditlar_eski = 0;
 }
-$tugashi_kerak_obunalar = (int) db_qiymat('SELECT COUNT(*) FROM obunalar WHERE holat = "faol" AND tugash <= NOW()');
 
-$db_hajm = (float) db_qiymat(
-    "SELECT SUM(data_length + index_length) / 1024 / 1024
-     FROM information_schema.tables WHERE table_schema = DATABASE()"
-);
+$tugashi_kerak_obunalar = 0;
+try {
+    $tugashi_kerak_obunalar = (int) db_qiymat('SELECT COUNT(*) FROM obunalar WHERE holat = "faol" AND tugash <= NOW()');
+} catch (Throwable $e) {}
 
-$jadvallar = db_barcha(
-    "SELECT table_name AS nom, table_rows AS qatorlar,
-            ROUND((data_length + index_length) / 1024, 2) AS hajm_kb
-     FROM information_schema.tables
-     WHERE table_schema = DATABASE()
-     ORDER BY (data_length + index_length) DESC"
-);
+$db_hajm = 0;
+try {
+    $db_hajm = (float) db_qiymat(
+        "SELECT SUM(data_length + index_length) / 1024 / 1024
+         FROM information_schema.tables WHERE table_schema = DATABASE()"
+    );
+} catch (Throwable $e) {}
+
+try {
+    $jadvallar = db_barcha(
+        "SELECT table_name AS nom, table_rows AS qatorlar,
+                ROUND((data_length + index_length) / 1024, 2) AS hajm_kb
+         FROM information_schema.tables
+         WHERE table_schema = DATABASE()
+         ORDER BY (data_length + index_length) DESC"
+    );
+} catch (Throwable $e) {
+    $jadvallar = [];
+}
 
 $admin_sahifa = 'tools';
 $sahifa_sarlavha = 'Tizim asboblari';
