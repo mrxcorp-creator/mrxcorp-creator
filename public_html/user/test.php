@@ -163,14 +163,25 @@ if ($bilet_id) {
         </div>
 
         <main class="max-w-3xl mx-auto px-4 py-8">
-            <div class="flex flex-wrap gap-2 mb-6">
-                <template x-for="(s, i) in savollar" :key="s.id">
-                    <button @click="joriy = i"
-                            :class="i === joriy ? 'ring-2 ring-violet bg-violet/30 text-white' :
-                                    (javoblar[s.id] ? 'bg-violet/15 text-violet' : 'bg-white/5 text-muted')"
-                            class="w-10 h-10 rounded-xl text-sm font-bold transition-all hover:bg-white/10 active:scale-95"
-                            x-text="i + 1"></button>
-                </template>
+            <div class="mb-6" x-data="{filter: 'barcha'}">
+                <div class="flex gap-2 mb-3 flex-wrap text-xs">
+                    <button @click="filter = 'barcha'" :class="filter === 'barcha' ? 'grad-bg text-white' : 'bg-white/5 hover:bg-white/10'"
+                            class="px-3 py-1.5 rounded-lg transition">Barchasi <span x-text="`(${savollar.length})`"></span></button>
+                    <button @click="filter = 'javob'" :class="filter === 'javob' ? 'grad-bg text-white' : 'bg-white/5 hover:bg-white/10'"
+                            class="px-3 py-1.5 rounded-lg transition">Javob berilgan <span x-text="`(${Object.keys(javoblar).length})`"></span></button>
+                    <button @click="filter = 'bosh'" :class="filter === 'bosh' ? 'grad-bg text-white' : 'bg-white/5 hover:bg-white/10'"
+                            class="px-3 py-1.5 rounded-lg transition">Bo'sh <span x-text="`(${savollar.length - Object.keys(javoblar).length})`"></span></button>
+                </div>
+                <div class="grid grid-cols-10 sm:grid-cols-12 gap-1.5 lg:gap-2">
+                    <template x-for="(s, i) in savollar" :key="s.id">
+                        <button @click="joriy = i"
+                                x-show="filter === 'barcha' || (filter === 'javob' && javoblar[s.id]) || (filter === 'bosh' && !javoblar[s.id])"
+                                :class="i === joriy ? 'ring-2 ring-violet bg-violet/30 text-white' :
+                                        (javoblar[s.id] ? 'bg-violet/15 text-violet' : 'bg-white/5 text-muted')"
+                                class="aspect-square rounded-lg text-xs font-bold transition-all hover:bg-white/10 active:scale-95"
+                                x-text="i + 1"></button>
+                    </template>
+                </div>
             </div>
 
             <template x-for="(s, i) in savollar" :key="s.id">
@@ -398,8 +409,21 @@ require_once __DIR__ . '/../includes/navbar.php';
     </div>
 
     <?php if (empty($biletlar)): ?>
-        <div class="glass p-12 text-center text-muted">
-            <p><?= e(t('malumot_yoq')) ?></p>
+        <div class="glass p-12 text-center fade-up">
+            <svg class="w-32 h-32 mx-auto mb-4 opacity-40" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <rect x="40" y="60" width="120" height="80" rx="12" fill="url(#empty-grad)" opacity="0.4"/>
+                <defs>
+                    <linearGradient id="empty-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#06B6D4"/>
+                        <stop offset="100%" stop-color="#EC4899"/>
+                    </linearGradient>
+                </defs>
+                <rect x="60" y="80" width="60" height="6" rx="3" fill="white" opacity="0.6"/>
+                <rect x="60" y="95" width="40" height="6" rx="3" fill="white" opacity="0.4"/>
+                <circle cx="135" cy="100" r="20" fill="#F59E0B" opacity="0.7"/>
+                <text x="135" y="108" text-anchor="middle" font-size="20" font-weight="bold" fill="white">?</text>
+            </svg>
+            <p class="text-muted"><?= e(t('malumot_yoq')) ?></p>
         </div>
     <?php endif; ?>
 </main>

@@ -56,8 +56,42 @@ function rasm_saqla(array $fayl, string $papka = 'savollar', int $maks = 800): ?
     return $papka . '/' . $nom;
 }
 
-function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
-    $token = sozlama('telegram_bot_token');
+function maxfiy_qiymat(string $kalit, string $sozlama_kalit = ''): string {
+    $sozlama_kalit = $sozlama_kalit ?: $kalit;
+    $const = strtoupper($kalit);
+    if (defined($const) && constant($const) !== '') {
+        return (string) constant($const);
+    }
+    return (string) (sozlama($sozlama_kalit) ?? '');
+}
+
+function fonda_yakunla(): void {
+    if (function_exists('fastcgi_finish_request')) {
+        @fastcgi_finish_request();
+        return;
+    }
+    if (!headers_sent()) {
+        ignore_user_abort(true);
+        header('Connection: close');
+        header('Content-Length: ' . ob_get_length());
+    }
+    while (ob_get_level()) ob_end_flush();
+    flush();
+}
+
+function telegram_navbatga(int|string $chat_id, string $matn, array $qoshimcha = []): void {
+    try {
+        db_bajar(
+            'INSERT INTO telegram_navbat (chat_id, matn, qoshimcha_json) VALUES (?, ?, ?)',
+            [(string) $chat_id, $matn, $qoshimcha ? json_encode($qoshimcha, JSON_UNESCAPED_UNICODE) : null]
+        );
+    } catch (Throwable $e) {
+        @telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+    }
+}
+
+function telegram_yubor_xom(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
+    $token = maxfiy_qiymat('TELEGRAM_BOT_TOKEN', 'telegram_bot_token');
     if (!$token || !$chat_id) return false;
 
     $data = array_merge([
@@ -72,6 +106,7 @@ function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => http_build_query($data),
         CURLOPT_TIMEOUT        => 10,
+        CURLOPT_CONNECTTIMEOUT => 5,
     ]);
     $javob = curl_exec($ch);
     curl_close($ch);
@@ -79,8 +114,50 @@ function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []
     return !empty($j['ok']);
 }
 
+function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
+    if (PHP_SAPI === 'cli' || (defined('TELEGRAM_SYNC') && TELEGRAM_SYNC)) {
+        return telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+    }
+    telegram_navbatga($chat_id, $matn, $qoshimcha);
+    return true;
+}
+
+function telegram_navbatni_jonat(int $maks = 20): array {
+    $natija = ['jonatildi' => 0, 'xato' => 0];
+
+    $xabarlar = db_barcha(
+        'SELECT * FROM telegram_navbat
+         WHERE holat IN ("kutilmoqda","xato") AND urinish < 3
+         ORDER BY id ASC LIMIT ' . (int) $maks
+    );
+
+    foreach ($xabarlar as $x) {
+        $qosh = $x['qoshimcha_json'] ? (json_decode($x['qoshimcha_json'], true) ?: []) : [];
+        $ok = telegram_yubor_xom($x['chat_id'], $x['matn'], $qosh);
+
+        if ($ok) {
+            db_bajar('UPDATE telegram_navbat SET holat = "jonatildi" WHERE id = ?', [$x['id']]);
+            $natija['jonatildi']++;
+        } else {
+            db_bajar(
+                'UPDATE telegram_navbat
+                 SET urinish = urinish + 1,
+                     holat = IF(urinish + 1 >= 3, "xato", "kutilmoqda"),
+                     xato_matn = "API javob bermadi"
+                 WHERE id = ?',
+                [$x['id']]
+            );
+            $natija['xato']++;
+        }
+    }
+
+    db_bajar('DELETE FROM telegram_navbat WHERE holat = "jonatildi" AND yangilangan < DATE_SUB(NOW(), INTERVAL 7 DAY)');
+
+    return $natija;
+}
+
 function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izoh = ''): bool {
-    $token = sozlama('telegram_bot_token');
+    $token = maxfiy_qiymat('TELEGRAM_BOT_TOKEN', 'telegram_bot_token');
     if (!$token || !is_file($fayl_yoli)) return false;
 
     $ch = curl_init("https://api.telegram.org/bot{$token}/sendDocument");
@@ -98,6 +175,96 @@ function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izo
     curl_close($ch);
     $j = json_decode($javob, true);
     return !empty($j['ok']);
+}
+
+function audit_yoz(string $harakat, ?string $obyekt_turi = null, ?int $obyekt_id = null, array $tafsilot = []): void {
+    try {
+        $foyd_id = $_SESSION['foydalanuvchi_id'] ?? null;
+        db_bajar(
+            'INSERT INTO auditlar (foydalanuvchi_id, harakat, obyekt_turi, obyekt_id, tafsilot, ip, user_agent)
+             VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [
+                $foyd_id,
+                $harakat,
+                $obyekt_turi,
+                $obyekt_id,
+                $tafsilot ? json_encode($tafsilot, JSON_UNESCAPED_UNICODE) : null,
+                ip_olish(),
+                substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+            ]
+        );
+    } catch (Throwable $e) {
+        error_log('Audit log xato: ' . $e->getMessage());
+    }
+}
+
+function parol_murakkabmi(string $parol): array {
+    if (mb_strlen($parol) < 8) {
+        return ['ok' => false, 'xato' => 'Parol kamida 8 belgi bo\'lishi kerak'];
+    }
+    if (!preg_match('/[A-Za-z]/', $parol)) {
+        return ['ok' => false, 'xato' => 'Parol kamida 1 ta harf bo\'lishi kerak'];
+    }
+    if (!preg_match('/[0-9]/', $parol)) {
+        return ['ok' => false, 'xato' => 'Parol kamida 1 ta raqam bo\'lishi kerak'];
+    }
+    return ['ok' => true];
+}
+
+function qurilma_aniqla(string $ua): string {
+    if (preg_match('/iPhone|iPad/i', $ua)) return 'iOS';
+    if (preg_match('/Android/i', $ua)) return 'Android';
+    if (preg_match('/Macintosh/i', $ua)) return 'Mac';
+    if (preg_match('/Windows/i', $ua)) return 'Windows';
+    if (preg_match('/Linux/i', $ua)) return 'Linux';
+    return 'Boshqa';
+}
+
+function brauzer_aniqla(string $ua): string {
+    if (preg_match('/Edg\//i', $ua)) return 'Edge';
+    if (preg_match('/OPR\/|Opera/i', $ua)) return 'Opera';
+    if (preg_match('/Firefox/i', $ua)) return 'Firefox';
+    if (preg_match('/Chrome/i', $ua)) return 'Chrome';
+    if (preg_match('/Safari/i', $ua)) return 'Safari';
+    return 'Boshqa';
+}
+
+function honeypot_input(): string {
+    return '<div class="honeypot" aria-hidden="true">' .
+           '<label>Bu maydonni bo\'sh qoldiring</label>' .
+           '<input type="text" name="website" tabindex="-1" autocomplete="off">' .
+           '</div>';
+}
+
+function honeypot_tekshir(): bool {
+    return empty($_POST['website']);
+}
+
+function csrf_form_token(string $forma): string {
+    sessiya_boshla();
+    if (empty($_SESSION['csrf_form_tokens'][$forma])) {
+        $_SESSION['csrf_form_tokens'][$forma] = bin2hex(random_bytes(16));
+    }
+    return $_SESSION['csrf_form_tokens'][$forma];
+}
+
+function csrf_form_tekshir(string $forma, ?string $token): bool {
+    sessiya_boshla();
+    if (empty($_SESSION['csrf_form_tokens'][$forma]) || empty($token)) {
+        return false;
+    }
+    $ok = hash_equals($_SESSION['csrf_form_tokens'][$forma], $token);
+    if ($ok) {
+        unset($_SESSION['csrf_form_tokens'][$forma]);
+    }
+    return $ok;
+}
+
+function csrf_form_input(string $forma): string {
+    return '<input type="hidden" name="csrf_forma_token" value="' .
+           htmlspecialchars(csrf_form_token($forma), ENT_QUOTES) . '">' .
+           '<input type="hidden" name="csrf_forma_nom" value="' .
+           htmlspecialchars($forma, ENT_QUOTES) . '">';
 }
 
 function json_javob(array $data, int $kod = 200): never {

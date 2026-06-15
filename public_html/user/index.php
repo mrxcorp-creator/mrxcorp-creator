@@ -131,9 +131,27 @@ require_once __DIR__ . '/../includes/navbar.php';
             </div>
 
             <?php if (empty($oxirgi)): ?>
-                <div class="py-12 text-center text-muted">
-                    <div class="w-20 h-20 mx-auto mb-4 rounded-2xl grad-bg-soft flex items-center justify-center text-4xl opacity-60">📋</div>
-                    <p><?= e(t('natijalar_yoq')) ?></p>
+                <div class="py-12 text-center">
+                    <svg class="w-32 h-32 mx-auto mb-4" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="empty-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.4"/>
+                                <stop offset="50%" stop-color="#8B5CF6" stop-opacity="0.4"/>
+                                <stop offset="100%" stop-color="#EC4899" stop-opacity="0.4"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="100" cy="100" r="80" fill="url(#empty-grad)" opacity="0.15"/>
+                        <rect x="60" y="50" width="80" height="100" rx="8" fill="url(#empty-grad)" opacity="0.5"/>
+                        <rect x="70" y="65" width="60" height="4" rx="2" fill="white" opacity="0.5"/>
+                        <rect x="70" y="78" width="50" height="4" rx="2" fill="white" opacity="0.4"/>
+                        <rect x="70" y="91" width="55" height="4" rx="2" fill="white" opacity="0.3"/>
+                        <circle cx="135" cy="135" r="22" fill="#10B981"/>
+                        <path d="M127 135 l5 5 l10 -10" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <p class="text-muted mb-4"><?= e(t('natijalar_yoq')) ?></p>
+                    <a href="<?= e(SAYT_URL) ?>/test" class="btn btn-primary inline-flex">
+                        🚗 <?= e(t('hero_tugma_demo')) ?>
+                    </a>
                 </div>
             <?php else: ?>
                 <div class="space-y-2">

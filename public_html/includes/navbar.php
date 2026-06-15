@@ -4,8 +4,8 @@
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
 
         <a href="<?= e(SAYT_URL) ?>" class="flex items-center gap-2.5 group">
-            <img src="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg" alt="" class="w-9 h-9 rounded-xl group-hover:scale-110 transition">
-            <span class="font-display font-extrabold text-white text-lg hidden sm:inline">
+            <img src="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg" alt="" class="w-9 h-9 rounded-xl group-hover:scale-110 transition" loading="eager">
+            <span class="font-display font-extrabold text-text text-lg hidden sm:inline">
                 VatanParvar <span class="grad-text">Yaypan</span>
             </span>
         </a>
@@ -24,24 +24,32 @@
             <?php else: ?>
                 <a href="<?= e(SAYT_URL) ?>/#xususiyatlar" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('xususiyatlar')) ?></a>
                 <a href="<?= e(SAYT_URL) ?>/#tariflar" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('tariflar')) ?></a>
-                <a href="<?= e(SAYT_URL) ?>/#fikrlar" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('fikrlar')) ?></a>
+                <a href="<?= e(SAYT_URL) ?>/#savollar" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">FAQ</a>
                 <a href="<?= e(SAYT_URL) ?>/#aloqa" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('aloqa')) ?></a>
             <?php endif; ?>
         </div>
 
         <div class="hidden md:flex items-center gap-2">
+            <button onclick="window.vpTheme.toggle()" aria-label="Mavzu o'zgartirish"
+                    class="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/5 transition text-muted hover:text-text">
+                <svg x-show="$el.parentElement.parentElement.parentElement.parentElement.dataset.theme !== 'light' || true"
+                     class="w-5 h-5 dark-icon" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+            </button>
+
             <?php if ($f): ?>
                 <div x-data="{menu:false}" class="relative">
                     <button @click="menu=!menu" class="flex items-center gap-2 hover:bg-white/5 rounded-lg pl-1.5 pr-3 py-1.5 transition">
                         <span class="w-8 h-8 rounded-full grad-bg flex items-center justify-center text-sm font-bold text-white overflow-hidden">
                             <?php if ($f['avatar'] && is_file(UPLOAD_PATH . '/' . $f['avatar'])): ?>
-                                <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover">
+                                <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover" alt="" loading="lazy">
                             <?php else: ?>
                                 <?= e(bosh_harflar($f)) ?>
                             <?php endif; ?>
                         </span>
                         <span class="text-sm"><?= e($f['ism']) ?></span>
-                        <svg class="w-3 h-3 opacity-60" fill="currentColor" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5z"/></svg>
+                        <svg class="w-3 h-3 opacity-60" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5z"/></svg>
                     </button>
                     <div x-show="menu" x-transition @click.outside="menu=false" x-cloak
                          class="absolute right-0 top-full mt-2 w-60 glass-strong p-2">
@@ -64,9 +72,9 @@
             <?php endif; ?>
         </div>
 
-        <button @click="open=!open" class="md:hidden p-2 rounded-lg hover:bg-white/5">
-            <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button @click="open=!open" class="md:hidden p-2 rounded-lg hover:bg-white/5" aria-label="Menyu">
+            <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-cloak aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     </div>
 
@@ -75,7 +83,7 @@
             <div class="flex items-center gap-3 px-3 py-3 rounded-xl glass mb-3">
                 <span class="w-11 h-11 rounded-full grad-bg flex items-center justify-center font-bold text-white overflow-hidden">
                     <?php if ($f['avatar'] && is_file(UPLOAD_PATH . '/' . $f['avatar'])): ?>
-                        <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover">
+                        <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover" alt="" loading="lazy">
                     <?php else: ?>
                         <?= e(bosh_harflar($f)) ?>
                     <?php endif; ?>
@@ -93,6 +101,7 @@
             <?php if (in_array($f['rol'], ['admin', 'developer'], true)): ?>
                 <a href="<?= e(SAYT_URL) ?>/admin/" class="block px-4 py-2.5 rounded-lg grad-bg-soft text-violet font-semibold border border-violet/30">⚡ <?= e(t('admin_panel')) ?></a>
             <?php endif; ?>
+            <button onclick="window.vpTheme.toggle()" class="w-full text-left px-4 py-2.5 rounded-lg hover:bg-white/5">🌓 Mavzu</button>
             <form method="POST" action="<?= e(SAYT_URL) ?>/auth/logout.php" class="m-0">
                 <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
                 <button type="submit" class="w-full text-left block px-4 py-2.5 rounded-lg text-danger hover:bg-danger/10"><?= e(t('chiqish')) ?></button>
@@ -100,6 +109,7 @@
         <?php else: ?>
             <a href="<?= e(SAYT_URL) ?>/login" class="block px-4 py-2.5 rounded-lg hover:bg-white/5"><?= e(t('kirish')) ?></a>
             <a href="<?= e(SAYT_URL) ?>/register" class="block px-4 py-3 rounded-lg grad-bg text-center font-semibold text-white"><?= e(t('royxatdan_otish')) ?></a>
+            <button onclick="window.vpTheme.toggle()" class="w-full text-left px-4 py-2.5 rounded-lg hover:bg-white/5">🌓 Mavzu</button>
         <?php endif; ?>
     </div>
 </nav>

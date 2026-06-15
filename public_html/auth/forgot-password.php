@@ -11,6 +11,9 @@ $muvaffaqiyat = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_tekshir(post('csrf_token'))) {
         $xato = t('csrf_xato');
+    } elseif (!honeypot_tekshir()) {
+        $xato = t('csrf_xato');
+        sleep(1);
     } elseif (!rate_limit_tekshir()) {
         $xato = t('rate_limit');
     } else {
@@ -25,12 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             kirish_qayd($telefon, false);
 
             if ($f && $f['telegram_id']) {
-                $yangi_parol = bin2hex(random_bytes(4));
+                $yangi_parol = bin2hex(random_bytes(5));
                 $hash = password_hash($yangi_parol, PASSWORD_BCRYPT);
                 db_bajar('UPDATE foydalanuvchilar SET parol_hash = ? WHERE id = ?', [$hash, $f['id']]);
 
-                $xabar = "🔐 <b>Vaqtinchalik parolingiz:</b>\n\n<code>{$yangi_parol}</code>\n\nKirgandan so'ng profilingizdan parolni o'zgartiring.";
+                $xabar = "🔐 <b>Vaqtinchalik parolingiz:</b>\n\n<code>{$yangi_parol}</code>\n\n"
+                       . "Kirgandan so'ng profilingizdan parolni o'zgartiring.";
                 telegram_yubor($f['telegram_id'], $xabar);
+                audit_yoz('parol_tiklandi', 'foydalanuvchi', (int) $f['id']);
             }
 
             $muvaffaqiyat = "Agar telefon raqami ro'yxatda bo'lsa va Telegram bog'langan bo'lsa, yangi parol yuboriladi.";
@@ -74,9 +79,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php if (!$muvaffaqiyat): ?>
                 <form method="POST" class="space-y-4" x-data="{loading:false}" @submit="loading=true">
                     <?= csrf_input() ?>
-
-                    <div>
-                        <label class="field-label" for="telefon"><?= e(t('telefon')) ?></label>
+                    <?= honeypot_input() ?>
                         <input id="telefon" name="telefon" type="tel" required
                                placeholder="+998 90 123 45 67"
                                class="field" autocomplete="tel">

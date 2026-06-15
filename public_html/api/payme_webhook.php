@@ -25,7 +25,7 @@ function payme_javob(array $natija, ?int $id = null): never {
     exit;
 }
 
-$kerakli_kalit = sozlama('payme_key', '');
+$kerakli_kalit = maxfiy_qiymat('PAYME_KEY', 'payme_key');
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 if (!$kerakli_kalit || !str_starts_with($auth, 'Basic ')) {
     payme_xato(PAYME_XATO_AUTH, 'Auth talab qilinadi');
@@ -48,6 +48,27 @@ $params = $so_rov['params'] ?? [];
 function tolov_topish(array $hisob): ?array {
     if (empty($hisob['tolov_id'])) return null;
     return db_qator('SELECT * FROM tolovlar WHERE id = ?', [(int) $hisob['tolov_id']]);
+}
+
+function obuna_yarat_idempotent(array $tolov, array $tarif): bool {
+    $kun = match ($tarif['tur']) {
+        'kun' => $tarif['qiymat'],
+        'oy'  => $tarif['qiymat'] * 30,
+        default => 365,
+    };
+    try {
+        db_bajar(
+            'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, tolov_id, boshlanish, tugash, holat)
+             VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
+            [$tolov['foydalanuvchi_id'], $tarif['id'], $tolov['id'], $kun]
+        );
+        return true;
+    } catch (PDOException $e) {
+        if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), '1062')) {
+            return false;
+        }
+        throw $e;
+    }
 }
 
 switch ($method) {
@@ -112,38 +133,56 @@ switch ($method) {
         }
 
         $tarif = db_qator('SELECT * FROM tariflar WHERE id = ?', [$tolov['tarif_id']]);
-        $kun = match ($tarif['tur']) {
-            'kun' => $tarif['qiymat'],
-            'oy'  => $tarif['qiymat'] * 30,
-            default => 365,
-        };
 
         db()->beginTransaction();
         try {
-            db_bajar('UPDATE tolovlar SET holat = "muvaffaqiyatli" WHERE id = ?', [$tolov['id']]);
-            db_bajar(
-                'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
-                 VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
-                [$tolov['foydalanuvchi_id'], $tarif['id'], $kun]
+            $yangilandi = db_bajar(
+                'UPDATE tolovlar SET holat = "muvaffaqiyatli"
+                 WHERE id = ? AND holat = "kutilmoqda"',
+                [$tolov['id']]
             );
+            if ($yangilandi === 0) {
+                db()->rollBack();
+                payme_javob([
+                    'transaction'  => (string) $tolov['id'],
+                    'perform_time' => time() * 1000,
+                    'state'        => 2,
+                ], $id);
+            }
+
+            obuna_yarat_idempotent($tolov, $tarif);
 
             $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
             if (!empty($foydalanuvchi['referal_orqali'])) {
                 $bonus = (float) sozlama('referal_bonus', 5000);
-                db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
-                         [$bonus, $foydalanuvchi['referal_orqali']]);
-                db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
-                         [$bonus, $foydalanuvchi['id']]);
+                $allaqachon = db_qiymat(
+                    'SELECT 1 FROM referallar WHERE referal_id = ? AND holat = "tasdiq"',
+                    [$foydalanuvchi['id']]
+                );
+                if (!$allaqachon) {
+                    db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
+                             [$bonus, $foydalanuvchi['referal_orqali']]);
+                    db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
+                             [$bonus, $foydalanuvchi['id']]);
+                }
             }
+
+            db()->commit();
 
             if ($foydalanuvchi['telegram_id']) {
                 telegram_yubor($foydalanuvchi['telegram_id'],
                     "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>");
             }
 
-            db()->commit();
+            audit_yoz('tolov_tasdiqlandi', 'tolov', (int) $tolov['id'], [
+                'tolov_turi' => 'payme',
+                'summa' => (float) $tolov['summa'],
+                'tarif' => $tarif['nomi'],
+            ]);
+
         } catch (Exception $exc) {
-            db()->rollBack();
+            if (db()->inTransaction()) db()->rollBack();
+            error_log('Payme PerformTransaction xato: ' . $exc->getMessage());
             payme_xato(-31099, 'Server xatosi', null, $id);
         }
 
@@ -162,15 +201,12 @@ switch ($method) {
         $vaqt = time() * 1000;
         if (in_array($tolov['holat'], ['kutilmoqda', 'muvaffaqiyatli'], true)) {
             db_bajar('UPDATE tolovlar SET holat = "bekor" WHERE id = ?', [$tolov['id']]);
-            $obuna_id = (int) db_qiymat(
-                'SELECT id FROM obunalar
-                 WHERE foydalanuvchi_id = ? AND tarif_id = ? AND yaratilgan >= ?
-                 ORDER BY id DESC LIMIT 1',
-                [$tolov['foydalanuvchi_id'], $tolov['tarif_id'], $tolov['yaratilgan']]
-            );
-            if ($obuna_id) {
-                db_bajar('UPDATE obunalar SET holat = "bekor" WHERE id = ?', [$obuna_id]);
-            }
+            db_bajar('UPDATE obunalar SET holat = "bekor" WHERE tolov_id = ?', [$tolov['id']]);
+
+            audit_yoz('tolov_bekor', 'tolov', (int) $tolov['id'], [
+                'tolov_turi' => 'payme',
+                'reason' => $params['reason'] ?? null,
+            ]);
         }
         payme_javob([
             'transaction' => (string) $tolov['id'],
@@ -208,7 +244,8 @@ switch ($method) {
             'SELECT * FROM tolovlar
              WHERE tolov_turi = "payme"
                AND yaratilgan >= FROM_UNIXTIME(?)
-               AND yaratilgan <= FROM_UNIXTIME(?)',
+               AND yaratilgan <= FROM_UNIXTIME(?)
+             ORDER BY id ASC',
             [$boshlanish / 1000, $tugash / 1000]
         );
 

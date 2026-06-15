@@ -15,18 +15,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($harakat === 'block') {
             $yangi = $maqsad['holat'] === 'faol' ? 'bloklangan' : 'faol';
             db_bajar('UPDATE foydalanuvchilar SET holat = ? WHERE id = ?', [$yangi, $id]);
+            audit_yoz('foydalanuvchi_' . $yangi, 'foydalanuvchi', $id);
             flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         }
         if ($harakat === 'rol' && $f['rol'] === 'developer' && $maqsad['id'] !== $f['id']) {
             $rol = post('rol');
             if (in_array($rol, ['user', 'admin', 'developer'], true)) {
                 db_bajar('UPDATE foydalanuvchilar SET rol = ? WHERE id = ?', [$rol, $id]);
+                audit_yoz('rol_ozgartirildi', 'foydalanuvchi', $id, [
+                    'eski' => $maqsad['rol'], 'yangi' => $rol,
+                ]);
                 flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
             }
         }
         if ($harakat === 'bonus') {
             $bonus = (float) post('bonus');
             db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?', [$bonus, $id]);
+            audit_yoz('bonus_qoshildi', 'foydalanuvchi', $id, ['summa' => $bonus]);
             flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         }
         if ($harakat === 'obuna') {
@@ -40,16 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 };
                 db()->beginTransaction();
                 try {
-                    db_bajar(
-                        'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
-                         VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
-                        [$id, $tarif_id, $kun]
-                    );
-                    db_bajar(
+                    $tolov_id = db_bajar(
                         'INSERT INTO tolovlar (foydalanuvchi_id, tarif_id, summa, tolov_turi, holat, izoh)
                          VALUES (?, ?, ?, "manual", "muvaffaqiyatli", ?)',
                         [$id, $tarif_id, $tarif['narx'], "Admin: " . $f['ism']]
                     );
+                    db_bajar(
+                        'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, tolov_id, boshlanish, tugash, holat)
+                         VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
+                        [$id, $tarif_id, $tolov_id, $kun]
+                    );
+                    audit_yoz('obuna_qolda_berildi', 'foydalanuvchi', (int) $id, [
+                        'tarif' => $tarif['nomi'],
+                        'kun' => $kun,
+                    ]);
                     db()->commit();
                     if ($maqsad['telegram_id']) {
                         telegram_yubor($maqsad['telegram_id'],

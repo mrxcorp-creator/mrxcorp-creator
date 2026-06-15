@@ -11,10 +11,11 @@ $ruxsatli_kalitlar = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!csrf_tekshir(post('csrf_token'))) {
+    if (!csrf_form_tekshir('admin_sozlamalar', post('csrf_forma_token'))) {
         flash_qoy('xato', t('csrf_xato'));
         yonaltir(SAYT_URL . '/admin/sozlamalar.php');
     }
+    $ozgarganlar = [];
     foreach ($ruxsatli_kalitlar as $k) {
         if (!array_key_exists($k, $_POST)) continue;
         $qiymat = (string) $_POST[$k];
@@ -25,9 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($qiymat !== $eski) {
             sozlama_saqla($k, $qiymat);
+            $ozgarganlar[] = $maxfiy ? $k . ' (maxfiy)' : $k;
         }
     }
     foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $f_kesh) @unlink($f_kesh);
+    if ($ozgarganlar) {
+        audit_yoz('sozlamalar_yangilandi', 'sozlamalar', null, ['ozgarganlar' => $ozgarganlar]);
+    }
     flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
     yonaltir(SAYT_URL . '/admin/sozlamalar.php');
 }
@@ -72,7 +77,7 @@ require_once __DIR__ . '/_layout.php';
 ?>
 
 <form method="POST" class="space-y-6">
-    <?= csrf_input() ?>
+    <?= csrf_form_input('admin_sozlamalar') ?>
 
     <?php foreach ($guruhlar as $guruh => $kalitlar): ?>
         <div class="glass p-5 fade-up">
