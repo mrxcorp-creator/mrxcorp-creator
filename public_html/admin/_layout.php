@@ -39,6 +39,7 @@ require_once __DIR__ . '/../includes/header.php';
                 'index'           => ['🏠', t('boshqaruv_paneli'), 'index.php', 0],
                 'biletlar'        => ['🎫', t('admin_biletlar'),    'biletlar.php', 0],
                 'savollar'        => ['❓', t('admin_savollar'),    'savollar.php', 0],
+                'savollar_import' => ['📥', 'Savol import',          'savollar_import.php', 0],
                 'foydalanuvchilar'=> ['👥', t('admin_foydalanuvchilar'), 'foydalanuvchilar.php', 0],
                 'tariflar'        => ['💎', t('tariflar'),          'tariflar.php', 0],
                 'tolovlar'        => ['💳', t('admin_tolovlar'),    'tolovlar.php', $kutilgan_tolov],

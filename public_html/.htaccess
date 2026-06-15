@@ -38,6 +38,7 @@ RewriteRule ^tolov/?$ user/payment.php [L,QSA]
 RewriteRule ^referal/?$ user/referal.php [L,QSA]
 RewriteRule ^xatolar/?$ user/xatolar.php [L,QSA]
 RewriteRule ^statistika/?$ user/statistika.php [L,QSA]
+RewriteRule ^mashq/?$ user/mashq.php [L,QSA]
 
 <FilesMatch "^(\.|composer\.|package\.|README|DEPLOYMENT|LICENSE|.*\.(env|sql|md|log|gitignore|json|yml|yaml|lock|local\.php))$">
     Require all denied

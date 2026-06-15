@@ -13,6 +13,8 @@ $stat = [
     'test_24h'         => (int) db_qiymat('SELECT COUNT(*) FROM natijalar WHERE holat = "tugagan" AND tugagan > DATE_SUB(NOW(), INTERVAL 24 HOUR)'),
     'kutayotgan_fikr'  => (int) db_qiymat('SELECT COUNT(*) FROM fikrlar WHERE tasdiq = 0'),
     'kutayotgan_tolov' => (int) db_qiymat('SELECT COUNT(*) FROM tolovlar WHERE holat = "kutilmoqda"'),
+    'onlayn'           => (int) db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar WHERE oxirgi_kirish > DATE_SUB(NOW(), INTERVAL 5 MINUTE)'),
+    'davom_etayotgan'  => (int) db_qiymat('SELECT COUNT(*) FROM natijalar WHERE holat = "davom"'),
 ];
 
 $oxirgi_tolov = db_barcha(
@@ -32,7 +34,14 @@ $oxirgi_tolov = db_barcha(
                 <span class="text-xs text-muted uppercase tracking-wider">Foydalanuvchilar</span>
             </div>
             <div class="text-3xl font-display font-extrabold"><?= $stat['foydalanuvchi'] ?></div>
-            <div class="text-xs text-success mt-1">+<?= $stat['foydalanuvchi_24h'] ?> bugun</div>
+            <div class="flex items-center gap-3 mt-1 text-xs">
+                <span class="text-success">+<?= $stat['foydalanuvchi_24h'] ?> bugun</span>
+                <span class="text-muted">·</span>
+                <span class="text-success flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                    <?= $stat['onlayn'] ?> onlayn
+                </span>
+            </div>
         </div>
     </div>
     <div class="glass p-5 fade-up">
@@ -57,7 +66,13 @@ $oxirgi_tolov = db_barcha(
             <span class="text-xs text-muted uppercase tracking-wider">Yechilgan testlar</span>
         </div>
         <div class="text-3xl font-display font-extrabold"><?= $stat['test_jami'] ?></div>
-        <div class="text-xs text-success mt-1">+<?= $stat['test_24h'] ?> bugun</div>
+        <div class="flex items-center gap-3 mt-1 text-xs">
+            <span class="text-success">+<?= $stat['test_24h'] ?> bugun</span>
+            <?php if ($stat['davom_etayotgan'] > 0): ?>
+                <span class="text-muted">·</span>
+                <span class="text-amber animate-pulse"><?= $stat['davom_etayotgan'] ?> jarayonda</span>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
