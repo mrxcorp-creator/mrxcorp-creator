@@ -1,114 +1,131 @@
 <?php
 /**
- * VatanParvar Yaypan — Click webhook
+ * AvtoTest Pro — Click to'lov tizimi webhook
  *
- * Click servisi quyidagi bosqichlarni chaqiradi:
- *   1) Prepare  — to'lovni tayyorlash (action=0)
- *   2) Complete — to'lovni yakunlash  (action=1)
- *
+ * Click Prepare (action=0) + Complete (action=1) protokoli.
  * Rasmiy hujjat: https://docs.click.uz/
+ *
+ * Imzo (sign) tekshiruvi:
+ *   Prepare:  MD5(click_trans_id + service_id + secret + merchant_trans_id + amount + action + sign_time)
+ *   Complete: MD5(click_trans_id + service_id + secret + merchant_trans_id + merchant_prepare_id + amount + action + sign_time)
  */
+
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/funksiyalar.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ----- Click javob kodlari -----
-$KOD = [
-    'OK'                  => 0,
-    'SIGN_XATO'           => -1,
-    'INVALID_AMOUNT'      => -2,
-    'ALLAQACHON_BAJARILGAN' => -4,
-    'TRANSAKSIYA_TOPILMADI' => -5,
-    'TOPILMADI'           => -6,
-    'OLDIN_TOPILGAN'      => -7,
-    'XATO_PARAMETRLAR'    => -8,
-    'BEKOR_QILINGAN'      => -9,
-];
+// Click javob kodlari
+const C_OK         =  0;
+const C_SIGN       = -1;
+const C_AMOUNT     = -2;
+const C_DONE       = -4;
+const C_NO_TRANS   = -5;
+const C_NOT_FOUND  = -6;
+const C_CANCELED   = -9;
+const C_BAD_PARAMS = -8;
 
-function click_javob(int $kod, string $matn, array $qoshimcha = []): never {
-    echo json_encode(array_merge([
-        'error' => $kod,
-        'error_note' => $matn,
-    ], $qoshimcha), JSON_UNESCAPED_UNICODE);
+function click_javob(int $kod, string $matn, array $extra = []): never
+{
+    echo json_encode(
+        array_merge(['error' => $kod, 'error_note' => $matn], $extra),
+        JSON_UNESCAPED_UNICODE
+    );
     exit;
 }
 
-// ----- Parametrlarni o'qish -----
-$click_trans_id = $_POST['click_trans_id']    ?? '';
-$service_id     = $_POST['service_id']        ?? '';
-$click_paydoc_id= $_POST['click_paydoc_id']   ?? '';
-$merchant_trans = $_POST['merchant_trans_id'] ?? ''; // bu bizning tolovlar.id
-$amount         = (float) ($_POST['amount']   ?? 0);
-$action         = (int)   ($_POST['action']   ?? -1);
-$sign_time      = $_POST['sign_time']         ?? '';
-$sign_string    = $_POST['sign_string']       ?? '';
-$error          = (int)   ($_POST['error']    ?? 0);
-$merchant_prep  = $_POST['merchant_prepare_id'] ?? '';
+// POST parametrlar
+$click_trans_id  = (string) ($_POST['click_trans_id']    ?? '');
+$service_id      = (string) ($_POST['service_id']        ?? '');
+$click_paydoc_id = (string) ($_POST['click_paydoc_id']   ?? '');
+$merchant_trans  = (string) ($_POST['merchant_trans_id'] ?? '');
+$amount          = (float)  ($_POST['amount']            ?? 0);
+$action          = (int)    ($_POST['action']            ?? -1);
+$sign_time       = (string) ($_POST['sign_time']         ?? '');
+$sign_string     = (string) ($_POST['sign_string']       ?? '');
+$error           = (int)    ($_POST['error']             ?? 0);
+$merchant_prep   = (string) ($_POST['merchant_prepare_id'] ?? '');
 
-// ----- Imzoni tekshirish -----
+// Imzo kaliti
 $secret = sozlama('click_secret', '');
+
+if (!$secret) {
+    click_javob(C_SIGN, 'Click secret sozlanmagan');
+}
+
+// Imzo tekshiruvi
 $kutilgan = $action === 0
-    ? md5("$click_trans_id$service_id$secret$merchant_trans$amount$action$sign_time")
-    : md5("$click_trans_id$service_id$secret$merchant_trans$merchant_prep$amount$action$sign_time");
+    ? md5("{$click_trans_id}{$service_id}{$secret}{$merchant_trans}{$amount}{$action}{$sign_time}")
+    : md5("{$click_trans_id}{$service_id}{$secret}{$merchant_trans}{$merchant_prep}{$amount}{$action}{$sign_time}");
 
-if (!$secret || !hash_equals($kutilgan, $sign_string)) {
-    click_javob($KOD['SIGN_XATO'], 'Imzo noto\'g\'ri');
+if (!hash_equals($kutilgan, $sign_string)) {
+    click_javob(C_SIGN, "Imzo noto'g'ri");
 }
 
-// ----- To'lovni topish -----
-$tolov = db_qator('SELECT * FROM tolovlar WHERE id = ?', [$merchant_trans]);
+// To'lovni topish
+$tolov = db_qator('SELECT * FROM tolovlar WHERE id = ?', [(int) $merchant_trans]);
 if (!$tolov) {
-    click_javob($KOD['TRANSAKSIYA_TOPILMADI'], 'Tranzaksiya topilmadi');
+    click_javob(C_NO_TRANS, 'Tranzaksiya topilmadi');
 }
 
-// Summa to'g'rimi?
-if (abs((float) $tolov['summa'] - $amount) > 0.01) {
-    click_javob($KOD['INVALID_AMOUNT'], 'Summa mos emas');
+// Summa tekshiruvi (0.01 farq tolerant)
+if (abs((float)$tolov['summa'] - $amount) > 0.01) {
+    click_javob(C_AMOUNT, 'Summa mos emas');
 }
 
-// ============================================================
-// 1) PREPARE
-// ============================================================
+// ==============================================================
+// PREPARE (action=0)
+// ==============================================================
 if ($action === 0) {
     if ($tolov['holat'] === 'muvaffaqiyatli') {
-        click_javob($KOD['ALLAQACHON_BAJARILGAN'], 'Allaqachon bajarilgan');
+        click_javob(C_DONE, 'Allaqachon bajarilgan');
     }
     if ($tolov['holat'] === 'bekor') {
-        click_javob($KOD['BEKOR_QILINGAN'], 'Bekor qilingan');
+        click_javob(C_CANCELED, 'Bekor qilingan');
     }
-    db_bajar('UPDATE tolovlar SET tashqi_id = ? WHERE id = ?', [$click_trans_id, $tolov['id']]);
 
-    click_javob($KOD['OK'], 'Success', [
+    db_bajar(
+        'UPDATE tolovlar SET tashqi_id = ? WHERE id = ?',
+        [$click_trans_id, $tolov['id']]
+    );
+
+    click_javob(C_OK, 'Success', [
         'click_trans_id'      => $click_trans_id,
         'merchant_trans_id'   => $merchant_trans,
         'merchant_prepare_id' => $tolov['id'],
     ]);
 }
 
-// ============================================================
-// 2) COMPLETE
-// ============================================================
+// ==============================================================
+// COMPLETE (action=1)
+// ==============================================================
 if ($action === 1) {
     if ($tolov['holat'] === 'muvaffaqiyatli') {
-        click_javob($KOD['ALLAQACHON_BAJARILGAN'], 'Allaqachon bajarilgan');
-    }
-    if ($error < 0) {
-        db_bajar('UPDATE tolovlar SET holat = "bekor" WHERE id = ?', [$tolov['id']]);
-        click_javob($KOD['BEKOR_QILINGAN'], 'Bekor qilindi');
+        click_javob(C_DONE, 'Allaqachon bajarilgan');
     }
 
-    // Obuna ochish
+    if ($error < 0) {
+        db_bajar('UPDATE tolovlar SET holat = "bekor" WHERE id = ?', [$tolov['id']]);
+        click_javob(C_CANCELED, 'Bekor qilindi');
+    }
+
     $tarif = db_qator('SELECT * FROM tariflar WHERE id = ?', [$tolov['tarif_id']]);
+    if (!$tarif) {
+        click_javob(-100, 'Tarif topilmadi');
+    }
+
     $kun = match ($tarif['tur']) {
-        'kun' => $tarif['qiymat'],
-        'oy'  => $tarif['qiymat'] * 30,
+        'kun'   => (int) $tarif['qiymat'],
+        'oy'    => (int) $tarif['qiymat'] * 30,
         default => 365,
     };
 
     db()->beginTransaction();
     try {
-        db_bajar('UPDATE tolovlar SET holat = "muvaffaqiyatli", tashqi_id = ? WHERE id = ?',
-                 [$click_paydoc_id ?: $click_trans_id, $tolov['id']]);
+        db_bajar(
+            'UPDATE tolovlar SET holat = "muvaffaqiyatli", tashqi_id = ? WHERE id = ?',
+            [$click_paydoc_id ?: $click_trans_id, $tolov['id']]
+        );
         db_bajar(
             'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
              VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
@@ -116,32 +133,41 @@ if ($action === 1) {
         );
 
         // Referal bonus
-        $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
-        if (!empty($foydalanuvchi['referal_orqali'])) {
+        $fo = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
+        if ($fo && !empty($fo['referal_orqali'])) {
             $bonus = (float) sozlama('referal_bonus', 5000);
-            db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
-                     [$bonus, $foydalanuvchi['referal_orqali']]);
-            db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
-                     [$bonus, $foydalanuvchi['id']]);
+            db_bajar(
+                'UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
+                [$bonus, (int)$fo['referal_orqali']]
+            );
+            db_bajar(
+                'UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
+                [$bonus, $fo['id']]
+            );
         }
 
-        // Telegram xabar
-        if ($foydalanuvchi['telegram_id']) {
-            require_once __DIR__ . '/../includes/funksiyalar.php';
-            telegram_yubor($foydalanuvchi['telegram_id'],
-                "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>\nSumma: <b>" . pul($amount) . "</b>");
+        // Telegram bildirishnoma
+        if ($fo && $fo['telegram_id']) {
+            telegram_yubor(
+                (int) $fo['telegram_id'],
+                "✅ <b>To'lov muvaffaqiyatli!</b>\n"
+                . "Tarif: <b>{$tarif['nomi']}</b>\n"
+                . "Summa: <b>" . pul($amount) . "</b>"
+            );
         }
 
         db()->commit();
-        click_javob($KOD['OK'], 'Success', [
+
+        click_javob(C_OK, 'Success', [
             'click_trans_id'      => $click_trans_id,
             'merchant_trans_id'   => $merchant_trans,
             'merchant_confirm_id' => $tolov['id'],
         ]);
-    } catch (Exception $exc) {
+    } catch (Throwable $e) {
         db()->rollBack();
-        click_javob(-100, 'Server xatosi: ' . $exc->getMessage());
+        error_log('Click complete xato: ' . $e->getMessage());
+        click_javob(-100, 'Server xatosi');
     }
 }
 
-click_javob($KOD['XATO_PARAMETRLAR'], 'Noma\'lum action');
+click_javob(C_BAD_PARAMS, "Noma'lum action");
