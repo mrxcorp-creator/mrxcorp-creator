@@ -4,7 +4,7 @@ $f = kirgan_bolish_kerak();
 
 $obuna_faol = obuna_faolmi($f['id']) || in_array($f['rol'], ['admin', 'developer'], true);
 if (!$obuna_faol) {
-    flash_qoy('xato', 'Marafon rejimi PRO obuna talab qiladi');
+    flash_qoy('xato', t('marafon_pro_kerak'));
     yonaltir(SAYT_URL . '/tolov');
 }
 
@@ -24,18 +24,18 @@ if ($rejim === 'tanlash') {
         $stat = ['jami' => 0, 'ortacha' => 0, 'eng_yaxshi' => 0];
     }
 
-    $sahifa_sarlavha = 'Marafon rejimi';
+    $sahifa_sarlavha = t('marafon_rejimi');
     require_once __DIR__ . '/../includes/header.php';
     require_once __DIR__ . '/../includes/navbar.php';
     ?>
 
     <main class="max-w-4xl mx-auto px-4 py-8">
         <div class="mb-8 fade-up">
-            <span class="chip chip-grad mb-3">🏃 Marafon</span>
+            <span class="chip chip-grad mb-3">🏃 <?= e(t('marafon')) ?></span>
             <h1 class="text-3xl md:text-4xl mb-2 font-display font-extrabold">
-                Imtihon <span class="grad-text">simulatsiyasi</span>
+                <?= e(t('imtihon_simulatsiyasi')) ?>
             </h1>
-            <p class="text-muted">Real imtihonga o'xshatilgan rejim. 50 ta savol, 50 daqiqa, qat'iy tartib.</p>
+            <p class="text-muted"><?= e(t('marafon_tavsif')) ?></p>
         </div>
 
         <?php if ((int) ($stat['jami'] ?? 0) > 0): ?>
