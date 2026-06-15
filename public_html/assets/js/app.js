@@ -21,12 +21,14 @@ window.vpTheme = {
 
 (function () {
     var meta = document.querySelector('meta[name="csrf-token"]');
-    window.csrfToken = meta ? meta.content : '';
+    window.csrfToken = (meta && meta.content) ? meta.content : '';
 
     window.apiPost = async function (url, data) {
         data = data || {};
         var fd = new FormData();
-        fd.append('csrf_token', window.csrfToken);
+        if (window.csrfToken) {
+            fd.append('csrf_token', window.csrfToken);
+        }
         Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
         try {
             var r = await fetch(url, {
@@ -35,7 +37,11 @@ window.vpTheme = {
                 credentials: 'same-origin',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-            return await r.json();
+            try {
+                return await r.json();
+            } catch (je) {
+                return { ok: false, xato: 'Javob noto\'g\'ri formatda' };
+            }
         } catch (e) {
             return { ok: false, xato: 'Tarmoq xatosi' };
         }

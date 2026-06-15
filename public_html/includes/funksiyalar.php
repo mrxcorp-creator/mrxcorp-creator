@@ -97,32 +97,53 @@ function telegram_yubor_xom(int|string $chat_id, string $matn, array $qoshimcha 
     $token = maxfiy_qiymat('TELEGRAM_BOT_TOKEN', 'telegram_bot_token');
     if (!$token || !$chat_id) return false;
 
-    $data = array_merge([
-        'chat_id'    => $chat_id,
-        'text'       => $matn,
-        'parse_mode' => 'HTML',
-    ], $qoshimcha);
+    try {
+        $data = array_merge([
+            'chat_id'    => $chat_id,
+            'text'       => $matn,
+            'parse_mode' => 'HTML',
+        ], $qoshimcha);
 
-    $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => http_build_query($data),
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_CONNECTTIMEOUT => 5,
-    ]);
-    $javob = curl_exec($ch);
-    curl_close($ch);
-    $j = json_decode($javob, true);
-    return !empty($j['ok']);
+        $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
+        if (!$ch) return false;
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query($data),
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_FAILONERROR    => false,
+        ]);
+        $javob = curl_exec($ch);
+        $kod = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_xato = curl_error($ch);
+        curl_close($ch);
+
+        if ($curl_xato || $kod < 200 || $kod >= 400 || !$javob) {
+            error_log('telegram_yubor_xom xato: HTTP=' . $kod . ' err=' . $curl_xato);
+            return false;
+        }
+
+        $j = json_decode($javob, true);
+        return !empty($j['ok']);
+    } catch (Throwable $e) {
+        error_log('telegram_yubor_xom istisno: ' . $e->getMessage());
+        return false;
+    }
 }
 
 function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
-    if (PHP_SAPI === 'cli' || (defined('TELEGRAM_SYNC') && TELEGRAM_SYNC)) {
-        return telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+    try {
+        if (PHP_SAPI === 'cli' || (defined('TELEGRAM_SYNC') && TELEGRAM_SYNC)) {
+            return telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+        }
+        telegram_navbatga($chat_id, $matn, $qoshimcha);
+        return true;
+    } catch (Throwable $e) {
+        error_log('telegram_yubor xato: ' . $e->getMessage());
+        return false;
     }
-    telegram_navbatga($chat_id, $matn, $qoshimcha);
-    return true;
 }
 
 function telegram_navbatni_jonat(int $maks = 20): array {
