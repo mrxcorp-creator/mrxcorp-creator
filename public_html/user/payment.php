@@ -75,6 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         db()->commit();
 
+                        bonus_yoz(
+                            (int) $f['id'],
+                            -$jami,
+                            'tolov',
+                            'Tarif: ' . $tarif['nomi'],
+                            (int) $tolov_id
+                        );
+
                         if ($f['telegram_id']) {
                             telegram_yubor($f['telegram_id'],
                                 "✅ <b>To'lov muvaffaqiyatli!</b>\n\nTarif: <b>{$tarif['nomi']}</b>\nSumma: <b>" . pul($jami) . "</b>");

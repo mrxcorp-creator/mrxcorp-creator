@@ -30,9 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if ($harakat === 'bonus') {
             $bonus = (float) post('bonus');
-            db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?', [$bonus, $id]);
-            audit_yoz('bonus_qoshildi', 'foydalanuvchi', $id, ['summa' => $bonus]);
-            flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
+            if ($bonus != 0) {
+                db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?', [$bonus, $id]);
+                bonus_yoz($id, $bonus, 'admin', 'Admin: ' . ($f['ism'] ?? 'admin'));
+                audit_yoz('bonus_qoshildi', 'foydalanuvchi', $id, ['summa' => $bonus]);
+                flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
+            }
         }
         if ($harakat === 'obuna') {
             $tarif_id = (int) post('tarif_id');

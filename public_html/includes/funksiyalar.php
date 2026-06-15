@@ -180,6 +180,28 @@ function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izo
     return !empty($j['ok']);
 }
 
+/**
+ * Bonus harakatini bonus_tarix jadvaliga yozish.
+ * Jadval mavjud bo'lmasa silently fail bo'ladi (try-catch).
+ *
+ * @param int    $foydalanuvchi_id  Foydalanuvchi ID
+ * @param float  $summa             Bonus summasi (musbat=qo'shish, manfiy=ishlatish)
+ * @param string $tur               'referal'|'admin'|'tolov'|'xarid'
+ * @param string $izoh              Qo'shimcha izoh
+ * @param ?int   $bog_lik_id        Bog'liq obyekt ID (tolov_id, referal_id, ...)
+ */
+function bonus_yoz(int $foydalanuvchi_id, float $summa, string $tur, string $izoh = '', ?int $bog_lik_id = null): void {
+    try {
+        db_bajar(
+            'INSERT INTO bonus_tarix (foydalanuvchi_id, summa, tur, izoh, bog_lik_id)
+             VALUES (?, ?, ?, ?, ?)',
+            [$foydalanuvchi_id, $summa, $tur, $izoh ?: null, $bog_lik_id]
+        );
+    } catch (Throwable $e) {
+        error_log('bonus_yoz xato: ' . $e->getMessage());
+    }
+}
+
 function audit_yoz(string $harakat, ?string $obyekt_turi = null, ?int $obyekt_id = null, array $tafsilot = []): void {
     try {
         $foyd_id = $_SESSION['foydalanuvchi_id'] ?? null;
