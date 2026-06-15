@@ -1,0 +1,21 @@
+{
+    "name": "VatanParvar Yaypan",
+    "short_name": "VP Yaypan",
+    "description": "Avto maktab nazariyasiga onlayn tayyorgarlik platformasi",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#070B14",
+    "theme_color": "#0B1024",
+    "lang": "uz",
+    "categories": ["education", "productivity"],
+    "icons": [
+        {
+            "src": "/assets/img/logo-mark.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

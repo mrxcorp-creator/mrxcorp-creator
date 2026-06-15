@@ -1,33 +1,15 @@
 <?php
-/**
- * VatanParvar Yaypan — Umumiy yordamchi funksiyalar
- * ------------------------------------------------------------
- *  - Pul formati
- *  - Sana formati
- *  - Rasmni WebP ga konvertatsiya qilish
- *  - Telegramga xabar yuborish
- */
-
 require_once __DIR__ . '/../config/database.php';
 
-/**
- * Summani UZS formatida chiqarish: 25 000 so'm
- */
 function pul(int|float $summa, string $valyuta = "so'm"): string {
     return number_format($summa, 0, '.', ' ') . ' ' . $valyuta;
 }
 
-/**
- * Sana formati.
- */
 function sana(?string $vaqt, string $format = 'd.m.Y H:i'): string {
     if (!$vaqt) return '—';
     return date($format, strtotime($vaqt));
 }
 
-/**
- * Necha vaqt oldin bo'lganini chiqarish.
- */
 function vaqt_oldin(string $vaqt): string {
     $diff = time() - strtotime($vaqt);
     if ($diff < 60)         return $diff . ' soniya oldin';
@@ -37,9 +19,6 @@ function vaqt_oldin(string $vaqt): string {
     return date('d.m.Y', strtotime($vaqt));
 }
 
-/**
- * Rasmni WebP ga konvertatsiya qilib saqlash.
- */
 function rasm_saqla(array $fayl, string $papka = 'savollar', int $maks = 800): ?string {
     if (empty($fayl['tmp_name']) || !is_uploaded_file($fayl['tmp_name'])) {
         return null;
@@ -77,9 +56,6 @@ function rasm_saqla(array $fayl, string $papka = 'savollar', int $maks = 800): ?
     return $papka . '/' . $nom;
 }
 
-/**
- * Telegram bot orqali xabar yuborish.
- */
 function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
     $token = sozlama('telegram_bot_token');
     if (!$token || !$chat_id) return false;
@@ -103,9 +79,6 @@ function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []
     return !empty($j['ok']);
 }
 
-/**
- * Telegramga fayl yuborish.
- */
 function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izoh = ''): bool {
     $token = sozlama('telegram_bot_token');
     if (!$token || !is_file($fayl_yoli)) return false;
@@ -127,9 +100,6 @@ function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izo
     return !empty($j['ok']);
 }
 
-/**
- * JSON javob qaytarish va to'xtatish.
- */
 function json_javob(array $data, int $kod = 200): never {
     http_response_code($kod);
     header('Content-Type: application/json; charset=utf-8');
@@ -137,33 +107,21 @@ function json_javob(array $data, int $kod = 200): never {
     exit;
 }
 
-/**
- * URL'dagi qiymatni xavfsiz olish.
- */
 function olish(string $kalit, string $standart = ''): string {
     return isset($_GET[$kalit]) ? trim((string) $_GET[$kalit]) : $standart;
 }
 
-/**
- * POST'dagi qiymatni xavfsiz olish.
- */
 function post(string $kalit, string $standart = ''): string {
     return isset($_POST[$kalit]) ? trim((string) $_POST[$kalit]) : $standart;
 }
 
-/**
- * Foydalanuvchi avatarini olish (yoki bosh harflar).
- */
 function avatar_url(?array $f): string {
     if (!empty($f['avatar']) && is_file(UPLOAD_PATH . '/' . $f['avatar'])) {
         return SAYT_URL . '/uploads/' . $f['avatar'];
     }
-    return ''; // bosh harflar bilan ko'rsatamiz
+    return '';
 }
 
-/**
- * Bosh harflarni olish (avatar uchun).
- */
 function bosh_harflar(?array $f): string {
     if (!$f) return '?';
     $i = mb_substr($f['ism'] ?? '?', 0, 1);

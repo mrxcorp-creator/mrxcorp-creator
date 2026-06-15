@@ -1,11 +1,7 @@
 <?php
-/**
- * VatanParvar Yaypan — O'zbek (lotin) tarjimalari
- */
 return [
-    // Sayt
     'sayt_nomi'           => 'VatanParvar Yaypan',
-    'sayt_shior'          => 'Avto maktab nazariyasiga eng tezkor tayyorgarlik',
+    'sayt_shior'          => 'Avto maktab nazariyasiga eng tezkor onlayn tayyorgarlik',
     'barcha_huquqlar'     => 'Barcha huquqlar himoyalangan.',
     'til_tanlash'         => 'Til',
     'havolalar'           => 'Havolalar',
@@ -18,9 +14,9 @@ return [
     'profil'              => 'Profil',
     'admin_panel'         => 'Admin panel',
     'boshqaruv_paneli'    => 'Boshqaruv paneli',
-    'footer_haqida'       => 'Avto maktab nazariyasiga onlayn tayyorgarlik platformasi. Imtihonni birinchi urinishdan topshirish uchun barcha biletlar va testlar.',
+    'xususiyatlar'        => 'Xususiyatlar',
+    'footer_haqida'       => 'Avto maktab nazariyasiga onlayn tayyorgarlik platformasi. Imtihonni birinchi urinishdan topshirish uchun real biletlar va testlar.',
 
-    // Auth
     'kirish'              => 'Kirish',
     'royxatdan_otish'     => "Ro'yxatdan o'tish",
     'chiqish'             => 'Chiqish',
@@ -42,27 +38,46 @@ return [
     'kerakli_maydon'      => 'Ushbu maydon to\'ldirilishi shart',
     'telefon_format'      => 'Telefon raqami noto\'g\'ri formatda',
 
-    // Bosh sahifa
+    'hero_belgi'          => '#1 Avto maktab platformasi',
     'hero_sarlavha'       => 'Imtihonni birinchi urinishdan topshiring',
-    'hero_tavsif'         => 'Real imtihon savollarining yangilangan to\'plami, batafsil tushuntirishlar va vaqt cheklovi bilan testlar.',
+    'hero_aksent'         => 'oson va tez!',
+    'hero_tavsif'         => "Real imtihon savollarining yangilangan to'plami, batafsil tushuntirishlar va vaqt cheklovi bilan testlar.",
     'hero_tugma_boshla'   => 'Bepul boshlash',
     'hero_tugma_demo'     => 'Demo testni yechish',
+
+    'stat_bilet'          => 'Bilet',
+    'stat_savol'          => 'Real savol',
+    'stat_foydalanuvchi'  => 'Foydalanuvchi',
+
+    'xus_sarlavha'        => 'Nima uchun bizni tanlashadi?',
+    'xus_tavsif'          => "Eng yaxshi tajriba va eng yangilangan ma'lumotlar",
     'xususiyat_1_sarlavha'=> '500+ real savol',
-    'xususiyat_1_tavsif'  => 'YHXBB imtihonidan eng so\'nggi yangilangan savollar bazasi.',
+    'xususiyat_1_tavsif'  => "YHXBB imtihonidan eng so'nggi yangilangan savollar bazasi.",
     'xususiyat_2_sarlavha'=> 'Auto-save tizimi',
-    'xususiyat_2_tavsif'  => 'Internet uzilsa ham javoblaringiz yo\'qolmaydi.',
+    'xususiyat_2_tavsif'  => "Internet uzilsa ham javoblaringiz yo'qolmaydi.",
     'xususiyat_3_sarlavha'=> 'Telegram bot',
-    'xususiyat_3_tavsif'  => 'Bildirishnomalar va sotuvlar haqida real vaqtda xabardor bo\'ling.',
+    'xususiyat_3_tavsif'  => 'Bildirishnomalar va to\'lovlar haqida real vaqtda xabardor bo\'ling.',
     'xususiyat_4_sarlavha'=> 'Statistika',
-    'xususiyat_4_tavsif'  => 'O\'zingizning kuchli va zaif tomonlaringizni grafikda ko\'ring.',
+    'xususiyat_4_tavsif'  => "O'zingizning kuchli va zaif tomonlaringizni grafikda ko'ring.",
+    'xususiyat_5_sarlavha'=> 'Mobil mos',
+    'xususiyat_5_tavsif'  => 'Telefon, planshet va kompyuterda barobar qulay.',
+    'xususiyat_6_sarlavha'=> 'Xavfsiz to\'lov',
+    'xususiyat_6_tavsif'  => 'Click va Payme orqali bir necha soniyada.',
+
     'tariflar_sarlavha'   => 'Bizning tariflar',
-    'tariflar_tavsif'     => 'O\'zingizga mos tarifni tanlang. Istalgan vaqtda yangilash mumkin.',
+    'tariflar_tavsif'     => "O'zingizga mos tarifni tanlang. Istalgan vaqtda yangilash mumkin.",
     'mashhur'             => 'Eng mashhur',
     'tarif_olish'         => 'Tarifni olish',
     'tariflar_yoq'        => 'Hozircha tariflar mavjud emas',
-    'fikrlar_sarlavha'    => 'Foydalanuvchilarimiz fikri',
 
-    // Dashboard
+    'fikrlar_sarlavha'    => 'Foydalanuvchilarimiz fikri',
+    'fikrlar_tavsif'      => 'Ular haqimizda nima deydi',
+
+    'cta_sarlavha'        => 'Bugun boshlang!',
+    'cta_tavsif'          => 'Demo testni bepul yeching va platformaning qulayligini his qiling.',
+    'aloqa_sarlavha'      => 'Aloqa',
+    'aloqa_tavsif'        => "Savol bormi? Bog'lanishingiz mumkin",
+
     'salom'               => 'Salom',
     'oxirgi_natijalar'    => 'Oxirgi natijalar',
     'natijalar_yoq'       => 'Hali natijalar yo\'q. Birinchi testni boshlang!',
@@ -76,8 +91,11 @@ return [
     'davom_etish'         => 'Davom etish',
     'yangi_test'          => 'Yangi test',
     'biletlar_royxati'    => 'Biletlar ro\'yxati',
+    'tezkor_harakatlar'   => 'Tezkor harakatlar',
+    'kunlik_faollik'      => '7 kunlik faollik',
+    'davom_etayotgan'     => "Davom etayotgan test",
+    'boshlangan'          => 'Boshlangan',
 
-    // Test
     'test_boshlash'       => 'Testni boshlash',
     'savol'               => 'Savol',
     'oldingi'             => 'Oldingi',
@@ -91,8 +109,17 @@ return [
     'qaytadan_yechish'    => 'Qaytadan yechish',
     'natijalarga'         => 'Natijalarga',
     'savolga_qaytish'     => 'Bu savolni ko\'rib chiqish',
+    'javob_bermagan'      => 'Javob bermagan savollar',
+    'saqlanmoqda'         => 'Saqlanmoqda...',
+    'saqlandi'            => 'Saqlandi',
+    'saqlash_xato'        => 'Saqlash xatosi',
+    'pullik_bilet'        => 'Ushbu bilet pullik. Avval tarif sotib oling.',
+    'bepul'               => 'Bepul',
+    'pro'                 => 'PRO',
+    'yopiq'               => 'Yopiq',
+    'eng_yaxshi'          => 'Eng yaxshi',
+    'obuna_yoq_ogoh'      => 'Faol obuna yo\'q. Faqat bepul biletlarni yechishingiz mumkin.',
 
-    // To'lov
     'tolov_sarlavha'      => 'Tarif tanlang',
     'tolov_usuli'         => 'To\'lov usuli',
     'click_orqali'        => 'Click orqali',
@@ -104,8 +131,8 @@ return [
     'tolov_xato'          => 'To\'lov amalga oshmadi',
     'jami'                => 'Jami',
     'chegirma'            => 'Chegirma',
+    'bonus_yetmaydi'      => 'Bonus balansi yetarli emas',
 
-    // Profil
     'profil_sozlamalar'   => 'Profil sozlamalari',
     'shaxsiy_malumot'     => 'Shaxsiy ma\'lumotlar',
     'parolni_ozgartirish' => 'Parolni o\'zgartirish',
@@ -114,17 +141,23 @@ return [
     'saqlash'             => 'Saqlash',
     'avatar_yuklash'      => 'Rasm yuklash',
     'malumot_saqlandi'    => 'Ma\'lumotlar saqlandi',
+    'azo_bolgan'          => 'A\'zo bo\'lgan',
+    'telegram_boglash'    => 'Telegramga ulanish',
+    'telegram_boglangan'  => 'Telegram bog\'langan',
+    'telegram_haqida'     => 'Bildirishnomalar va parolni tiklash uchun Telegramni bog\'lang.',
 
-    // Referal
     'referal_sarlavha'    => 'Do\'stingizni taklif qiling',
     'referal_tavsif'      => 'Sizning havolangiz orqali ro\'yxatdan o\'tgan har bir do\'st uchun bonus oling.',
     'sizning_havolangiz'  => 'Sizning havolangiz',
     'nusxa_olish'         => 'Nusxa olish',
     'nusxa_olindi'        => 'Nusxa olindi!',
     'taklif_qilingan'     => 'Taklif qilinganlar',
+    'tasdiqlangan'        => 'Tasdiqlangan',
     'bonus_balans'        => 'Bonus balans',
+    'har_dost_uchun'      => 'Har bir do\'st uchun',
+    'dost_tolagach'       => "Do'stingiz to'lov qilganda bonusingiz balansga qo'shiladi",
+    'royxat_bosh'         => "Hali hech kim taklif qilinmagan. Havolani do'stlaringizga ulashing!",
 
-    // Umumiy
     'tasdiqlash'          => 'Tasdiqlash',
     'bekor_qilish'        => 'Bekor qilish',
     'orqaga'              => 'Orqaga',
@@ -134,4 +167,10 @@ return [
     'ochirish'            => 'O\'chirish',
     'qoshish'             => 'Qo\'shish',
     'malumot_yoq'         => 'Ma\'lumot mavjud emas',
+    'sahifa_topilmadi'    => 'Sahifa topilmadi',
+    'sahifa_topilmadi_t'  => 'Siz qidirayotgan sahifa mavjud emas yoki ko\'chirilgan.',
+    'kutilmoqda'          => 'Kutilmoqda',
+    'muvaffaqiyatli'      => 'Muvaffaqiyatli',
+    'bekor'               => 'Bekor',
+    'xato_holat'          => 'Xato',
 ];

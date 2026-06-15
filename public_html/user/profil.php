@@ -1,7 +1,4 @@
 <?php
-/**
- * VatanParvar Yaypan — Profil sahifasi
- */
 require_once __DIR__ . '/../config/auth.php';
 $f = kirgan_bolish_kerak();
 
@@ -14,14 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $harakat = post('harakat');
 
-        // ----- Shaxsiy ma'lumotlarni yangilash -----
         if ($harakat === 'malumot') {
             $ism = post('ism') ?: $f['ism'];
             $familiya = post('familiya');
             $email = post('email');
             $til = post('til');
 
-            // Avatar
             $avatar = $f['avatar'];
             if (!empty($_FILES['avatar']['tmp_name'])) {
                 $yangi = rasm_saqla($_FILES['avatar'], 'avatars', 400);
@@ -30,18 +25,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
+            $til_ok = in_array($til, ['uz_latn','uz_cyrl'], true) ? $til : 'uz_latn';
             db_bajar(
                 'UPDATE foydalanuvchilar
                  SET ism = ?, familiya = ?, email = ?, til = ?, avatar = ?
                  WHERE id = ?',
-                [$ism, $familiya, $email ?: null, in_array($til, ['uz_latn','uz_cyrl','ru'], true) ? $til : 'uz_latn', $avatar, $f['id']]
+                [$ism, $familiya, $email ?: null, $til_ok, $avatar, $f['id']]
             );
-            $_SESSION['til'] = $til;
+            $_SESSION['til'] = $til_ok;
             $muvaffaqiyat = t('malumot_saqlandi');
-            $f = joriy_foydalanuvchi(); // yangilangan ma'lumot
+            $f = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$f['id']]);
         }
 
-        // ----- Parolni o'zgartirish -----
         if ($harakat === 'parol') {
             $eski = post('eski_parol');
             $yangi = post('yangi_parol');
@@ -64,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Telegram bog'lash hash
 if (empty($f['telegram_hash'])) {
     $hash = bin2hex(random_bytes(16));
     db_bajar('UPDATE foydalanuvchilar SET telegram_hash = ? WHERE id = ?', [$hash, $f['id']]);
@@ -78,57 +72,56 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-3xl mb-6"><?= e(t('profil_sozlamalar')) ?></h1>
+<main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl mb-6 font-display font-extrabold"><?= e(t('profil_sozlamalar')) ?></h1>
 
     <?php if ($xato): ?>
-        <div class="mb-5 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm"><?= e($xato) ?></div>
+        <div class="mb-5 p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm"><?= e($xato) ?></div>
     <?php endif; ?>
     <?php if ($muvaffaqiyat): ?>
-        <div class="mb-5 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-300 text-sm"><?= e($muvaffaqiyat) ?></div>
+        <div class="mb-5 p-3 rounded-xl bg-success/10 border border-success/30 text-success text-sm"><?= e($muvaffaqiyat) ?></div>
     <?php endif; ?>
 
     <div class="grid lg:grid-cols-3 gap-6">
 
-        <!-- Chap: profil kartasi -->
-        <div class="glass-card p-6 fade-up text-center">
-            <div class="w-28 h-28 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-display font-bold text-white text-4xl overflow-hidden">
-                <?php if ($f['avatar'] && is_file(UPLOAD_PATH . '/' . $f['avatar'])): ?>
-                    <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover">
-                <?php else: ?>
-                    <?= e(bosh_harflar($f)) ?>
-                <?php endif; ?>
-            </div>
-            <h3 class="text-xl font-display"><?= e($f['ism']) ?> <?= e($f['familiya'] ?? '') ?></h3>
-            <p class="text-brand-muted text-sm"><?= e($f['telefon']) ?></p>
-            <span class="inline-block mt-3 px-3 py-1 rounded-full text-xs
-                <?= $f['rol'] === 'developer' ? 'bg-purple-500/20 text-purple-400' :
-                   ($f['rol'] === 'admin' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/60') ?>">
-                <?= e(strtoupper($f['rol'])) ?>
-            </span>
-
-            <hr class="my-5 border-white/10">
-
-            <div class="text-left space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-brand-muted">A'zo bo'lgan:</span>
-                    <span><?= e(sana($f['yaratilgan'], 'd.m.Y')) ?></span>
+        <div class="ring-grad fade-up">
+            <div class="p-6 text-center">
+                <div class="w-28 h-28 mx-auto mb-4 rounded-3xl grad-bg flex items-center justify-center font-display font-extrabold text-white text-4xl overflow-hidden">
+                    <?php if ($f['avatar'] && is_file(UPLOAD_PATH . '/' . $f['avatar'])): ?>
+                        <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($f['avatar']) ?>" class="w-full h-full object-cover">
+                    <?php else: ?>
+                        <?= e(bosh_harflar($f)) ?>
+                    <?php endif; ?>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-brand-muted"><?= e(t('bonus_balans')) ?>:</span>
-                    <span class="font-bold text-green-400"><?= e(pul($f['bonus_balans'])) ?></span>
+                <h3 class="text-xl font-display font-bold"><?= e($f['ism']) ?> <?= e($f['familiya'] ?? '') ?></h3>
+                <p class="text-muted text-sm"><?= e($f['telefon']) ?></p>
+                <span class="chip mt-3
+                    <?= $f['rol'] === 'developer' ? 'bg-violet/15 text-violet border-violet/30' :
+                       ($f['rol'] === 'admin' ? 'bg-cyan/15 text-cyan border-cyan/30' : '') ?>">
+                    <?= e(strtoupper($f['rol'])) ?>
+                </span>
+
+                <hr class="my-5 border-white/10">
+
+                <div class="text-left space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-muted"><?= e(t('azo_bolgan')) ?>:</span>
+                        <span><?= e(sana($f['yaratilgan'], 'd.m.Y')) ?></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-muted"><?= e(t('bonus_balans')) ?>:</span>
+                        <span class="font-bold text-success"><?= e(pul($f['bonus_balans'])) ?></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- O'rta + o'ng: formalar -->
         <div class="lg:col-span-2 space-y-6">
-            <!-- Ma'lumot formasi -->
-            <form method="POST" enctype="multipart/form-data" class="glass-card p-6 fade-up">
+            <form method="POST" enctype="multipart/form-data" class="glass p-6 fade-up">
                 <?= csrf_input() ?>
                 <input type="hidden" name="harakat" value="malumot">
 
-                <h2 class="text-xl font-display mb-5"><?= e(t('shaxsiy_malumot')) ?></h2>
+                <h2 class="text-xl font-display font-bold mb-5"><?= e(t('shaxsiy_malumot')) ?></h2>
 
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
@@ -148,7 +141,6 @@ require_once __DIR__ . '/../includes/navbar.php';
                         <select name="til" class="field">
                             <option value="uz_latn" <?= $f['til'] === 'uz_latn' ? 'selected' : '' ?>>O'zbek (Lotin)</option>
                             <option value="uz_cyrl" <?= $f['til'] === 'uz_cyrl' ? 'selected' : '' ?>>Ўзбек (Кирилл)</option>
-                            <option value="ru" <?= $f['til'] === 'ru' ? 'selected' : '' ?>>Русский</option>
                         </select>
                     </div>
                 </div>
@@ -156,55 +148,51 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="mt-4">
                     <label class="field-label"><?= e(t('avatar_yuklash')) ?></label>
                     <input name="avatar" type="file" accept="image/*"
-                           class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-blue-500/20 file:text-blue-400 file:cursor-pointer">
+                           class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-violet/20 file:text-violet file:cursor-pointer">
                 </div>
 
-                <button type="submit" class="btn-primary mt-5"><?= e(t('saqlash')) ?></button>
+                <button type="submit" class="btn btn-primary mt-5"><?= e(t('saqlash')) ?></button>
             </form>
 
-            <!-- Telegram bog'lash -->
-            <div class="glass-card p-6 fade-up">
-                <h2 class="text-xl font-display mb-3 flex items-center gap-2">
+            <div class="glass p-6 fade-up">
+                <h2 class="text-xl font-display font-bold mb-3 flex items-center gap-2">
                     <span>📱</span> Telegram
                 </h2>
                 <?php if ($f['telegram_id']): ?>
-                    <div class="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-300 text-sm">
-                        ✓ Telegram bog'langan (ID: <?= (int)$f['telegram_id'] ?>)
+                    <div class="p-3 rounded-xl bg-success/10 border border-success/30 text-success text-sm">
+                        ✓ <?= e(t('telegram_boglangan')) ?> (ID: <?= (int)$f['telegram_id'] ?>)
                     </div>
                 <?php else: ?>
-                    <p class="text-brand-muted text-sm mb-3">
-                        Bildirishnomalarni olish va parolni qaytarish uchun Telegram'ni bog'lang.
-                    </p>
+                    <p class="text-muted text-sm mb-3"><?= e(t('telegram_haqida')) ?></p>
                     <a href="https://t.me/<?= e($bot_username) ?>?start=<?= e($f['telegram_hash']) ?>"
-                       target="_blank" class="btn-primary">
-                        Telegramga ulanish
+                       target="_blank" class="btn btn-primary">
+                        <?= e(t('telegram_boglash')) ?>
                     </a>
                 <?php endif; ?>
             </div>
 
-            <!-- Parol formasi -->
-            <form method="POST" class="glass-card p-6 fade-up">
+            <form method="POST" class="glass p-6 fade-up">
                 <?= csrf_input() ?>
                 <input type="hidden" name="harakat" value="parol">
 
-                <h2 class="text-xl font-display mb-5"><?= e(t('parolni_ozgartirish')) ?></h2>
+                <h2 class="text-xl font-display font-bold mb-5"><?= e(t('parolni_ozgartirish')) ?></h2>
 
                 <div class="grid sm:grid-cols-3 gap-4">
                     <div>
                         <label class="field-label"><?= e(t('eski_parol')) ?></label>
-                        <input type="password" name="eski_parol" required class="field">
+                        <input type="password" name="eski_parol" required class="field" autocomplete="current-password">
                     </div>
                     <div>
                         <label class="field-label"><?= e(t('yangi_parol')) ?></label>
-                        <input type="password" name="yangi_parol" required minlength="6" class="field">
+                        <input type="password" name="yangi_parol" required minlength="6" class="field" autocomplete="new-password">
                     </div>
                     <div>
                         <label class="field-label"><?= e(t('parol_takror')) ?></label>
-                        <input type="password" name="parol_takror" required minlength="6" class="field">
+                        <input type="password" name="parol_takror" required minlength="6" class="field" autocomplete="new-password">
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary mt-5"><?= e(t('saqlash')) ?></button>
+                <button type="submit" class="btn btn-primary mt-5"><?= e(t('saqlash')) ?></button>
             </form>
         </div>
     </div>

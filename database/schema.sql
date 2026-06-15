@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `foydalanuvchilar` (
     `bonus_balans` DECIMAL(10,2) DEFAULT 0,
     `telegram_id` BIGINT DEFAULT NULL,
     `telegram_hash` VARCHAR(64) DEFAULT NULL,
-    `til` ENUM('uz_latn','uz_cyrl','ru') DEFAULT 'uz_latn',
+    `til` ENUM('uz_latn','uz_cyrl') DEFAULT 'uz_latn',
     `oxirgi_kirish` DATETIME DEFAULT NULL,
     `holat` ENUM('faol','bloklangan') DEFAULT 'faol',
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -200,14 +200,17 @@ INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
 ('aloqa_email', 'info@vatanparvaryaypan.uz', 'Aloqa elektron pochtasi'),
 ('telegram_kanal', 'https://t.me/vatanparvaryaypan', 'Telegram kanal'),
 ('telegram_bot_token', '', 'Telegram bot tokeni'),
+('telegram_bot_username', '', 'Telegram bot username (@belgisiz)'),
 ('telegram_admin_id', '', 'Admin Telegram ID'),
 ('click_merchant_id', '', 'Click Merchant ID'),
+('click_service_id', '', 'Click Service ID'),
 ('click_secret', '', 'Click Secret'),
 ('payme_merchant_id', '', 'Payme Merchant ID'),
 ('payme_key', '', 'Payme test/prod kaliti'),
 ('referal_bonus', '5000', 'Referal bonus summasi'),
 ('test_vaqti_minut', '25', 'Bitta test uchun vaqt (daqiqada)'),
-('savol_soni_test', '20', 'Bitta testdagi savollar soni');
+('savol_soni_test', '20', 'Bitta testdagi savollar soni'),
+('cron_kalit', '', 'Cron skriptlari uchun kalit (32+ belgili)');
 
 -- Standart tariflar
 INSERT INTO `tariflar` (`nomi`, `tavsif`, `tur`, `qiymat`, `narx`, `eski_narx`, `mashhur`, `tartib`) VALUES
@@ -230,8 +233,7 @@ INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c
  'a',
  'Xavf belgilari uchburchak shaklida bo''lib, qizil hoshiya bilan o''ralgan.');
 
--- Developer akkaunt (parol: admin12345)
-INSERT INTO `foydalanuvchilar` (`ism`, `familiya`, `telefon`, `parol_hash`, `rol`, `referal_kod`)
-VALUES ('Bosh', 'Dasturchi', '+998900000000',
-'$2y$10$Iq2QwQ7yT9tFh1cP3wXJ8.6XK8Xz4w9Qm0o8A5xN3Yx9c2Yf3eL9G',
-'developer', 'DEV0000');
+-- Eslatma: Developer akkaunt install.php orqali yaratiladi.
+-- Qo'lda yaratish uchun:
+-- INSERT INTO foydalanuvchilar (ism, familiya, telefon, parol_hash, rol, referal_kod)
+-- VALUES ('Admin', 'Admin', '+998900000000', '$2y$10$YOUR_BCRYPT_HASH_HERE', 'developer', 'DEV0000');

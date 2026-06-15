@@ -1,7 +1,4 @@
 <?php
-/**
- * Admin — Savollar CRUD
- */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 $f = admin_bolish_kerak();
@@ -69,15 +66,14 @@ $sahifa_sarlavha = 'Savollar';
 require_once __DIR__ . '/_layout.php';
 ?>
 
-<!-- Bilet tanlash -->
-<form method="GET" class="glass-card p-4 mb-4 flex gap-3 items-end fade-up">
+<form method="GET" class="glass p-4 mb-4 flex gap-3 items-end fade-up">
     <div class="flex-1">
         <label class="field-label">Bilet</label>
         <select name="bilet" onchange="this.form.submit()" class="field">
             <option value="">— tanlang —</option>
-            <?php foreach ($biletlar as $b): ?>
-                <option value="<?= (int)$b['id'] ?>" <?= $bilet_id === (int)$b['id'] ? 'selected' : '' ?>>
-                    №<?= (int)$b['raqam'] ?> — <?= e($b['nomi']) ?>
+            <?php foreach ($biletlar as $bi): ?>
+                <option value="<?= (int)$bi['id'] ?>" <?= $bilet_id === (int)$bi['id'] ? 'selected' : '' ?>>
+                    №<?= (int)$bi['raqam'] ?> — <?= e($bi['nomi']) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -85,16 +81,15 @@ require_once __DIR__ . '/_layout.php';
 </form>
 
 <?php if ($bilet): ?>
-    <!-- Forma -->
-    <form method="POST" enctype="multipart/form-data" class="glass-card p-5 mb-6 fade-up" x-data="{open: <?= $tahrir ? 'true' : 'false' ?>}">
+    <form method="POST" enctype="multipart/form-data" class="glass p-5 mb-6 fade-up" x-data="{open: <?= $tahrir ? 'true' : 'false' ?>}">
         <?= csrf_input() ?>
         <input type="hidden" name="harakat" value="<?= $tahrir ? 'tahrirlash' : 'yaratish' ?>">
         <input type="hidden" name="id" value="<?= (int) ($tahrir['id'] ?? 0) ?>">
         <input type="hidden" name="bilet_id" value="<?= (int)$bilet_id ?>">
 
         <div class="flex items-center justify-between cursor-pointer" @click="open = !open">
-            <h2 class="font-display text-lg">
-                <?= $tahrir ? '✏️ Savol tahrirlash' : '➕ Yangi savol' ?> — №<?= (int)$bilet['raqam'] ?>
+            <h2 class="font-display font-bold text-lg">
+                <?= $tahrir ? '✏️ Savol tahrirlash' : '➕ Yangi savol' ?> — <span class="grad-text">№<?= (int)$bilet['raqam'] ?></span>
             </h2>
             <svg class="w-5 h-5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </div>
@@ -107,11 +102,11 @@ require_once __DIR__ . '/_layout.php';
 
             <div>
                 <label class="field-label">Rasm (ixtiyoriy)</label>
-                <input type="file" name="rasm" accept="image/*" class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-blue-500/20 file:text-blue-400">
+                <input type="file" name="rasm" accept="image/*" class="field file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-violet/20 file:text-violet">
                 <?php if (!empty($tahrir['rasm'])): ?>
                     <div class="mt-2 flex items-center gap-3">
-                        <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($tahrir['rasm']) ?>" class="h-16 rounded-lg">
-                        <label class="text-xs text-red-400"><input type="checkbox" name="rasm_ochir" value="1"> Rasmni o'chirish</label>
+                        <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($tahrir['rasm']) ?>" loading="lazy" class="h-16 rounded-lg">
+                        <label class="text-xs text-danger flex items-center gap-1"><input type="checkbox" name="rasm_ochir" value="1"> Rasmni o'chirish</label>
                     </div>
                 <?php endif; ?>
             </div>
@@ -145,53 +140,52 @@ require_once __DIR__ . '/_layout.php';
             </div>
 
             <div class="flex gap-3">
-                <button type="submit" class="btn-primary"><?= e(t('saqlash')) ?></button>
+                <button type="submit" class="btn btn-primary"><?= e(t('saqlash')) ?></button>
                 <?php if ($tahrir): ?>
-                    <a href="?bilet=<?= (int)$bilet_id ?>" class="btn-ghost"><?= e(t('bekor_qilish')) ?></a>
+                    <a href="?bilet=<?= (int)$bilet_id ?>" class="btn btn-ghost"><?= e(t('bekor_qilish')) ?></a>
                 <?php endif; ?>
             </div>
         </div>
     </form>
 
-    <!-- Savollar ro'yxati -->
-    <div class="glass-card p-5 fade-up">
-        <h2 class="font-display text-lg mb-4">Savollar (<?= count($savollar) ?>)</h2>
+    <div class="glass p-5 fade-up">
+        <h2 class="font-display font-bold text-lg mb-4">Savollar (<span class="grad-text"><?= count($savollar) ?></span>)</h2>
         <?php if (empty($savollar)): ?>
-            <p class="text-center py-8 text-brand-muted text-sm"><?= e(t('malumot_yoq')) ?></p>
+            <p class="text-center py-8 text-muted text-sm"><?= e(t('malumot_yoq')) ?></p>
         <?php else: ?>
             <div class="space-y-2">
                 <?php foreach ($savollar as $i => $s): ?>
-                    <details class="border border-white/10 rounded-lg group">
+                    <details class="border border-white/10 rounded-xl group">
                         <summary class="px-4 py-3 cursor-pointer flex items-center gap-3 hover:bg-white/3">
-                            <span class="w-7 h-7 rounded-md bg-blue-500/20 flex items-center justify-center text-xs font-bold flex-shrink-0"><?= $i + 1 ?></span>
+                            <span class="w-7 h-7 rounded-lg grad-bg-soft flex items-center justify-center text-xs font-bold flex-shrink-0"><?= $i + 1 ?></span>
                             <span class="flex-1 truncate text-sm"><?= e(mb_substr($s['matn'], 0, 100)) ?></span>
-                            <span class="text-xs text-green-400 uppercase"><?= e($s['togri_javob']) ?></span>
+                            <span class="text-xs text-success uppercase font-bold"><?= e($s['togri_javob']) ?></span>
                         </summary>
                         <div class="p-4 border-t border-white/10 text-sm space-y-2">
                             <p class="text-white"><?= e($s['matn']) ?></p>
                             <?php if ($s['rasm']): ?>
-                                <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($s['rasm']) ?>" class="max-w-md rounded-lg">
+                                <img src="<?= e(SAYT_URL) ?>/uploads/<?= e($s['rasm']) ?>" loading="lazy" class="max-w-md rounded-xl">
                             <?php endif; ?>
                             <?php foreach (['a','b','c','d'] as $v):
                                 if (empty($s['variant_' . $v])) continue;
                                 $togri = $s['togri_javob'] === $v;
                             ?>
-                                <div class="<?= $togri ? 'text-green-400' : 'text-brand-muted' ?>">
+                                <div class="<?= $togri ? 'text-success' : 'text-muted' ?>">
                                     <strong class="uppercase mr-2"><?= $v ?>)</strong><?= e($s['variant_' . $v]) ?>
                                     <?php if ($togri): ?> ✓<?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                             <?php if (!empty($s['izoh'])): ?>
-                                <p class="p-2 rounded bg-blue-500/10 text-blue-300 text-xs">💡 <?= e($s['izoh']) ?></p>
+                                <p class="p-2 rounded-lg bg-violet/10 text-violet text-xs">💡 <?= e($s['izoh']) ?></p>
                             <?php endif; ?>
                             <div class="flex gap-2 pt-2">
-                                <a href="?bilet=<?= (int)$bilet_id ?>&tahrir=<?= (int)$s['id'] ?>" class="text-yellow-400 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
+                                <a href="?bilet=<?= (int)$bilet_id ?>&tahrir=<?= (int)$s['id'] ?>" class="text-amber text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
                                 <form method="POST" class="inline" onsubmit="return confirm('O\'chirilsinmi?')">
                                     <?= csrf_input() ?>
                                     <input type="hidden" name="harakat" value="ochirish">
                                     <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
                                     <input type="hidden" name="bilet_id" value="<?= (int)$bilet_id ?>">
-                                    <button class="text-red-400 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
+                                    <button class="text-danger text-xs hover:underline"><?= e(t('ochirish')) ?></button>
                                 </form>
                             </div>
                         </div>
@@ -201,7 +195,7 @@ require_once __DIR__ . '/_layout.php';
         <?php endif; ?>
     </div>
 <?php else: ?>
-    <div class="glass-card p-12 text-center text-brand-muted fade-up">
+    <div class="glass p-12 text-center text-muted fade-up">
         <p>Avval yuqoridan biletni tanlang.</p>
     </div>
 <?php endif; ?>

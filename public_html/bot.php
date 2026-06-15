@@ -1,22 +1,7 @@
 <?php
-/**
- * VatanParvar Yaypan — Telegram bot vebhuk
- *
- * Bot quyidagi imkoniyatlarni beradi:
- *   /start <hash>  — akkauntni botga ulash
- *   /help          — yordam
- *   /obuna         — joriy obuna holati
- *   /natijalar     — oxirgi test natijalari
- *
- * Admin (Telegram ID sozlamalardan):
- *   /admin         — admin panel
- *   /stat          — sayt statistikasi
- *   /backup        — DB zaxirasini yuborish
- */
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/funksiyalar.php';
 
-// ----- Vebhukdan ma'lumot olish -----
 $tana = file_get_contents('php://input');
 $yangilanish = json_decode($tana, true);
 
@@ -25,7 +10,6 @@ if (!$yangilanish) {
     exit('OK');
 }
 
-// ----- Asosiy o'zgaruvchilar -----
 $message = $yangilanish['message'] ?? $yangilanish['edited_message'] ?? null;
 $callback = $yangilanish['callback_query'] ?? null;
 
@@ -42,9 +26,6 @@ if ($message) {
 http_response_code(200);
 exit('OK');
 
-// ============================================================
-// XABARNI QAYTA ISHLASH
-// ============================================================
 function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
     $admin_id = (int) sozlama('telegram_admin_id');
     $is_admin = $admin_id && $from_id === $admin_id;
@@ -54,7 +35,6 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         [$from_id]
     );
 
-    // ----- /start <hash> -----
     if (preg_match('/^\/start\s+([a-f0-9]{32})/', $matn, $m)) {
         $hash = $m[1];
         $f = db_qator('SELECT * FROM foydalanuvchilar WHERE telegram_hash = ?', [$hash]);
@@ -70,7 +50,6 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         return;
     }
 
-    // ----- /start (oddiy) -----
     if ($matn === '/start' || $matn === '/help') {
         $matn_javob = "<b>👋 VatanParvar Yaypan botiga xush kelibsiz!</b>\n\n" .
             "Bu bot orqali siz:\n" .
@@ -86,7 +65,6 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         return;
     }
 
-    // ----- /obuna -----
     if ($matn === '/obuna') {
         if (!$foydalanuvchi) {
             telegram_yubor($chat_id, "❌ Akkauntingiz hali bog'lanmagan.\nSaytga kirib, profil sahifasidagi ulanish havolasini ishlating.");
@@ -113,7 +91,6 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         return;
     }
 
-    // ----- /natijalar -----
     if ($matn === '/natijalar') {
         if (!$foydalanuvchi) {
             telegram_yubor($chat_id, "❌ Akkauntingiz bog'lanmagan");
@@ -141,14 +118,13 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         return;
     }
 
-    // ----- ADMIN BUYRUQLARI -----
     if ($is_admin) {
         if ($matn === '/admin') {
             $klaviatura = [
                 'inline_keyboard' => [
                     [
                         ['text' => '📊 Statistika', 'callback_data' => 'stat'],
-                        ['text' => '💾 Backup', 'callback_data' => 'backup'],
+                        ['text' => '💾 Backup',    'callback_data' => 'backup'],
                     ],
                     [
                         ['text' => '🌐 Saytga o\'tish', 'url' => SAYT_URL . '/admin/'],
@@ -171,13 +147,9 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void {
         }
     }
 
-    // ----- Noma'lum buyruq -----
     telegram_yubor($chat_id, "❓ Buyruq tushunilmadi. /help yozing.");
 }
 
-// ============================================================
-// CALLBACK QUERY (inline tugmalar)
-// ============================================================
 function bot_callback(array $cb): void {
     $admin_id = (int) sozlama('telegram_admin_id');
     $from_id  = $cb['from']['id'];
@@ -186,7 +158,6 @@ function bot_callback(array $cb): void {
     $cb_id    = $cb['id'];
     $token    = sozlama('telegram_bot_token');
 
-    // Callback javobi (loading'ni o'chirish)
     @file_get_contents("https://api.telegram.org/bot{$token}/answerCallbackQuery?callback_query_id={$cb_id}");
 
     if ($from_id !== $admin_id) return;
@@ -199,9 +170,6 @@ function bot_callback(array $cb): void {
     }
 }
 
-// ============================================================
-// STATISTIKA MATNI
-// ============================================================
 function bot_stat_matni(): string {
     $foyd = (int) db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar');
     $foyd_24 = (int) db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar WHERE yaratilgan > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
@@ -219,7 +187,6 @@ function bot_stat_matni(): string {
            "<i>" . date('d.m.Y H:i') . "</i>";
 }
 
-// ----- HTML xavfsizlash -----
 function e_bot(string $matn): string {
     return htmlspecialchars($matn, ENT_QUOTES, 'UTF-8');
 }

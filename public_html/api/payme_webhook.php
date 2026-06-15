@@ -1,26 +1,9 @@
 <?php
-/**
- * VatanParvar Yaypan — Payme (Paycom) webhook
- *
- * Payme JSON-RPC 2.0 protokolidan foydalanadi va Basic Auth orqali
- * autentifikatsiya qiladi. Quyidagi metodlar amalga oshiriladi:
- *   - CheckPerformTransaction
- *   - CreateTransaction
- *   - PerformTransaction
- *   - CancelTransaction
- *   - CheckTransaction
- *   - GetStatement
- *
- * Rasmiy hujjat: https://developer.help.paycom.uz/
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ============================================================
-// XATO KODLARI
-// ============================================================
 const PAYME_XATO_AUTH       = -32504;
 const PAYME_XATO_HISOB      = -31050;
 const PAYME_XATO_SUMMA      = -31001;
@@ -42,9 +25,6 @@ function payme_javob(array $natija, ?int $id = null): never {
     exit;
 }
 
-// ============================================================
-// AUTH
-// ============================================================
 $kerakli_kalit = sozlama('payme_key', '');
 $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 if (!$kerakli_kalit || !str_starts_with($auth, 'Basic ')) {
@@ -56,9 +36,6 @@ if (count($qism) !== 2 || $qism[0] !== 'Paycom' || !hash_equals($kerakli_kalit, 
     payme_xato(PAYME_XATO_AUTH, 'Avtorizatsiya xato');
 }
 
-// ============================================================
-// JSON-RPC tahlili
-// ============================================================
 $tana = file_get_contents('php://input');
 $so_rov = json_decode($tana, true);
 if (!$so_rov || !isset($so_rov['method'])) {
@@ -68,17 +45,11 @@ $id = $so_rov['id'] ?? null;
 $method = $so_rov['method'];
 $params = $so_rov['params'] ?? [];
 
-// ============================================================
-// Yordamchi: hisobni tekshirish
-// ============================================================
 function tolov_topish(array $hisob): ?array {
     if (empty($hisob['tolov_id'])) return null;
     return db_qator('SELECT * FROM tolovlar WHERE id = ?', [(int) $hisob['tolov_id']]);
 }
 
-// ============================================================
-// METHODLAR
-// ============================================================
 switch ($method) {
 
     case 'CheckPerformTransaction': {
@@ -103,7 +74,6 @@ switch ($method) {
         if (!$tolov) payme_xato(PAYME_XATO_HISOB, 'Hisob topilmadi', 'tolov_id', $id);
         if ((int) ($tolov['summa'] * 100) !== $summa) payme_xato(PAYME_XATO_SUMMA, 'Summa mos emas', null, $id);
 
-        // Allaqachon mavjudmi?
         if ($tolov['tashqi_id'] === $payme_id) {
             payme_javob([
                 'create_time' => $vaqt,
@@ -141,7 +111,6 @@ switch ($method) {
             payme_xato(PAYME_XATO_HOLATI, 'Holat noto\'g\'ri', null, $id);
         }
 
-        // Obuna ochamiz
         $tarif = db_qator('SELECT * FROM tariflar WHERE id = ?', [$tolov['tarif_id']]);
         $kun = match ($tarif['tur']) {
             'kun' => $tarif['qiymat'],
@@ -191,11 +160,17 @@ switch ($method) {
         if (!$tolov) payme_xato(PAYME_XATO_TOPILMADI, 'Tranzaksiya topilmadi', null, $id);
 
         $vaqt = time() * 1000;
-        if ($tolov['holat'] === 'kutilmoqda' || $tolov['holat'] === 'muvaffaqiyatli') {
+        if (in_array($tolov['holat'], ['kutilmoqda', 'muvaffaqiyatli'], true)) {
             db_bajar('UPDATE tolovlar SET holat = "bekor" WHERE id = ?', [$tolov['id']]);
-            // Faol obunani ham bekor qilish
-            db_bajar('UPDATE obunalar SET holat = "bekor" WHERE foydalanuvchi_id = ? AND tarif_id = ? AND yaratilgan >= ? ORDER BY id DESC LIMIT 1',
-                     [$tolov['foydalanuvchi_id'], $tolov['tarif_id'], $tolov['yaratilgan']]);
+            $obuna_id = (int) db_qiymat(
+                'SELECT id FROM obunalar
+                 WHERE foydalanuvchi_id = ? AND tarif_id = ? AND yaratilgan >= ?
+                 ORDER BY id DESC LIMIT 1',
+                [$tolov['foydalanuvchi_id'], $tolov['tarif_id'], $tolov['yaratilgan']]
+            );
+            if ($obuna_id) {
+                db_bajar('UPDATE obunalar SET holat = "bekor" WHERE id = ?', [$obuna_id]);
+            }
         }
         payme_javob([
             'transaction' => (string) $tolov['id'],
@@ -238,17 +213,17 @@ switch ($method) {
         );
 
         $natija = [];
-        foreach ($tolovlar as $t) {
+        foreach ($tolovlar as $tt) {
             $natija[] = [
-                'id'           => $t['tashqi_id'],
-                'time'         => strtotime($t['yaratilgan']) * 1000,
-                'amount'       => (int) ($t['summa'] * 100),
-                'account'      => ['tolov_id' => (string) $t['id']],
-                'create_time'  => strtotime($t['yaratilgan']) * 1000,
-                'perform_time' => $t['holat'] === 'muvaffaqiyatli' ? strtotime($t['yangilangan']) * 1000 : 0,
-                'cancel_time'  => $t['holat'] === 'bekor' ? strtotime($t['yangilangan']) * 1000 : 0,
-                'transaction'  => (string) $t['id'],
-                'state'        => match ($t['holat']) {
+                'id'           => $tt['tashqi_id'],
+                'time'         => strtotime($tt['yaratilgan']) * 1000,
+                'amount'       => (int) ($tt['summa'] * 100),
+                'account'      => ['tolov_id' => (string) $tt['id']],
+                'create_time'  => strtotime($tt['yaratilgan']) * 1000,
+                'perform_time' => $tt['holat'] === 'muvaffaqiyatli' ? strtotime($tt['yangilangan']) * 1000 : 0,
+                'cancel_time'  => $tt['holat'] === 'bekor' ? strtotime($tt['yangilangan']) * 1000 : 0,
+                'transaction'  => (string) $tt['id'],
+                'state'        => match ($tt['holat']) {
                     'muvaffaqiyatli' => 2,
                     'bekor'          => -1,
                     default          => 1,

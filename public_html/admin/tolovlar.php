@@ -1,7 +1,4 @@
 <?php
-/**
- * Admin — To'lovlarni boshqarish
- */
 require_once __DIR__ . '/../config/auth.php';
 $f = admin_bolish_kerak();
 
@@ -31,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     [$tolov['foydalanuvchi_id'], $tarif['id'], $kun]
                 );
 
-                // Referal bonus
                 $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
                 if ($foydalanuvchi['referal_orqali']) {
                     $bonus = (float) sozlama('referal_bonus', 5000);
@@ -46,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         "✅ <b>To'lovingiz tasdiqlandi!</b>\nTarif: <b>{$tarif['nomi']}</b>");
                 }
                 db()->commit();
-                flash_qoy('muvaffaqiyat', 'To\'lov tasdiqlandi va obuna ochildi');
+                flash_qoy('muvaffaqiyat', "To'lov tasdiqlandi va obuna ochildi");
             } catch (Exception $exc) {
                 db()->rollBack();
                 flash_qoy('xato', 'Xato: ' . $exc->getMessage());
@@ -95,21 +91,21 @@ require_once __DIR__ . '/_layout.php';
     <input name="q" value="<?= e($qidiruv) ?>" placeholder="Telefon yoki ism..." class="field sm:col-span-2">
     <select name="holat" onchange="this.form.submit()" class="field">
         <option value="">Barcha holatlar</option>
-        <option value="kutilmoqda" <?= $holat === 'kutilmoqda' ? 'selected' : '' ?>>Kutilmoqda</option>
-        <option value="muvaffaqiyatli" <?= $holat === 'muvaffaqiyatli' ? 'selected' : '' ?>>Muvaffaqiyatli</option>
-        <option value="bekor" <?= $holat === 'bekor' ? 'selected' : '' ?>>Bekor</option>
-        <option value="xato" <?= $holat === 'xato' ? 'selected' : '' ?>>Xato</option>
+        <option value="kutilmoqda" <?= $holat === 'kutilmoqda' ? 'selected' : '' ?>><?= e(t('kutilmoqda')) ?></option>
+        <option value="muvaffaqiyatli" <?= $holat === 'muvaffaqiyatli' ? 'selected' : '' ?>><?= e(t('muvaffaqiyatli')) ?></option>
+        <option value="bekor" <?= $holat === 'bekor' ? 'selected' : '' ?>><?= e(t('bekor')) ?></option>
+        <option value="xato" <?= $holat === 'xato' ? 'selected' : '' ?>><?= e(t('xato_holat')) ?></option>
     </select>
 </form>
 
-<div class="glass-card p-5 fade-up">
+<div class="glass p-5 fade-up">
     <?php if (empty($royxat)): ?>
-        <p class="text-center py-8 text-brand-muted text-sm"><?= e(t('malumot_yoq')) ?></p>
+        <p class="text-center py-8 text-muted text-sm"><?= e(t('malumot_yoq')) ?></p>
     <?php else: ?>
         <div class="overflow-x-auto -mx-5 px-5">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="text-left text-brand-muted text-xs uppercase">
+                    <tr class="text-left text-muted text-xs uppercase">
                         <th class="py-2 pr-3">#</th>
                         <th class="py-2 pr-3">Foydalanuvchi</th>
                         <th class="py-2 pr-3">Tarif</th>
@@ -126,32 +122,32 @@ require_once __DIR__ . '/_layout.php';
                             <td class="py-2.5 pr-3 font-mono text-xs"><?= (int)$t['id'] ?></td>
                             <td class="py-2.5 pr-3">
                                 <?= e($t['ism']) ?> <?= e($t['familiya'] ?? '') ?>
-                                <div class="text-xs text-brand-muted"><?= e($t['telefon']) ?></div>
+                                <div class="text-xs text-muted"><?= e($t['telefon']) ?></div>
                             </td>
                             <td class="py-2.5 pr-3"><?= e($t['tarif_nomi']) ?></td>
                             <td class="py-2.5 pr-3 font-bold"><?= e(pul($t['summa'])) ?></td>
-                            <td class="py-2.5 pr-3"><span class="text-xs px-2 py-0.5 rounded bg-white/10 uppercase"><?= e($t['tolov_turi']) ?></span></td>
+                            <td class="py-2.5 pr-3"><span class="chip text-xs !py-0.5 !px-2"><?= e(strtoupper($t['tolov_turi'])) ?></span></td>
                             <td class="py-2.5 pr-3">
-                                <span class="text-xs px-2 py-0.5 rounded-full
-                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-green-500/20 text-green-400' :
-                                       ($t['holat'] === 'kutilmoqda' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400') ?>">
+                                <span class="chip text-xs !py-0.5 !px-2
+                                    <?= $t['holat'] === 'muvaffaqiyatli' ? 'bg-success/15 text-success border-success/30' :
+                                       ($t['holat'] === 'kutilmoqda' ? 'bg-amber/15 text-amber border-amber/30' : 'bg-danger/15 text-danger border-danger/30') ?>">
                                     <?= e($t['holat']) ?>
                                 </span>
                             </td>
-                            <td class="py-2.5 pr-3 text-xs text-brand-muted"><?= e(sana($t['yaratilgan'])) ?></td>
-                            <td class="py-2.5 text-right">
+                            <td class="py-2.5 pr-3 text-xs text-muted"><?= e(sana($t['yaratilgan'])) ?></td>
+                            <td class="py-2.5 text-right whitespace-nowrap">
                                 <?php if ($t['holat'] === 'kutilmoqda'): ?>
                                     <form method="POST" class="inline">
                                         <?= csrf_input() ?>
                                         <input type="hidden" name="harakat" value="tasdiq">
                                         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                                        <button class="text-green-400 text-xs hover:underline mr-2">✓ Tasdiq</button>
+                                        <button class="text-success text-xs hover:underline mr-2">✓ Tasdiq</button>
                                     </form>
                                     <form method="POST" class="inline" onsubmit="return confirm('Bekor qilinsinmi?')">
                                         <?= csrf_input() ?>
                                         <input type="hidden" name="harakat" value="bekor">
                                         <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                                        <button class="text-red-400 text-xs hover:underline">✗ Bekor</button>
+                                        <button class="text-danger text-xs hover:underline">✗ Bekor</button>
                                     </form>
                                 <?php endif; ?>
                             </td>

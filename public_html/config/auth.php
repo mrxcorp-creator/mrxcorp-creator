@@ -1,36 +1,25 @@
 <?php
-/**
- * VatanParvar Yaypan — Sessiya va auth middleware
- * ------------------------------------------------------------
- * Har bir sahifa boshida `require_once 'config/auth.php'` qilinadi.
- * Bu fayl sessiyani ochadi, til fayllarini yuklaydi va
- * kirgan foydalanuvchini qaytaradi.
- */
-
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/../includes/security.php';
 
 sessiya_boshla();
 
-// ----- Til tanlash -----
-if (isset($_GET['til']) && in_array($_GET['til'], ['uz_latn', 'uz_cyrl', 'ru'], true)) {
+$TILLAR = ['uz_latn', 'uz_cyrl'];
+
+if (isset($_GET['til']) && in_array($_GET['til'], $TILLAR, true)) {
     $_SESSION['til'] = $_GET['til'];
     setcookie('til', $_GET['til'], time() + 60 * 60 * 24 * 365, '/');
 }
 $TIL = $_SESSION['til'] ?? $_COOKIE['til'] ?? 'uz_latn';
-if (!in_array($TIL, ['uz_latn', 'uz_cyrl', 'ru'], true)) {
+if (!in_array($TIL, $TILLAR, true)) {
     $TIL = 'uz_latn';
 }
 $_SESSION['til'] = $TIL;
 
-// Tarjimalar massivi (global)
 global $tarjimalar;
 $tarjima_fayl = __DIR__ . '/../lang/' . $TIL . '.php';
 $tarjimalar = file_exists($tarjima_fayl) ? require $tarjima_fayl : [];
 
-/**
- * Tarjima funksiyasi.
- */
 function t(string $kalit, array $almashtir = []): string {
     global $tarjimalar;
     $matn = $tarjimalar[$kalit] ?? $kalit;
@@ -40,9 +29,6 @@ function t(string $kalit, array $almashtir = []): string {
     return $matn;
 }
 
-/**
- * Hozirgi foydalanuvchi (kirgan bo'lsa).
- */
 function joriy_foydalanuvchi(): ?array {
     static $kesh = null;
     if ($kesh !== null) {
@@ -64,9 +50,6 @@ function joriy_foydalanuvchi(): ?array {
     return $kesh;
 }
 
-/**
- * Foydalanuvchi kirganligini tekshirish, kirmagan bo'lsa /login ga.
- */
 function kirgan_bolish_kerak(): array {
     $f = joriy_foydalanuvchi();
     if (!$f) {
@@ -76,9 +59,6 @@ function kirgan_bolish_kerak(): array {
     return $f;
 }
 
-/**
- * Admin yoki developer bo'lish kerak.
- */
 function admin_bolish_kerak(): array {
     $f = kirgan_bolish_kerak();
     if (!in_array($f['rol'], ['admin', 'developer'], true)) {
@@ -88,9 +68,6 @@ function admin_bolish_kerak(): array {
     return $f;
 }
 
-/**
- * Faqat developer.
- */
 function developer_bolish_kerak(): array {
     $f = kirgan_bolish_kerak();
     if ($f['rol'] !== 'developer') {
@@ -100,9 +77,6 @@ function developer_bolish_kerak(): array {
     return $f;
 }
 
-/**
- * Tizimga kirgan deb belgilash.
- */
 function tizimga_kirgan(int $foydalanuvchi_id): void {
     sessiya_boshla();
     session_regenerate_id(true);
@@ -110,9 +84,6 @@ function tizimga_kirgan(int $foydalanuvchi_id): void {
     db_bajar('UPDATE foydalanuvchilar SET oxirgi_kirish = NOW() WHERE id = ?', [$foydalanuvchi_id]);
 }
 
-/**
- * Tizimdan chiqish.
- */
 function tizimdan_chiqish(): void {
     sessiya_boshla();
     $_SESSION = [];
@@ -124,9 +95,6 @@ function tizimdan_chiqish(): void {
     session_destroy();
 }
 
-/**
- * Foydalanuvchining faol obunasi bormi?
- */
 function obuna_faolmi(int $foydalanuvchi_id): bool {
     return (bool) db_qiymat(
         'SELECT COUNT(*) FROM obunalar

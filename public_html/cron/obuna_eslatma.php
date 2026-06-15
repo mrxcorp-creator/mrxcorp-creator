@@ -1,13 +1,4 @@
 <?php
-/**
- * VatanParvar Yaypan — Obuna tugashidan oldin eslatma
- *
- * Har kuni cron orqali ishga tushiriladi (masalan 09:00):
- *   0 9 * * * /usr/bin/php /home/USER/public_html/cron/obuna_eslatma.php
- *
- * - 3 kun qolganda: ogohlantirish
- * - Tugagan obunalarni "tugagan" holatiga o'tkazish
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
@@ -20,10 +11,8 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
-// ----- Tugagan obunalarni yopish -----
 $tugagan = db_bajar('UPDATE obunalar SET holat = "tugagan" WHERE holat = "faol" AND tugash <= NOW()');
 
-// ----- 3 kun qolganlarga eslatma -----
 $obunalar = db_barcha(
     'SELECT o.*, fo.telegram_id, fo.ism, t.nomi
      FROM obunalar o
