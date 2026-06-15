@@ -32,12 +32,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             if ($f && password_verify($parol, $f['parol_hash'])) {
                 kirish_qayd($telefon, true);
-                tizimga_kirgan($f['id']);
 
-                $manzil = in_array($f['rol'], ['admin', 'developer'], true)
-                          ? '/admin/' : '/dashboard';
-                flash_qoy('muvaffaqiyat', t('salom') . ', ' . $f['ism'] . '!');
-                yonaltir(SAYT_URL . $manzil);
+                $tfa_yoq = !empty($f['tfa_yoq']) && !empty($f['telegram_id']);
+
+                if ($tfa_yoq) {
+                    try {
+                        $oxirgi_otp = db_qator(
+                            'SELECT * FROM tfa_otp WHERE foydalanuvchi_id = ?
+                             ORDER BY id DESC LIMIT 1',
+                            [$f['id']]
+                        );
+                        $eskidan = $oxirgi_otp && (time() - strtotime($oxirgi_otp['yaratilgan'])) > 60;
+
+                        if (!$oxirgi_otp || $eskidan) {
+                            $kod = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                            $tugash = date('Y-m-d H:i:s', time() + 600);
+                            db_bajar(
+                                'INSERT INTO tfa_otp (foydalanuvchi_id, kod, ip, tugash) VALUES (?, ?, ?, ?)',
+                                [$f['id'], password_hash($kod, PASSWORD_DEFAULT), ip_olish(), $tugash]
+                            );
+                            telegram_yubor_xom($f['telegram_id'],
+                                "🔐 <b>Kirish kodi</b>\n\n<code>{$kod}</code>\n\nKod 10 daqiqa amal qiladi.\nIP: " . ip_olish());
+                        }
+
+                        $_SESSION['tfa_kutilmoqda'] = [
+                            'foydalanuvchi_id' => (int) $f['id'],
+                            'vaqt' => time(),
+                        ];
+                        yonaltir(SAYT_URL . '/auth/tfa.php');
+                    } catch (Throwable $e) {
+                        error_log('2FA xato: ' . $e->getMessage());
+                        tizimga_kirgan($f['id']);
+                        $manzil = in_array($f['rol'], ['admin', 'developer'], true) ? '/admin/' : '/dashboard';
+                        flash_qoy('muvaffaqiyat', t('salom') . ', ' . $f['ism'] . '!');
+                        yonaltir(SAYT_URL . $manzil);
+                    }
+                } else {
+                    tizimga_kirgan($f['id']);
+                    $manzil = in_array($f['rol'], ['admin', 'developer'], true)
+                              ? '/admin/' : '/dashboard';
+                    flash_qoy('muvaffaqiyat', t('salom') . ', ' . $f['ism'] . '!');
+                    yonaltir(SAYT_URL . $manzil);
+                }
             } else {
                 kirish_qayd($telefon, false);
                 $xato = t('kirish_xato');
