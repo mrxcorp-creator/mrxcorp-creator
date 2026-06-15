@@ -62,21 +62,30 @@ function ip_olish(): string {
 }
 
 function rate_limit_tekshir(string $telefon = ''): bool {
-    $ip = ip_olish();
-    $son = (int) db_qiymat(
-        'SELECT COUNT(*) FROM kirish_urinishlar
-         WHERE ip = ? AND muvaffaqiyat = 0
-           AND yaratilgan > DATE_SUB(NOW(), INTERVAL ? SECOND)',
-        [$ip, LIMIT_VAQT]
-    );
-    return $son < LIMIT_SON;
+    try {
+        $ip = ip_olish();
+        $son = (int) db_qiymat(
+            'SELECT COUNT(*) FROM kirish_urinishlar
+             WHERE ip = ? AND muvaffaqiyat = 0
+               AND yaratilgan > DATE_SUB(NOW(), INTERVAL ? SECOND)',
+            [$ip, LIMIT_VAQT]
+        );
+        return $son < LIMIT_SON;
+    } catch (Throwable $e) {
+        error_log('rate_limit_tekshir xato: ' . $e->getMessage());
+        return true;
+    }
 }
 
 function kirish_qayd(string $telefon, bool $muvaffaqiyat): void {
-    db_bajar(
-        'INSERT INTO kirish_urinishlar (ip, telefon, muvaffaqiyat) VALUES (?, ?, ?)',
-        [ip_olish(), $telefon, $muvaffaqiyat ? 1 : 0]
-    );
+    try {
+        db_bajar(
+            'INSERT INTO kirish_urinishlar (ip, telefon, muvaffaqiyat) VALUES (?, ?, ?)',
+            [ip_olish(), $telefon, $muvaffaqiyat ? 1 : 0]
+        );
+    } catch (Throwable $e) {
+        error_log('kirish_qayd xato: ' . $e->getMessage());
+    }
 }
 
 function referal_kod_yarat(int $uzunlik = 8): string {

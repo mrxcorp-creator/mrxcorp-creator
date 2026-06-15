@@ -72,7 +72,13 @@ require_once __DIR__ . '/includes/navbar.php';
 
 <section class="max-w-7xl mx-auto px-4 py-12 fade-up">
     <div class="ring-grad mx-auto max-w-5xl">
-        <img src="<?= e(SAYT_URL) ?>/assets/img/banner.svg" alt="VatanParvar Yaypan" loading="lazy"
+        <?php
+        $banner_yoli = sozlama('banner_yoli', '');
+        $banner_url = $banner_yoli && is_file(UPLOAD_PATH . '/' . $banner_yoli)
+            ? SAYT_URL . '/uploads/' . $banner_yoli
+            : SAYT_URL . '/assets/img/banner.svg';
+        ?>
+        <img src="<?= e($banner_url) ?>" alt="VatanParvar Yaypan" loading="lazy"
              class="w-full h-auto rounded-[1.2rem]">
     </div>
 </section>

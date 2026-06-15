@@ -86,7 +86,10 @@ function telegram_navbatga(int|string $chat_id, string $matn, array $qoshimcha =
             [(string) $chat_id, $matn, $qoshimcha ? json_encode($qoshimcha, JSON_UNESCAPED_UNICODE) : null]
         );
     } catch (Throwable $e) {
-        @telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+        try {
+            telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+        } catch (Throwable $e2) {
+        }
     }
 }
 
@@ -189,12 +192,11 @@ function audit_yoz(string $harakat, ?string $obyekt_turi = null, ?int $obyekt_id
                 $obyekt_turi,
                 $obyekt_id,
                 $tafsilot ? json_encode($tafsilot, JSON_UNESCAPED_UNICODE) : null,
-                ip_olish(),
+                function_exists('ip_olish') ? ip_olish() : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'),
                 substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
             ]
         );
     } catch (Throwable $e) {
-        error_log('Audit log xato: ' . $e->getMessage());
     }
 }
 
