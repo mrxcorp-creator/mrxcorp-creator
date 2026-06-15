@@ -37,19 +37,24 @@ require_once __DIR__ . '/../includes/header.php';
 
             $menyu = [
                 'index'           => ['🏠', t('boshqaruv_paneli'), 'index.php', 0],
-                'biletlar'        => ['🎫', 'Biletlar',            'biletlar.php', 0],
-                'savollar'        => ['❓', 'Savollar',             'savollar.php', 0],
-                'foydalanuvchilar'=> ['👥', 'Foydalanuvchilar',     'foydalanuvchilar.php', 0],
+                'biletlar'        => ['🎫', t('admin_biletlar'),    'biletlar.php', 0],
+                'savollar'        => ['❓', t('admin_savollar'),    'savollar.php', 0],
+                'foydalanuvchilar'=> ['👥', t('admin_foydalanuvchilar'), 'foydalanuvchilar.php', 0],
                 'tariflar'        => ['💎', t('tariflar'),          'tariflar.php', 0],
-                'tolovlar'        => ['💳', "To'lovlar",            'tolovlar.php', $kutilgan_tolov],
+                'tolovlar'        => ['💳', t('admin_tolovlar'),    'tolovlar.php', $kutilgan_tolov],
                 'fikrlar'         => ['💬', t('fikrlar'),           'fikrlar.php', $kutilgan_fikr],
-                'sozlamalar'      => ['⚙️', 'Sozlamalar',           'sozlamalar.php', 0],
-                'dizayn'          => ['🎨', 'Dizayn',                'dizayn.php', 0],
-                'auditlar'        => ['📜', 'Audit log',             'auditlar.php', 0],
+                'sozlamalar'      => ['⚙️', t('admin_sozlamalar'),  'sozlamalar.php', 0],
+                'dizayn'          => ['🎨', t('admin_dizayn'),      'dizayn.php', 0],
+                'promo_kodlar'    => ['🎟️', t('admin_promo'),       'promo_kodlar.php', 0],
+                'telegram'        => ['📱', 'Telegram',              'telegram.php', 0],
+                'bloklangan_iplar'=> ['🚫', t('admin_bloklangan'),  'bloklangan_iplar.php', 0],
+                'tools'           => ['🔧', t('admin_tools'),       'tools.php', 0],
+                'auditlar'        => ['📜', t('admin_audit'),       'auditlar.php', 0],
             ];
             if ($f['rol'] === 'developer') {
-                $menyu['check'] = ['🔍', 'Diagnostika', '../check.php', 0];
+                $menyu['check']   = ['🔍', t('admin_diagnostika'), '../check.php', 0];
                 $menyu['migrate'] = ['🗄️', 'Migrations', '../migrate.php', 0];
+                $menyu['xatolar'] = ['🐛', t('admin_xatolar'), '../xatolarni_kor.php', 0];
             }
             foreach ($menyu as $key => [$emoji, $nomi, $url, $badge]):
                 $aktiv = $admin_sahifa === $key;

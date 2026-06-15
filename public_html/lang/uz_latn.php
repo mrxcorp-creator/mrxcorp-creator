@@ -199,4 +199,17 @@ return [
     'muvaffaqiyatli'      => 'Muvaffaqiyatli',
     'bekor'               => 'Bekor',
     'xato_holat'          => 'Xato',
+
+    'admin_biletlar'         => 'Biletlar',
+    'admin_savollar'         => 'Savollar',
+    'admin_foydalanuvchilar' => 'Foydalanuvchilar',
+    'admin_tolovlar'         => "To'lovlar",
+    'admin_sozlamalar'       => 'Sozlamalar',
+    'admin_dizayn'           => 'Dizayn',
+    'admin_promo'            => 'Promo kodlar',
+    'admin_bloklangan'       => 'Bloklangan IP',
+    'admin_tools'            => 'Asboblar',
+    'admin_audit'            => 'Audit log',
+    'admin_diagnostika'      => 'Diagnostika',
+    'admin_xatolar'          => 'Xato loglari',
 ];

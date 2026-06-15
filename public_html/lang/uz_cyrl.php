@@ -199,4 +199,17 @@ return [
     'muvaffaqiyatli'      => 'Муваффақиятли',
     'bekor'               => 'Бекор',
     'xato_holat'          => 'Хато',
+
+    'admin_biletlar'         => 'Билетлар',
+    'admin_savollar'         => 'Саволлар',
+    'admin_foydalanuvchilar' => 'Фойдаланувчилар',
+    'admin_tolovlar'         => 'Тўловлар',
+    'admin_sozlamalar'       => 'Созламалар',
+    'admin_dizayn'           => 'Дизайн',
+    'admin_promo'            => 'Промо кодлар',
+    'admin_bloklangan'       => 'Блокланган IP',
+    'admin_tools'            => 'Асбоблар',
+    'admin_audit'            => 'Аудит лог',
+    'admin_diagnostika'      => 'Диагностика',
+    'admin_xatolar'          => 'Хато логлари',
 ];
