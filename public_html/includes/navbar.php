@@ -14,6 +14,7 @@
             <?php if ($f): ?>
                 <a href="<?= e(SAYT_URL) ?>/dashboard" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('boshqaruv_paneli')) ?></a>
                 <a href="<?= e(SAYT_URL) ?>/test" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('testlar')) ?></a>
+                <a href="<?= e(SAYT_URL) ?>/mashq" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">📚 Mashq</a>
                 <a href="<?= e(SAYT_URL) ?>/statistika" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">📊</a>
                 <a href="<?= e(SAYT_URL) ?>/xatolar" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">📚</a>
                 <a href="<?= e(SAYT_URL) ?>/tolov" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm"><?= e(t('tariflar')) ?></a>
@@ -97,6 +98,7 @@
             </div>
             <a href="<?= e(SAYT_URL) ?>/dashboard" class="block px-4 py-2.5 rounded-lg hover:bg-white/5"><?= e(t('boshqaruv_paneli')) ?></a>
             <a href="<?= e(SAYT_URL) ?>/test" class="block px-4 py-2.5 rounded-lg hover:bg-white/5"><?= e(t('testlar')) ?></a>
+            <a href="<?= e(SAYT_URL) ?>/mashq" class="block px-4 py-2.5 rounded-lg hover:bg-white/5">📚 Mashq</a>
             <a href="<?= e(SAYT_URL) ?>/statistika" class="block px-4 py-2.5 rounded-lg hover:bg-white/5">📊 Statistika</a>
             <a href="<?= e(SAYT_URL) ?>/xatolar" class="block px-4 py-2.5 rounded-lg hover:bg-white/5">📚 Xatolarni o'rganish</a>
             <a href="<?= e(SAYT_URL) ?>/tolov" class="block px-4 py-2.5 rounded-lg hover:bg-white/5"><?= e(t('tariflar')) ?></a>

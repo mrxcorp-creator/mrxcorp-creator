@@ -207,12 +207,16 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="mt-6 pt-6 border-t border-white/10">
                 <h3 class="font-display font-bold mb-3 text-sm"><?= e(t('tezkor_harakatlar')) ?></h3>
                 <div class="space-y-1.5">
+                    <a href="<?= e(SAYT_URL) ?>/mashq" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
+                        <span class="flex items-center gap-2">📚 Mashq rejimi</span>
+                        <span class="text-muted">→</span>
+                    </a>
                     <a href="<?= e(SAYT_URL) ?>/statistika" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
                         <span class="flex items-center gap-2">📊 Statistika</span>
                         <span class="text-muted">→</span>
                     </a>
                     <a href="<?= e(SAYT_URL) ?>/xatolar" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
-                        <span class="flex items-center gap-2">📚 Xatolarni o'rganish</span>
+                        <span class="flex items-center gap-2">⚡ Xatolarni o'rganish</span>
                         <span class="text-muted">→</span>
                     </a>
                     <a href="<?= e(SAYT_URL) ?>/profil" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
@@ -221,10 +225,6 @@ require_once __DIR__ . '/../includes/navbar.php';
                     </a>
                     <a href="<?= e(SAYT_URL) ?>/referal" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
                         <span class="flex items-center gap-2">🎁 <?= e(t('referal')) ?></span>
-                        <span class="text-muted">→</span>
-                    </a>
-                    <a href="<?= e(SAYT_URL) ?>/tolov" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 text-sm transition">
-                        <span class="flex items-center gap-2">💎 <?= e(t('tariflar')) ?></span>
                         <span class="text-muted">→</span>
                     </a>
                 </div>
