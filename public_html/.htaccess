@@ -1,4 +1,3 @@
-AddHandler application/x-httpd-php82 .php
 AddDefaultCharset UTF-8
 
 Options -Indexes -ExecCGI
