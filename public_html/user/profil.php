@@ -6,7 +6,13 @@ $xato = '';
 $muvaffaqiyat = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!csrf_tekshir(post('csrf_token'))) {
+    $forma_nomi = post('csrf_forma_nom');
+    $forma_token = post('csrf_forma_token');
+    $forma_ok = $forma_nomi
+        ? csrf_form_tekshir($forma_nomi, $forma_token)
+        : csrf_tekshir(post('csrf_token'));
+
+    if (!$forma_ok) {
         $xato = t('csrf_xato');
     } else {
         $harakat = post('harakat');
@@ -42,10 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $yangi = post('yangi_parol');
             $takror = post('parol_takror');
 
+            $tekshir = parol_murakkabmi($yangi);
+
             if (!password_verify($eski, $f['parol_hash'])) {
                 $xato = t('kirish_xato');
-            } elseif (mb_strlen($yangi) < 6) {
-                $xato = t('parol_qisqa');
+            } elseif (!$tekshir['ok']) {
+                $xato = $tekshir['xato'];
             } elseif ($yangi !== $takror) {
                 $xato = t('parollar_mos_emas');
             } else {
@@ -53,8 +61,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'UPDATE foydalanuvchilar SET parol_hash = ? WHERE id = ?',
                     [password_hash($yangi, PASSWORD_BCRYPT), $f['id']]
                 );
+                audit_yoz('parol_ozgartirildi', 'foydalanuvchi', (int) $f['id']);
+                if (!empty($f['telegram_id'])) {
+                    telegram_yubor($f['telegram_id'],
+                        "🔑 <b>Parolingiz o'zgartirildi</b>\nVaqt: " . date('d.m.Y H:i') . "\nIP: " . ip_olish() . "\n\nAgar bu siz bo'lmasangiz, darhol bizga murojaat qiling.");
+                }
                 $muvaffaqiyat = t('malumot_saqlandi');
             }
+        }
+
+        if ($harakat === 'bildirishnoma') {
+            $yangi_holat = post('kirish_bildirish') === '1' ? 1 : 0;
+            db_bajar(
+                'UPDATE foydalanuvchilar SET kirish_bildirish = ? WHERE id = ?',
+                [$yangi_holat, $f['id']]
+            );
+            $f['kirish_bildirish'] = $yangi_holat;
+            $muvaffaqiyat = t('malumot_saqlandi');
         }
     }
 }
@@ -172,7 +195,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             </div>
 
             <form method="POST" class="glass p-6 fade-up">
-                <?= csrf_input() ?>
+                <?= csrf_form_input('parol_ozgartirish') ?>
                 <input type="hidden" name="harakat" value="parol">
 
                 <h2 class="text-xl font-display font-bold mb-5"><?= e(t('parolni_ozgartirish')) ?></h2>
@@ -183,16 +206,34 @@ require_once __DIR__ . '/../includes/navbar.php';
                         <input type="password" name="eski_parol" required class="field" autocomplete="current-password">
                     </div>
                     <div>
-                        <label class="field-label"><?= e(t('yangi_parol')) ?></label>
-                        <input type="password" name="yangi_parol" required minlength="6" class="field" autocomplete="new-password">
+                        <label class="field-label"><?= e(t('yangi_parol')) ?> <span class="text-xs">(8+ harf+raqam)</span></label>
+                        <input type="password" name="yangi_parol" required minlength="8" class="field" autocomplete="new-password">
                     </div>
                     <div>
                         <label class="field-label"><?= e(t('parol_takror')) ?></label>
-                        <input type="password" name="parol_takror" required minlength="6" class="field" autocomplete="new-password">
+                        <input type="password" name="parol_takror" required minlength="8" class="field" autocomplete="new-password">
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary mt-5"><?= e(t('saqlash')) ?></button>
+            </form>
+
+            <form method="POST" class="glass p-6 fade-up">
+                <?= csrf_input() ?>
+                <input type="hidden" name="harakat" value="bildirishnoma">
+
+                <h2 class="text-xl font-display font-bold mb-3 flex items-center gap-2">
+                    <span>🔔</span> Xavfsizlik bildirishnomalari
+                </h2>
+                <p class="text-sm text-muted mb-4">
+                    Akkauntingizga yangi qurilmadan kirish aniqlansa Telegram orqali xabar olasizmi?
+                </p>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="kirish_bildirish" value="1" <?= !empty($f['kirish_bildirish']) ? 'checked' : '' ?>
+                           class="w-5 h-5 rounded border-white/20 bg-white/5 text-violet focus:ring-violet">
+                    <span class="text-sm">Yangi kirishlar haqida Telegram'ga xabar yuborilsin</span>
+                </label>
+                <button type="submit" class="btn btn-primary mt-4 text-sm py-2 px-4"><?= e(t('saqlash')) ?></button>
             </form>
         </div>
     </div>

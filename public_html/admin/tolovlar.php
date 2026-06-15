@@ -21,30 +21,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             };
             db()->beginTransaction();
             try {
-                db_bajar('UPDATE tolovlar SET holat = "muvaffaqiyatli" WHERE id = ?', [$id]);
-                db_bajar(
-                    'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
-                     VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
-                    [$tolov['foydalanuvchi_id'], $tarif['id'], $kun]
+                $yangilandi = db_bajar(
+                    'UPDATE tolovlar SET holat = "muvaffaqiyatli"
+                     WHERE id = ? AND holat != "muvaffaqiyatli"',
+                    [$id]
                 );
+                if ($yangilandi > 0) {
+                    try {
+                        db_bajar(
+                            'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, tolov_id, boshlanish, tugash, holat)
+                             VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
+                            [$tolov['foydalanuvchi_id'], $tarif['id'], $tolov['id'], $kun]
+                        );
+                    } catch (PDOException $e) {
+                        if (!str_contains($e->getMessage(), 'Duplicate') && !str_contains($e->getMessage(), '1062')) {
+                            throw $e;
+                        }
+                    }
 
-                $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
-                if ($foydalanuvchi['referal_orqali']) {
-                    $bonus = (float) sozlama('referal_bonus', 5000);
-                    db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
-                             [$bonus, $foydalanuvchi['referal_orqali']]);
-                    db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
-                             [$bonus, $foydalanuvchi['id']]);
-                }
+                    $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
+                    if (!empty($foydalanuvchi['referal_orqali'])) {
+                        $bonus = (float) sozlama('referal_bonus', 5000);
+                        $allaqachon = db_qiymat(
+                            'SELECT 1 FROM referallar WHERE referal_id = ? AND holat = "tasdiq"',
+                            [$foydalanuvchi['id']]
+                        );
+                        if (!$allaqachon) {
+                            db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
+                                     [$bonus, $foydalanuvchi['referal_orqali']]);
+                            db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
+                                     [$bonus, $foydalanuvchi['id']]);
+                        }
+                    }
 
-                if ($foydalanuvchi['telegram_id']) {
-                    telegram_yubor($foydalanuvchi['telegram_id'],
-                        "✅ <b>To'lovingiz tasdiqlandi!</b>\nTarif: <b>{$tarif['nomi']}</b>");
+                    if ($foydalanuvchi['telegram_id']) {
+                        telegram_yubor($foydalanuvchi['telegram_id'],
+                            "✅ <b>To'lovingiz tasdiqlandi!</b>\nTarif: <b>{$tarif['nomi']}</b>");
+                    }
+
+                    audit_yoz('tolov_qolda_tasdiqlandi', 'tolov', (int) $tolov['id'], [
+                        'tarif_nomi' => $tarif['nomi'],
+                        'summa' => (float) $tolov['summa'],
+                    ]);
                 }
                 db()->commit();
                 flash_qoy('muvaffaqiyat', "To'lov tasdiqlandi va obuna ochildi");
             } catch (Exception $exc) {
-                db()->rollBack();
+                if (db()->inTransaction()) db()->rollBack();
                 flash_qoy('xato', 'Xato: ' . $exc->getMessage());
             }
         }
@@ -52,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($tolov && $harakat === 'bekor') {
         db_bajar('UPDATE tolovlar SET holat = "bekor" WHERE id = ?', [$id]);
+        db_bajar('UPDATE obunalar SET holat = "bekor" WHERE tolov_id = ?', [$id]);
+        audit_yoz('tolov_bekor_qilindi', 'tolov', (int) $tolov['id']);
         flash_qoy('muvaffaqiyat', 'Bekor qilindi');
     }
 

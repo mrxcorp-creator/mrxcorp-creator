@@ -11,6 +11,9 @@ $telefon_kiritildi = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_tekshir(post('csrf_token'))) {
         $xato = t('csrf_xato');
+    } elseif (!honeypot_tekshir()) {
+        $xato = t('csrf_xato');
+        sleep(1);
     } elseif (!rate_limit_tekshir()) {
         $xato = t('rate_limit');
     } else {
@@ -70,9 +73,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <form method="POST" class="space-y-4" x-data="{loading:false}" @submit="loading=true">
                     <?= csrf_input() ?>
-
-                    <div>
-                        <label class="field-label" for="telefon"><?= e(t('telefon')) ?></label>
+                    <?= honeypot_input() ?>
                         <input id="telefon" name="telefon" type="tel" required
                                value="<?= e($telefon_kiritildi) ?>"
                                placeholder="+998 90 123 45 67"

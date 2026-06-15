@@ -1,0 +1,15 @@
+{
+    "name": "vatanparvar-yaypan-build",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Tailwind CSS build for VatanParvar Yaypan",
+    "scripts": {
+        "build": "tailwindcss -i ./input.css -o ../public_html/assets/css/style.css --minify",
+        "watch": "tailwindcss -i ./input.css -o ../public_html/assets/css/style.css --watch"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.17",
+        "@tailwindcss/forms": "^0.5.10",
+        "@tailwindcss/typography": "^0.5.16"
+    }
+}

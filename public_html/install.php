@@ -8,9 +8,66 @@ $ROOT          = __DIR__;
 $CONFIG_DIR    = $ROOT . '/config';
 $LOCAL_CONFIG  = $CONFIG_DIR . '/config.local.php';
 $LOCK_FILE     = $CONFIG_DIR . '/installed.lock';
-$SCHEMA_FILE   = $ROOT . '/../database/schema.sql';
+$IP_LOCK_FILE  = $CONFIG_DIR . '/.install_ip_lock';
+$IP_LOCK_TTL   = 30 * 60;
+
+$SCHEMA_FILE = $ROOT . '/../database/schema.sql';
 if (!is_file($SCHEMA_FILE)) {
     $SCHEMA_FILE = $ROOT . '/database/schema.sql';
+}
+
+function inst_ip(): string {
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'] as $k) {
+        if (!empty($_SERVER[$k])) {
+            return explode(',', $_SERVER[$k])[0];
+        }
+    }
+    return '0.0.0.0';
+}
+
+$ip_hozirgi = inst_ip();
+
+if (!is_file($LOCK_FILE)) {
+    if (is_file($IP_LOCK_FILE)) {
+        $lock = json_decode(@file_get_contents($IP_LOCK_FILE) ?: '', true) ?: [];
+        $vaqt_oldin = $lock['vaqt'] ?? 0;
+        $ip_lock = $lock['ip'] ?? '';
+
+        if (time() - $vaqt_oldin > $IP_LOCK_TTL) {
+            @unlink($IP_LOCK_FILE);
+        } elseif ($ip_lock !== $ip_hozirgi) {
+            http_response_code(403);
+            $qolgan = $IP_LOCK_TTL - (time() - $vaqt_oldin);
+            ?>
+            <!DOCTYPE html>
+            <html lang="uz">
+            <head>
+                <meta charset="UTF-8">
+                <title>Forbidden</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; background: #070B14; color: #F1F5F9; padding: 4rem; text-align: center; }
+                    .box { max-width: 500px; margin: 0 auto; padding: 2rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 1rem; }
+                    h1 { color: #FCA5A5; margin: 0 0 1rem; }
+                </style>
+            </head>
+            <body>
+                <div class="box">
+                    <h1>🚫 403 Forbidden</h1>
+                    <p>O'rnatuvchi boshqa IP manzilidan ochilgan.</p>
+                    <p>Boshqa qurilmadan o'rnatilayotgan bo'lsa, kuting yoki <strong><?= floor($qolgan / 60) ?>:<?= str_pad($qolgan % 60, 2, '0', STR_PAD_LEFT) ?></strong> dan keyin urinib ko'ring.</p>
+                </div>
+            </body>
+            </html>
+            <?php
+            exit;
+        }
+    } else {
+        @file_put_contents($IP_LOCK_FILE, json_encode([
+            'ip'   => $ip_hozirgi,
+            'vaqt' => time(),
+        ]));
+        @chmod($IP_LOCK_FILE, 0600);
+    }
 }
 
 $bosqich = max(1, min(5, (int) ($_GET['bosqich'] ?? $_POST['bosqich'] ?? 1)));
@@ -65,7 +122,7 @@ function db_test(string $host, string $name, string $user, string $pass): array 
             try {
                 $pdo->exec("CREATE DATABASE `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
             } catch (PDOException $e) {
-                return ['ok' => false, 'xato' => "Baza mavjud emas va yarata olmadi: {$e->getMessage()}"];
+                return ['ok' => false, 'xato' => "Baza mavjud emas va yaratib bo'lmadi: {$e->getMessage()}"];
             }
         }
         $pdo->exec("USE `{$name}`");
@@ -119,7 +176,52 @@ function schema_ishga_tushir(PDO $pdo, string $schema_yol): array {
     }
 }
 
+function migrations_ishga_tushir(PDO $pdo, string $migrations_dir): array {
+    if (!is_dir($migrations_dir)) {
+        return ['ok' => true, 'bajarilgan' => []];
+    }
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS migratsiyalar (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nom VARCHAR(255) UNIQUE NOT NULL,
+        bajarilgan TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $bajarilgan = $pdo->query('SELECT nom FROM migratsiyalar')->fetchAll(PDO::FETCH_COLUMN);
+    $fayllar = glob($migrations_dir . '/*.sql') ?: [];
+    sort($fayllar);
+
+    $ishlangan = [];
+    foreach ($fayllar as $f) {
+        $nom = basename($f);
+        if (in_array($nom, $bajarilgan, true)) continue;
+
+        try {
+            $sql = file_get_contents($f);
+            $pdo->exec($sql);
+            $st = $pdo->prepare('INSERT INTO migratsiyalar (nom) VALUES (?)');
+            $st->execute([$nom]);
+            $ishlangan[] = $nom;
+        } catch (PDOException $e) {
+            return ['ok' => false, 'xato' => "Migration {$nom}: " . $e->getMessage()];
+        }
+    }
+    return ['ok' => true, 'bajarilgan' => $ishlangan];
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (($_POST['action'] ?? '') === 'ochirish' && is_file($LOCK_FILE)) {
+        @unlink(__FILE__);
+        @unlink($IP_LOCK_FILE);
+        $sayt_url = '';
+        if (is_file($LOCAL_CONFIG)) {
+            $tana = @file_get_contents($LOCAL_CONFIG);
+            if (preg_match("/SAYT_URL.*?'([^']+)'/", $tana, $m)) $sayt_url = $m[1];
+        }
+        header('Location: ' . ($sayt_url ?: '') . '/');
+        exit;
+    }
 
     if ($bosqich === 2) {
         $kengaytmalar = tekshir_kengaytmalar();
@@ -176,8 +278,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $admin_telefon = '';
             }
 
-            if (!$admin_ism || !$admin_telefon || strlen($admin_parol) < 6) {
-                $xato = 'Admin ma\'lumotlari to\'liq emas yoki parol qisqa.';
+            $parol_murakkab = strlen($admin_parol) >= 8
+                && preg_match('/[A-Za-z]/', $admin_parol)
+                && preg_match('/[0-9]/', $admin_parol);
+
+            if (!$admin_ism || !$admin_telefon) {
+                $xato = 'Ism va telefon majburiy.';
+            } elseif (!$parol_murakkab) {
+                $xato = 'Parol kamida 8 belgi, harf va raqamdan iborat bo\'lishi kerak.';
             } else {
                 $_SESSION['install']['admin_ism']      = $admin_ism;
                 $_SESSION['install']['admin_familiya'] = $admin_familiya;
@@ -239,8 +347,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (!$xato) {
-                    $bor = $pdo->query("SELECT COUNT(*) FROM foydalanuvchilar")->fetchColumn();
+                    $migrations_dir = $ROOT . '/../database/migrations';
+                    if (!is_dir($migrations_dir)) $migrations_dir = $ROOT . '/database/migrations';
+                    $mig = migrations_ishga_tushir($pdo, $migrations_dir);
+                    if (!$mig['ok']) {
+                        $xato = 'Migration xatosi: ' . $mig['xato'];
+                    }
+                }
 
+                if (!$xato) {
                     $hash = password_hash($sd['admin_parol'], PASSWORD_BCRYPT);
                     $referal_kod = strtoupper(bin2hex(random_bytes(4)));
 
@@ -288,25 +403,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     file_put_contents($LOCK_FILE,
                         "O'rnatildi: " . date('Y-m-d H:i:s') . "\n" .
-                        "Sayt: {$sayt_url}\n"
+                        "Sayt: {$sayt_url}\n" .
+                        "IP: {$ip_hozirgi}\n"
                     );
+                    @chmod($LOCK_FILE, 0600);
 
                     foreach (['kesh', 'uploads/avatars', 'uploads/savollar', 'zaxira_nusxalari'] as $p) {
                         @mkdir($ROOT . '/' . $p, 0755, true);
                     }
 
+                    @unlink($IP_LOCK_FILE);
                     unset($_SESSION['install']);
                     $bosqich = 5;
                     $muvaffaqiyat = 'O\'rnatish muvaffaqiyatli yakunlandi!';
                 }
             }
         }
-    }
-
-    if ($_POST['action'] ?? '' === 'ochirish' && is_file($LOCK_FILE)) {
-        @unlink(__FILE__);
-        header('Location: ' . (defined('SAYT_URL') ? SAYT_URL : '') . '/');
-        exit;
     }
 }
 
@@ -318,40 +430,38 @@ $tayyor = $php_ok && !in_array(false, $kengaytmalar, true) && !in_array(false, $
 $session = $_SESSION['install'] ?? [];
 
 function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
+
+$css_yol = $ROOT . '/assets/css/style.css';
+$style_lokal = is_file($css_yol);
 ?>
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B1024">
+    <meta name="robots" content="noindex, nofollow">
     <title>O'rnatish — VatanParvar Yaypan</title>
     <link rel="icon" type="image/svg+xml" href="/assets/img/logo-mark.svg">
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <?php if ($style_lokal): ?>
+        <link rel="stylesheet" href="/assets/css/style.css">
+    <?php else: ?>
+        <script src="https://cdn.tailwindcss.com"></script>
+    <?php endif; ?>
     <style>
-        body {
-            background: #070B14;
-            color: #F1F5F9;
-            font-family: 'Inter', system-ui, sans-serif;
-            min-height: 100vh;
-        }
+        body { background: #070B14; color: #F1F5F9; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
         h1, h2, h3 { font-family: 'Manrope', sans-serif; letter-spacing: -0.02em; }
         .grad-text {
             background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 50%, #EC4899 100%);
             -webkit-background-clip: text; background-clip: text; color: transparent;
         }
         .grad-bg { background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 50%, #EC4899 100%); }
-        .grad-bg-soft {
-            background: linear-gradient(135deg, rgba(6,182,212,.12), rgba(139,92,246,.12), rgba(236,72,153,.12));
-        }
         .glass {
-            background: rgba(255,255,255,0.04);
-            backdrop-filter: blur(18px);
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 1.25rem;
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.10); border-radius: 1.25rem;
         }
         .ring-grad {
             background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 50%, #EC4899 100%);
@@ -359,48 +469,30 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
         }
         .ring-grad > div { background: #0F1626; border-radius: calc(1.25rem - 1px); }
         .field {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
             border-radius: .85rem; padding: .85rem 1rem; color: white; width: 100%;
-            transition: all .2s ease;
         }
         .field:focus {
             outline: none; border-color: #8B5CF6;
             background: rgba(139,92,246,0.08);
             box-shadow: 0 0 0 3px rgba(139,92,246,0.20);
         }
-        .field::placeholder { color: rgba(255,255,255,0.35); }
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-            font-weight: 600; padding: .85rem 1.75rem; border-radius: .9rem;
-            transition: all .15s ease; cursor: pointer; line-height: 1.2;
+            font-weight: 600; padding: .85rem 1.75rem; border-radius: .9rem; cursor: pointer;
         }
         .btn-primary {
             background: linear-gradient(135deg, #06B6D4, #8B5CF6, #EC4899); color: white;
             box-shadow: 0 6px 20px -8px rgba(139,92,246,.6);
         }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 32px -8px rgba(236,72,153,.7); }
-        .btn-ghost {
-            background: rgba(255,255,255,0.05); color: white;
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        .btn-ghost:hover { background: rgba(255,255,255,0.10); }
-        .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-        .aurora::before, .aurora::after {
-            content: ''; position: absolute; width: 50vw; height: 50vw;
-            border-radius: 50%; filter: blur(140px); opacity: .35;
-        }
-        .aurora::before { background: #06B6D4; top: -10vw; left: -10vw; }
-        .aurora::after  { background: #EC4899; bottom: -10vw; right: -10vw; }
+        .btn-ghost { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.12); }
         .step-bar { display: flex; gap: 8px; }
-        .step { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); transition: background .3s; }
+        .step { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); }
         .step.active { background: linear-gradient(90deg, #06B6D4, #8B5CF6, #EC4899); }
         .step.done { background: #10B981; }
     </style>
 </head>
 <body>
-
-<div class="aurora"></div>
 
 <main class="max-w-3xl mx-auto px-4 py-10">
 
@@ -411,7 +503,7 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
         <h1 class="text-3xl md:text-4xl font-extrabold mb-2">
             VatanParvar <span class="grad-text">Yaypan</span>
         </h1>
-        <p class="text-slate-400">Avtomatik o'rnatuvchi (5 bosqich)</p>
+        <p class="text-slate-400">Avtomatik o'rnatuvchi · IP: <code class="text-slate-500"><?= e_inst($ip_hozirgi) ?></code></p>
     </div>
 
     <?php if ($bosqich !== 99): ?>
@@ -444,7 +536,7 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
                 <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-amber-500/15 text-amber-300 flex items-center justify-center text-4xl">⚠️</div>
                 <h2 class="text-2xl font-bold mb-2">O'rnatish allaqachon yakunlangan</h2>
                 <p class="text-slate-400 mb-6">
-                    Sayt ishga tayyor. Xavfsizlik uchun <code class="text-pink-400">install.php</code> faylini o'chirib tashlang.
+                    Sayt ishga tayyor. Xavfsizlik uchun <code class="text-pink-400">install.php</code> faylini darhol o'chiring.
                 </p>
 
                 <form method="POST" class="mb-4">
@@ -514,7 +606,7 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
 
         <div class="glass p-8">
             <h2 class="text-2xl font-bold mb-2">2. Ma'lumotlar bazasi</h2>
-            <p class="text-slate-400 mb-6 text-sm">cPanel'da yaratilgan baza ma'lumotlarini kiriting (To'liq nom prefiksi bilan).</p>
+            <p class="text-slate-400 mb-6 text-sm">cPanel'da yaratilgan baza ma'lumotlarini kiriting.</p>
 
             <form method="POST" action="?bosqich=3" class="space-y-4">
                 <input type="hidden" name="bosqich" value="3">
@@ -525,11 +617,11 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
                 </div>
                 <div>
                     <label class="block text-sm text-slate-400 mb-1">DB nomi *</label>
-                    <input name="db_name" required value="<?= e_inst($_POST['db_name'] ?? 'wbefkccz_avtomaktab') ?>" class="field" placeholder="wbefkccz_avtomaktab">
+                    <input name="db_name" required value="<?= e_inst($_POST['db_name'] ?? 'wbefkccz_avtomaktab') ?>" class="field">
                 </div>
                 <div>
                     <label class="block text-sm text-slate-400 mb-1">DB foydalanuvchi *</label>
-                    <input name="db_user" required value="<?= e_inst($_POST['db_user'] ?? 'wbefkccz_avtomaktab') ?>" class="field" placeholder="wbefkccz_avtomaktab">
+                    <input name="db_user" required value="<?= e_inst($_POST['db_user'] ?? 'wbefkccz_avtomaktab') ?>" class="field">
                 </div>
                 <div>
                     <label class="block text-sm text-slate-400 mb-1">DB paroli *</label>
@@ -573,12 +665,12 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
                 </div>
 
                 <div>
-                    <label class="block text-sm text-slate-400 mb-1">Parol * (kamida 6 belgi)</label>
-                    <input name="admin_parol" type="password" required minlength="6" class="field" placeholder="••••••••">
+                    <label class="block text-sm text-slate-400 mb-1">Parol * (kamida 8 belgi, harf+raqam)</label>
+                    <input name="admin_parol" type="password" required minlength="8" class="field" placeholder="••••••••">
                 </div>
 
                 <div class="text-xs text-slate-500 p-3 rounded-xl bg-pink-500/5 border border-pink-500/20">
-                    🔒 Bu akkaunt <strong class="text-pink-400">developer</strong> roliga ega bo'ladi va to'liq boshqaruv huquqi beradi. Parolni ishonchli yarating va saqlang.
+                    🔒 Bu akkaunt <strong class="text-pink-400">developer</strong> roliga ega bo'ladi va to'liq boshqaruv huquqi beradi. Parolni saqlab qo'ying.
                 </div>
 
                 <div class="flex gap-3">
@@ -599,7 +691,7 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
 
                 <div>
                     <label class="block text-sm text-slate-400 mb-1">Sayt URL *</label>
-                    <input name="sayt_url" required class="field" value="<?= e_inst($_POST['sayt_url'] ?? 'https://vatanparvaryaypan.uz') ?>" placeholder="https://vatanparvaryaypan.uz">
+                    <input name="sayt_url" required class="field" value="<?= e_inst($_POST['sayt_url'] ?? 'https://vatanparvaryaypan.uz') ?>">
                 </div>
 
                 <div>
@@ -664,6 +756,9 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
                         ✓ Ma'lumotlar bazasi yaratildi va to'ldirildi
                     </div>
                     <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-sm">
+                        ✓ Migratsiyalar bajarildi
+                    </div>
+                    <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-sm">
                         ✓ Developer akkaunt yaratildi
                     </div>
                     <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-sm">
@@ -695,7 +790,7 @@ function e_inst($v): string { return htmlspecialchars((string) $v, ENT_QUOTES, '
     <?php endif; ?>
 
     <p class="text-center text-xs text-slate-600 mt-8">
-        © <?= date('Y') ?> VatanParvar Yaypan · O'rnatuvchi v1.0
+        © <?= date('Y') ?> VatanParvar Yaypan · O'rnatuvchi v2.0 · IP-lock himoyasi yoqilgan
     </p>
 
 </main>

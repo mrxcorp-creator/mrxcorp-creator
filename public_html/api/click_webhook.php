@@ -35,7 +35,7 @@ $sign_string    = $_POST['sign_string']       ?? '';
 $error          = (int)   ($_POST['error']    ?? 0);
 $merchant_prep  = $_POST['merchant_prepare_id'] ?? '';
 
-$secret = sozlama('click_secret', '');
+$secret = maxfiy_qiymat('CLICK_SECRET', 'click_secret');
 $kutilgan = $action === 0
     ? md5("$click_trans_id$service_id$secret$merchant_trans$amount$action$sign_time")
     : md5("$click_trans_id$service_id$secret$merchant_trans$merchant_prep$amount$action$sign_time");
@@ -87,37 +87,65 @@ if ($action === 1) {
 
     db()->beginTransaction();
     try {
-        db_bajar('UPDATE tolovlar SET holat = "muvaffaqiyatli", tashqi_id = ? WHERE id = ?',
-                 [$click_paydoc_id ?: $click_trans_id, $tolov['id']]);
-        db_bajar(
-            'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
-             VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
-            [$tolov['foydalanuvchi_id'], $tarif['id'], $kun]
+        $yangilandi = db_bajar(
+            'UPDATE tolovlar SET holat = "muvaffaqiyatli", tashqi_id = ?
+             WHERE id = ? AND holat = "kutilmoqda"',
+            [$click_paydoc_id ?: $click_trans_id, $tolov['id']]
         );
+        if ($yangilandi === 0) {
+            db()->rollBack();
+            click_javob($KOD['ALLAQACHON_BAJARILGAN'], 'Allaqachon bajarilgan');
+        }
+
+        try {
+            db_bajar(
+                'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, tolov_id, boshlanish, tugash, holat)
+                 VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
+                [$tolov['foydalanuvchi_id'], $tarif['id'], $tolov['id'], $kun]
+            );
+        } catch (PDOException $e) {
+            if (!str_contains($e->getMessage(), 'Duplicate') && !str_contains($e->getMessage(), '1062')) {
+                throw $e;
+            }
+        }
 
         $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
         if (!empty($foydalanuvchi['referal_orqali'])) {
             $bonus = (float) sozlama('referal_bonus', 5000);
-            db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
-                     [$bonus, $foydalanuvchi['referal_orqali']]);
-            db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
-                     [$bonus, $foydalanuvchi['id']]);
+            $allaqachon_berildi = db_qiymat(
+                'SELECT 1 FROM referallar WHERE referal_id = ? AND holat = "tasdiq"',
+                [$foydalanuvchi['id']]
+            );
+            if (!$allaqachon_berildi) {
+                db_bajar('UPDATE foydalanuvchilar SET bonus_balans = bonus_balans + ? WHERE id = ?',
+                         [$bonus, $foydalanuvchi['referal_orqali']]);
+                db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
+                         [$bonus, $foydalanuvchi['id']]);
+            }
         }
+
+        db()->commit();
 
         if ($foydalanuvchi['telegram_id']) {
             telegram_yubor($foydalanuvchi['telegram_id'],
                 "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>\nSumma: <b>" . pul($amount) . "</b>");
         }
 
-        db()->commit();
+        audit_yoz('tolov_tasdiqlandi', 'tolov', (int) $tolov['id'], [
+            'tolov_turi' => 'click',
+            'summa' => $amount,
+            'tarif' => $tarif['nomi'],
+        ]);
+
         click_javob($KOD['OK'], 'Success', [
             'click_trans_id'      => $click_trans_id,
             'merchant_trans_id'   => $merchant_trans,
             'merchant_confirm_id' => $tolov['id'],
         ]);
     } catch (Exception $exc) {
-        db()->rollBack();
-        click_javob(-100, 'Server xatosi: ' . $exc->getMessage());
+        if (db()->inTransaction()) db()->rollBack();
+        error_log('Click webhook xato: ' . $exc->getMessage());
+        click_javob(-100, 'Server xatosi');
     }
 }
 

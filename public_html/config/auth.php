@@ -81,7 +81,43 @@ function tizimga_kirgan(int $foydalanuvchi_id): void {
     sessiya_boshla();
     session_regenerate_id(true);
     $_SESSION['foydalanuvchi_id'] = $foydalanuvchi_id;
+
     db_bajar('UPDATE foydalanuvchilar SET oxirgi_kirish = NOW() WHERE id = ?', [$foydalanuvchi_id]);
+
+    $ip = ip_olish();
+    $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+    $qurilma_nomi = function_exists('qurilma_aniqla') ? qurilma_aniqla($ua) : 'Boshqa';
+    $brauzer = function_exists('brauzer_aniqla') ? brauzer_aniqla($ua) : '';
+
+    try {
+        db_bajar(
+            'INSERT INTO kirish_qaydlar (foydalanuvchi_id, ip, user_agent, qurilma) VALUES (?, ?, ?, ?)',
+            [$foydalanuvchi_id, $ip, $ua, $qurilma_nomi]
+        );
+    } catch (Throwable $e) {
+    }
+
+    $f = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$foydalanuvchi_id]);
+    if ($f && !empty($f['telegram_id']) && !empty($f['kirish_bildirish'])) {
+        $oxirgi = db_qator(
+            'SELECT * FROM kirish_qaydlar
+             WHERE foydalanuvchi_id = ? AND id < (SELECT MAX(id) FROM kirish_qaydlar WHERE foydalanuvchi_id = ?)
+             ORDER BY id DESC LIMIT 1',
+            [$foydalanuvchi_id, $foydalanuvchi_id]
+        );
+        $bildir = !$oxirgi || $oxirgi['ip'] !== $ip || $oxirgi['qurilma'] !== $qurilma_nomi;
+
+        if ($bildir && function_exists('telegram_yubor')) {
+            $matn = "🔐 <b>Yangi kirish aniqlandi</b>\n\n"
+                  . "📱 Qurilma: <b>" . htmlspecialchars($qurilma_nomi) . "</b>"
+                  . ($brauzer ? " (" . htmlspecialchars($brauzer) . ")" : "") . "\n"
+                  . "🌐 IP: <code>" . htmlspecialchars($ip) . "</code>\n"
+                  . "🕐 Vaqt: " . date('d.m.Y H:i') . "\n\n"
+                  . "Agar bu siz bo'lmasangiz, darhol parolni o'zgartiring:\n"
+                  . SAYT_URL . "/profil";
+            telegram_yubor($f['telegram_id'], $matn);
+        }
+    }
 }
 
 function tizimdan_chiqish(): void {

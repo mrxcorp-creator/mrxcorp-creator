@@ -91,8 +91,22 @@ require_once __DIR__ . '/../includes/navbar.php';
         <h2 class="font-display font-bold text-xl mb-4"><?= e(t('taklif_qilingan')) ?></h2>
 
         <?php if (empty($royxat)): ?>
-            <div class="py-12 text-center text-muted text-sm">
-                <?= e(t('royxat_bosh')) ?>
+            <div class="py-12 text-center">
+                <svg class="w-32 h-32 mx-auto mb-4 opacity-50" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="ref-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#06B6D4"/>
+                            <stop offset="50%" stop-color="#8B5CF6"/>
+                            <stop offset="100%" stop-color="#EC4899"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="70" fill="url(#ref-grad)" opacity="0.15"/>
+                    <circle cx="80" cy="85" r="18" fill="url(#ref-grad)" opacity="0.6"/>
+                    <circle cx="120" cy="85" r="18" fill="url(#ref-grad)" opacity="0.4"/>
+                    <path d="M62 130 Q100 110 138 130" stroke="url(#ref-grad)" stroke-width="3" fill="none"/>
+                    <text x="100" y="160" text-anchor="middle" font-size="24" fill="#F59E0B">🎁</text>
+                </svg>
+                <p class="text-muted text-sm"><?= e(t('royxat_bosh')) ?></p>
             </div>
         <?php else: ?>
             <div class="overflow-x-auto -mx-6 px-6">

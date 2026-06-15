@@ -13,6 +13,9 @@ $referal_kod = preg_replace('/[^A-Z0-9]/i', '', olish('ref'));
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_tekshir(post('csrf_token'))) {
         $xato = t('csrf_xato');
+    } elseif (!honeypot_tekshir()) {
+        $xato = t('csrf_xato');
+        sleep(1);
     } elseif (!rate_limit_tekshir()) {
         $xato = t('rate_limit');
     } else {
@@ -24,13 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $referal_kod         = preg_replace('/[^A-Z0-9]/i', '', post('referal_kod'));
 
         $telefon = telefon_tozala($malumot['telefon']);
+        $parol_test = parol_murakkabmi($parol);
 
         if (!$malumot['ism']) {
             $xato = t('kerakli_maydon');
         } elseif (!$telefon) {
             $xato = t('telefon_format');
-        } elseif (mb_strlen($parol) < 6) {
-            $xato = t('parol_qisqa');
+        } elseif (!$parol_test['ok']) {
+            $xato = $parol_test['xato'];
         } elseif ($parol !== $parol_takror) {
             $xato = t('parollar_mos_emas');
         } else {
@@ -114,10 +118,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <form method="POST" class="space-y-4" x-data="{loading:false}" @submit="loading=true">
                     <?= csrf_input() ?>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="field-label" for="ism"><?= e(t('ism')) ?> *</label>
+                    <?= honeypot_input() ?>
                             <input id="ism" name="ism" required
                                    value="<?= e($malumot['ism']) ?>"
                                    class="field" autocomplete="given-name">
@@ -139,15 +140,15 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
 
                     <div>
-                        <label class="field-label" for="parol"><?= e(t('parol')) ?> *</label>
-                        <input id="parol" name="parol" type="password" required minlength="6"
+                        <label class="field-label" for="parol"><?= e(t('parol')) ?> * <span class="text-xs text-muted">(8+ belgi, harf+raqam)</span></label>
+                        <input id="parol" name="parol" type="password" required minlength="8"
                                placeholder="••••••••"
                                class="field" autocomplete="new-password">
                     </div>
 
                     <div>
                         <label class="field-label" for="parol_takror"><?= e(t('parol_takror')) ?> *</label>
-                        <input id="parol_takror" name="parol_takror" type="password" required minlength="6"
+                        <input id="parol_takror" name="parol_takror" type="password" required minlength="8"
                                class="field" autocomplete="new-password">
                     </div>
 

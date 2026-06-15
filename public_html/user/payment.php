@@ -9,7 +9,7 @@ $muvaffaqiyat = '';
 $promo = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!csrf_tekshir(post('csrf_token'))) {
+    if (!csrf_form_tekshir('tolov_yaratish', post('csrf_forma_token'))) {
         $xato = t('csrf_xato');
     } else {
         $tarif_id = (int) post('tarif_id');
@@ -63,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             default => 365,
                         };
                         db_bajar(
-                            'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, boshlanish, tugash, holat)
-                             VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
-                            [$f['id'], $tarif_id, $kun]
+                            'INSERT INTO obunalar (foydalanuvchi_id, tarif_id, tolov_id, boshlanish, tugash, holat)
+                             VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? DAY), "faol")',
+                            [$f['id'], $tarif_id, $tolov_id, $kun]
                         );
 
                         if ($promo) {
@@ -150,7 +150,7 @@ require_once __DIR__ . '/../includes/navbar.php';
     <?php endif; ?>
 
     <form method="POST" x-data="{tarif: null, tolov: 'click', loading: false}" @submit="loading = true">
-        <?= csrf_input() ?>
+        <?= csrf_form_input('tolov_yaratish') ?>
         <input type="hidden" name="tarif_id" :value="tarif">
         <input type="hidden" name="tolov_turi" :value="tolov">
 

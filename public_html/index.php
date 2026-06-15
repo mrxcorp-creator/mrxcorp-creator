@@ -185,6 +185,103 @@ require_once __DIR__ . '/includes/navbar.php';
 </section>
 <?php endif; ?>
 
+<section id="savollar" class="max-w-4xl mx-auto px-4 py-16">
+    <div class="text-center mb-12 fade-up">
+        <span class="chip chip-grad mb-4">❓ FAQ</span>
+        <h2 class="text-3xl md:text-5xl font-display font-extrabold mb-3"><?= e(t('faq_sarlavha')) ?></h2>
+        <p class="text-muted text-lg"><?= e(t('faq_tavsif')) ?></p>
+    </div>
+
+    <div class="space-y-3">
+        <?php
+        $faqlar = [
+            [t('faq_1_savol'), t('faq_1_javob')],
+            [t('faq_2_savol'), t('faq_2_javob')],
+            [t('faq_3_savol'), t('faq_3_javob')],
+            [t('faq_4_savol'), t('faq_4_javob')],
+            [t('faq_5_savol'), t('faq_5_javob')],
+            [t('faq_6_savol'), t('faq_6_javob')],
+        ];
+        foreach ($faqlar as $i => [$savol, $javob]):
+        ?>
+            <details class="glass glass-hover group fade-up" style="animation-delay:<?= 0.04 * ($i + 1) ?>s">
+                <summary class="cursor-pointer flex items-center justify-between gap-3 p-5 list-none">
+                    <span class="font-display font-bold flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg grad-bg-soft flex items-center justify-center text-violet text-sm font-bold flex-shrink-0">
+                            <?= str_pad($i + 1, 2, '0', STR_PAD_LEFT) ?>
+                        </span>
+                        <?= e($savol) ?>
+                    </span>
+                    <svg class="w-5 h-5 text-muted transition-transform group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <div class="px-5 pb-5 pt-1 pl-16 text-muted leading-relaxed">
+                    <?= e($javob) ?>
+                </div>
+            </details>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+<section id="taqqos" class="max-w-5xl mx-auto px-4 py-16">
+    <div class="text-center mb-12 fade-up">
+        <span class="chip chip-grad mb-4">📊 <?= e(t('tariflar_taqqos')) ?></span>
+        <h2 class="text-3xl md:text-5xl font-display font-extrabold mb-3"><?= e(t('tariflar_taqqos')) ?></h2>
+        <p class="text-muted text-lg"><?= e(t('taqqos_tavsif')) ?></p>
+    </div>
+
+    <div class="glass overflow-hidden fade-up">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-white/10">
+                        <th class="text-left p-4 font-medium text-muted"><?= e(t('imkoniyat')) ?></th>
+                        <th class="text-center p-4 font-display font-bold"><?= e(t('bepul')) ?></th>
+                        <th class="text-center p-4 font-display font-bold grad-text"><?= e(t('pro')) ?></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    <?php
+                    $imkoniyatlar = [
+                        [t('bilet_kirish'),  '1 ta demo', '40+'],
+                        [t('savol_kirish'),  false, true],
+                        [t('tushuntirish'),  false, true],
+                        [t('natija_tarix'),  '1', "Cheksiz"],
+                        [t('mob_va_pc'),     true, true],
+                        [t('reklamasiz'),    false, true],
+                        [t('qolda_yordam'),  false, true],
+                    ];
+                    foreach ($imkoniyatlar as [$nom, $bepul, $pro]):
+                    ?>
+                        <tr class="hover:bg-white/3">
+                            <td class="p-4 font-medium"><?= e($nom) ?></td>
+                            <td class="p-4 text-center">
+                                <?php if ($bepul === true): ?>
+                                    <span class="text-success font-bold">✓</span>
+                                <?php elseif ($bepul === false): ?>
+                                    <span class="text-muted">✗</span>
+                                <?php else: ?>
+                                    <span class="text-muted text-xs"><?= e((string) $bepul) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="p-4 text-center">
+                                <?php if ($pro === true): ?>
+                                    <span class="text-success font-bold">✓</span>
+                                <?php elseif ($pro === false): ?>
+                                    <span class="text-muted">✗</span>
+                                <?php else: ?>
+                                    <span class="grad-text font-bold text-xs"><?= e((string) $pro) ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
 <section class="max-w-5xl mx-auto px-4 py-16">
     <div class="ring-grad fade-up">
         <div class="p-10 sm:p-16 text-center relative overflow-hidden">

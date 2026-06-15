@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `foydalanuvchilar` (
     `bonus_balans` DECIMAL(10,2) DEFAULT 0,
     `telegram_id` BIGINT DEFAULT NULL,
     `telegram_hash` VARCHAR(64) DEFAULT NULL,
+    `kirish_bildirish` TINYINT(1) NOT NULL DEFAULT 1,
     `til` ENUM('uz_latn','uz_cyrl') DEFAULT 'uz_latn',
     `oxirgi_kirish` DATETIME DEFAULT NULL,
     `holat` ENUM('faol','bloklangan') DEFAULT 'faol',
@@ -51,10 +52,12 @@ CREATE TABLE IF NOT EXISTS `obunalar` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `foydalanuvchi_id` INT UNSIGNED NOT NULL,
     `tarif_id` INT UNSIGNED NOT NULL,
+    `tolov_id` INT UNSIGNED DEFAULT NULL,
     `boshlanish` DATETIME NOT NULL,
     `tugash` DATETIME NOT NULL,
     `holat` ENUM('faol','tugagan','bekor') DEFAULT 'faol',
     `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `uniq_tolov_id` (`tolov_id`),
     INDEX `idx_foydalanuvchi` (`foydalanuvchi_id`),
     INDEX `idx_holat` (`holat`),
     FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE,
@@ -97,14 +100,15 @@ CREATE TABLE IF NOT EXISTS `natijalar` (
     `foydalanuvchi_id` INT UNSIGNED NOT NULL,
     `bilet_id` INT UNSIGNED NOT NULL,
     `javoblar_json` TEXT DEFAULT NULL,
+    `versiya` INT NOT NULL DEFAULT 0,
     `togri_son` INT DEFAULT 0,
     `xato_son` INT DEFAULT 0,
     `umumiy_son` INT DEFAULT 0,
     `qolgan_vaqt` INT DEFAULT 0,
-    `holat` ENUM('davom','tugagan','vaqt_tugadi') DEFAULT 'davom',
+    `holat` ENUM('davom','tugagan','vaqt_tugadi','bekor') DEFAULT 'davom',
     `boshlangan` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `tugagan` DATETIME DEFAULT NULL,
-    INDEX `idx_foydalanuvchi` (`foydalanuvchi_id`),
+    INDEX `idx_natija_holat_foyd` (`foydalanuvchi_id`, `holat`),
     INDEX `idx_holat` (`holat`),
     FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`bilet_id`) REFERENCES `biletlar`(`id`) ON DELETE CASCADE
@@ -186,8 +190,6 @@ CREATE TABLE IF NOT EXISTS `kirish_urinishlar` (
     INDEX `idx_vaqt` (`yaratilgan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- ============================================================
 -- BOSHLANG'ICH MA'LUMOTLAR
 -- ============================================================
@@ -237,3 +239,66 @@ INSERT INTO `savollar` (`bilet_id`, `matn`, `variant_a`, `variant_b`, `variant_c
 -- Qo'lda yaratish uchun:
 -- INSERT INTO foydalanuvchilar (ism, familiya, telefon, parol_hash, rol, referal_kod)
 -- VALUES ('Admin', 'Admin', '+998900000000', '$2y$10$YOUR_BCRYPT_HASH_HERE', 'developer', 'DEV0000');
+
+
+
+-- ----------- 13. AUDITLAR (admin amallar tarixi) -----------
+CREATE TABLE IF NOT EXISTS `auditlar` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED DEFAULT NULL,
+    `harakat` VARCHAR(64) NOT NULL,
+    `obyekt_turi` VARCHAR(32) DEFAULT NULL,
+    `obyekt_id` BIGINT DEFAULT NULL,
+    `tafsilot` JSON DEFAULT NULL,
+    `ip` VARCHAR(45) NOT NULL DEFAULT '',
+    `user_agent` VARCHAR(255) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foyd` (`foydalanuvchi_id`),
+    INDEX `idx_harakat` (`harakat`),
+    INDEX `idx_yaratilgan` (`yaratilgan`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------- 14. KIRISH QAYDLARI (login bildirishnomalari) -----------
+CREATE TABLE IF NOT EXISTS `kirish_qaydlar` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `foydalanuvchi_id` INT UNSIGNED NOT NULL,
+    `ip` VARCHAR(45) NOT NULL,
+    `user_agent` VARCHAR(255) DEFAULT NULL,
+    `qurilma` VARCHAR(64) DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_foyd_y` (`foydalanuvchi_id`, `yaratilgan`),
+    FOREIGN KEY (`foydalanuvchi_id`) REFERENCES `foydalanuvchilar`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------- 15. TELEGRAM NAVBAT (async xabarlar) -----------
+CREATE TABLE IF NOT EXISTS `telegram_navbat` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `chat_id` VARCHAR(32) NOT NULL,
+    `matn` TEXT NOT NULL,
+    `qoshimcha_json` TEXT DEFAULT NULL,
+    `holat` ENUM('kutilmoqda','jonatildi','xato') DEFAULT 'kutilmoqda',
+    `urinish` TINYINT NOT NULL DEFAULT 0,
+    `xato_matn` TEXT DEFAULT NULL,
+    `yaratilgan` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `yangilangan` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_holat_y` (`holat`, `yaratilgan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------- 16. MIGRATSIYALAR (versiya nazorati) -----------
+CREATE TABLE IF NOT EXISTS `migratsiyalar` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `nom` VARCHAR(255) UNIQUE NOT NULL,
+    `bajarilgan` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Yangi schema uchun migration'larni allaqachon bajarilgan deb belgilash
+INSERT IGNORE INTO `migratsiyalar` (`nom`) VALUES
+('001_obunalar_tolov_id.sql'),
+('002_auditlar.sql'),
+('003_natijalar_versiya.sql'),
+('004_kirish_qaydlar.sql'),
+('005_telegram_navbat.sql'),
+('006_kirish_urinishlar_indeks.sql');
+
+SET FOREIGN_KEY_CHECKS = 1;
