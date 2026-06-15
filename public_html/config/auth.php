@@ -39,10 +39,16 @@ function joriy_foydalanuvchi(): ?array {
         $kesh = false;
         return null;
     }
-    $kesh = db_qator(
-        'SELECT * FROM foydalanuvchilar WHERE id = ? AND holat = "faol"',
-        [$_SESSION['foydalanuvchi_id']]
-    );
+    try {
+        $kesh = db_qator(
+            'SELECT * FROM foydalanuvchilar WHERE id = ? AND holat = "faol"',
+            [$_SESSION['foydalanuvchi_id']]
+        );
+    } catch (Throwable $e) {
+        error_log('joriy_foydalanuvchi: ' . $e->getMessage());
+        $kesh = false;
+        return null;
+    }
     if (!$kesh) {
         unset($_SESSION['foydalanuvchi_id']);
         $kesh = false;
@@ -83,41 +89,64 @@ function tizimga_kirgan(int $foydalanuvchi_id): void {
     session_regenerate_id(true);
     $_SESSION['foydalanuvchi_id'] = $foydalanuvchi_id;
 
-    db_bajar('UPDATE foydalanuvchilar SET oxirgi_kirish = NOW() WHERE id = ?', [$foydalanuvchi_id]);
-
-    $ip = ip_olish();
-    $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
-    $qurilma_nomi = function_exists('qurilma_aniqla') ? qurilma_aniqla($ua) : 'Boshqa';
-    $brauzer = function_exists('brauzer_aniqla') ? brauzer_aniqla($ua) : '';
-
     try {
-        db_bajar(
-            'INSERT INTO kirish_qaydlar (foydalanuvchi_id, ip, user_agent, qurilma) VALUES (?, ?, ?, ?)',
-            [$foydalanuvchi_id, $ip, $ua, $qurilma_nomi]
-        );
+        db_bajar('UPDATE foydalanuvchilar SET oxirgi_kirish = NOW() WHERE id = ?', [$foydalanuvchi_id]);
     } catch (Throwable $e) {
+        error_log('oxirgi_kirish update xato: ' . $e->getMessage());
     }
 
-    $f = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$foydalanuvchi_id]);
-    if ($f && !empty($f['telegram_id']) && !empty($f['kirish_bildirish'])) {
-        $oxirgi = db_qator(
-            'SELECT * FROM kirish_qaydlar
-             WHERE foydalanuvchi_id = ? AND id < (SELECT MAX(id) FROM kirish_qaydlar WHERE foydalanuvchi_id = ?)
-             ORDER BY id DESC LIMIT 1',
-            [$foydalanuvchi_id, $foydalanuvchi_id]
-        );
-        $bildir = !$oxirgi || $oxirgi['ip'] !== $ip || $oxirgi['qurilma'] !== $qurilma_nomi;
+    try {
+        $ip = function_exists('ip_olish') ? ip_olish() : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+        $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+        $qurilma_nomi = function_exists('qurilma_aniqla') ? qurilma_aniqla($ua) : 'Boshqa';
+        $brauzer = function_exists('brauzer_aniqla') ? brauzer_aniqla($ua) : '';
 
-        if ($bildir && function_exists('telegram_yubor')) {
-            $matn = "🔐 <b>Yangi kirish aniqlandi</b>\n\n"
-                  . "📱 Qurilma: <b>" . htmlspecialchars($qurilma_nomi) . "</b>"
-                  . ($brauzer ? " (" . htmlspecialchars($brauzer) . ")" : "") . "\n"
-                  . "🌐 IP: <code>" . htmlspecialchars($ip) . "</code>\n"
-                  . "🕐 Vaqt: " . date('d.m.Y H:i') . "\n\n"
-                  . "Agar bu siz bo'lmasangiz, darhol parolni o'zgartiring:\n"
-                  . SAYT_URL . "/profil";
-            telegram_yubor($f['telegram_id'], $matn);
+        $qayd_qoshildimi = false;
+        try {
+            db_bajar(
+                'INSERT INTO kirish_qaydlar (foydalanuvchi_id, ip, user_agent, qurilma) VALUES (?, ?, ?, ?)',
+                [$foydalanuvchi_id, $ip, $ua, $qurilma_nomi]
+            );
+            $qayd_qoshildimi = true;
+        } catch (Throwable $e) {
         }
+
+        try {
+            $f = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$foydalanuvchi_id]);
+            $bildir = !empty($f['telegram_id'])
+                   && (!array_key_exists('kirish_bildirish', $f ?? []) || $f['kirish_bildirish']);
+
+            if ($bildir && function_exists('telegram_yubor') && $qayd_qoshildimi) {
+                $oxirgi = null;
+                try {
+                    $qaydlar = db_barcha(
+                        'SELECT ip, qurilma FROM kirish_qaydlar
+                         WHERE foydalanuvchi_id = ? ORDER BY id DESC LIMIT 2',
+                        [$foydalanuvchi_id]
+                    );
+                    $oxirgi = $qaydlar[1] ?? null;
+                } catch (Throwable $e) {
+                }
+
+                $yangi_qurilma = !$oxirgi || ($oxirgi['ip'] ?? '') !== $ip
+                              || ($oxirgi['qurilma'] ?? '') !== $qurilma_nomi;
+
+                if ($yangi_qurilma) {
+                    $matn = "🔐 <b>Yangi kirish aniqlandi</b>\n\n"
+                          . "📱 Qurilma: <b>" . htmlspecialchars($qurilma_nomi) . "</b>"
+                          . ($brauzer ? " (" . htmlspecialchars($brauzer) . ")" : "") . "\n"
+                          . "🌐 IP: <code>" . htmlspecialchars($ip) . "</code>\n"
+                          . "🕐 Vaqt: " . date('d.m.Y H:i') . "\n\n"
+                          . "Agar bu siz bo'lmasangiz, darhol parolni o'zgartiring:\n"
+                          . SAYT_URL . "/profil";
+                    telegram_yubor($f['telegram_id'], $matn);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('Login notification xato: ' . $e->getMessage());
+        }
+    } catch (Throwable $e) {
+        error_log('tizimga_kirgan umumiy xato: ' . $e->getMessage());
     }
 }
 
@@ -133,9 +162,13 @@ function tizimdan_chiqish(): void {
 }
 
 function obuna_faolmi(int $foydalanuvchi_id): bool {
-    return (bool) db_qiymat(
-        'SELECT COUNT(*) FROM obunalar
-         WHERE foydalanuvchi_id = ? AND holat = "faol" AND tugash > NOW()',
-        [$foydalanuvchi_id]
-    );
+    try {
+        return (bool) db_qiymat(
+            'SELECT COUNT(*) FROM obunalar
+             WHERE foydalanuvchi_id = ? AND holat = "faol" AND tugash > NOW()',
+            [$foydalanuvchi_id]
+        );
+    } catch (Throwable $e) {
+        return false;
+    }
 }
