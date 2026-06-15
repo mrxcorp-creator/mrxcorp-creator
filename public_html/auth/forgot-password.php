@@ -77,7 +77,7 @@ require_once __DIR__ . '/../includes/header.php';
             <a href="<?= e(SAYT_URL) ?>" class="inline-flex flex-col items-center gap-2">
                 <span class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600
                              flex items-center justify-center font-display font-black text-white text-2xl
-                             shadow-xl shadow-blue-500/30">A</span>
+                             shadow-xl shadow-blue-500/30">V</span>
                 <span class="font-display font-bold text-white text-2xl">
                     VatanParvar <span class="text-blue-400">Yaypan</span>
                 </span>

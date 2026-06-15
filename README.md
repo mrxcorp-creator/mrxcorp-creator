@@ -1,4 +1,4 @@
-# 🚗 AvtoTest Pro
+# 🚗 VatanParvar Yaypan
 
 > O'zbekistonda avto maktab nazariyasiga onlayn tayyorgarlik platformasi
 
@@ -124,4 +124,4 @@ avtotestpro/
 
 ---
 
-© 2026 AvtoTest Pro — [avtotestpro.uz](https://avtotestpro.uz)
+© 2026 VatanParvar Yaypan — [vatanparvaryaypan.uz](https://vatanparvaryaypan.uz)

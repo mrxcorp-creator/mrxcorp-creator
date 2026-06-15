@@ -1,5 +1,5 @@
 ═══════════════════════════════════════════════════════════════
-   AvtoTest Pro — TEZKOR O'RNATISH QO'LLANMASI
+   VatanParvar Yaypan — TEZKOR O'RNATISH QO'LLANMASI
 ═══════════════════════════════════════════════════════════════
 
 1. FAYLLARNI SERVERGA YUKLASH
@@ -68,5 +68,5 @@
    chmod 750 zaxira_nusxalari/
 
 ═══════════════════════════════════════════════════════════════
-   AvtoTest Pro © 2026 — avtotestpro.uz
+   VatanParvar Yaypan © 2026 — vatanparvaryaypan.uz
 ═══════════════════════════════════════════════════════════════

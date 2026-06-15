@@ -1,5 +1,5 @@
 -- ============================================================
--- AvtoTest Pro — MySQL sxema (v2 — professional)
+-- VatanParvar Yaypan — MySQL sxema (v2 — professional)
 -- Yangiliklar:
 --   • Barcha zarur INDEX'lar qo'shildi
 --   • fikrlar.fikr_ip ustuni (mavjud bo'lmasa ALTER TABLE bilan)
@@ -289,13 +289,13 @@ DO
 -- ───────────────────────────────────────────────────────────
 
 INSERT INTO `sozlamalar` (`kalit`, `qiymat`, `tavsif`) VALUES
-('sayt_nomi',               'AvtoTest Pro',                         'Sayt nomi'),
+('sayt_nomi',               'VatanParvar Yaypan',                         'Sayt nomi'),
 ('sayt_shior',              'O\'zbekistonda avto maktab nazariyasiga eng tezkor tayyorgarlik', 'Bosh sahifa shiori'),
 ('aloqa_telefon',           '+998 90 123 45 67',                    'Aloqa telefoni'),
-('aloqa_email',             'info@avtotestpro.uz',                  'Aloqa email'),
-('telegram_kanal',          'https://t.me/avtotestpro',             'Telegram kanal URL'),
+('aloqa_email',             'info@vatanparvaryaypan.uz',                  'Aloqa email'),
+('telegram_kanal',          'https://t.me/vatanparvar',             'Telegram kanal URL'),
 ('telegram_bot_token',      '',                                     'Bot tokeni (BotFather dan)'),
-('telegram_bot_username',   'avtotestpro_bot',                      'Bot username (@siz)'),
+('telegram_bot_username',   'vatanparvar_bot',                      'Bot username (@siz)'),
 ('telegram_admin_id',       '',                                     'Admin Telegram ID'),
 ('telegram_webhook_secret', '',                                     'Telegram webhook himoya kodi (ixtiyoriy)'),
 ('click_merchant_id',       '',                                     'Click Merchant ID'),

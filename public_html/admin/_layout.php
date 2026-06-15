@@ -168,7 +168,7 @@ $flash          = flash_ol();
             <a href="<?= e(SAYT_URL) ?>" class="flex items-center gap-2.5">
                 <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
                              flex items-center justify-center font-display font-black text-white text-sm flex-shrink-0
-                             shadow-md shadow-blue-500/25">A</span>
+                             shadow-md shadow-blue-500/25">V</span>
                 <div class="min-w-0">
                     <p class="font-display font-bold text-white text-sm leading-none">VatanParvar Yaypan</p>
                     <p class="text-[10px] text-white/35 mt-0.5">Admin Panel</p>
