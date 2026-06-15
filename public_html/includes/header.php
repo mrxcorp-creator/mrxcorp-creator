@@ -30,6 +30,8 @@ $til             = $_SESSION['til'] ?? 'uz_latn';
 
     <link rel="icon" type="image/svg+xml" href="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg">
     <link rel="apple-touch-icon" href="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg">
+    <link rel="manifest" href="<?= e(SAYT_URL) ?>/manifest.webmanifest">
+    <link rel="canonical" href="<?= e(SAYT_URL . ($_SERVER['REQUEST_URI'] ?? '/')) ?>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

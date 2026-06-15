@@ -1,0 +1,5 @@
+Options -Indexes
+<FilesMatch "\.txt$">
+    Require all granted
+    Header set Content-Type "text/plain; charset=utf-8"
+</FilesMatch>

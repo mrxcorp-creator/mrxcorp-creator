@@ -45,6 +45,9 @@ require_once __DIR__ . '/../includes/header.php';
                 'fikrlar'         => ['💬', t('fikrlar'),           'fikrlar.php', $kutilgan_fikr],
                 'sozlamalar'      => ['⚙️', 'Sozlamalar',           'sozlamalar.php', 0],
             ];
+            if ($f['rol'] === 'developer') {
+                $menyu['check'] = ['🔍', 'Diagnostika', '../check.php', 0];
+            }
             foreach ($menyu as $key => [$emoji, $nomi, $url, $badge]):
                 $aktiv = $admin_sahifa === $key;
             ?>

@@ -26,4 +26,5 @@ public_html/uploads/savollar/*
 .env
 .env.local
 public_html/config/config.local.php
+public_html/config/installed.lock
 public_html/config/secrets.php
