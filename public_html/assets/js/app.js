@@ -51,6 +51,52 @@ if (document.body && document.body.classList.contains('test-page')) {
     });
 }
 
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
+    });
+}
+
+window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    window.vpInstallPrompt = e;
+
+    var prompt_yashirilgan = localStorage.getItem('vp_pwa_yashir');
+    if (prompt_yashirilgan && (Date.now() - parseInt(prompt_yashirilgan, 10)) < 7 * 24 * 60 * 60 * 1000) {
+        return;
+    }
+
+    setTimeout(function () {
+        if (!window.vpInstallPrompt) return;
+        var div = document.createElement('div');
+        div.className = 'glass-strong p-4 fixed bottom-4 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm z-40 flex items-center gap-3';
+        div.style.animation = 'fadeUp 0.4s ease both';
+        div.innerHTML =
+            '<div class="text-3xl">📱</div>' +
+            '<div class="flex-1 min-w-0">' +
+                '<div class="font-display font-bold text-sm">Saytni o\'rnatish</div>' +
+                '<div class="text-xs text-muted">Telefoningizga ilova kabi</div>' +
+            '</div>' +
+            '<button class="btn btn-primary text-xs py-2 px-3" id="vpInstallBtn">O\'rnatish</button>' +
+            '<button class="text-muted hover:text-text text-xl px-2" id="vpInstallClose" aria-label="Yopish">×</button>';
+        document.body.appendChild(div);
+
+        document.getElementById('vpInstallBtn').addEventListener('click', function () {
+            if (window.vpInstallPrompt) {
+                window.vpInstallPrompt.prompt();
+                window.vpInstallPrompt.userChoice.then(function () {
+                    window.vpInstallPrompt = null;
+                    div.remove();
+                });
+            }
+        });
+        document.getElementById('vpInstallClose').addEventListener('click', function () {
+            localStorage.setItem('vp_pwa_yashir', String(Date.now()));
+            div.remove();
+        });
+    }, 5000);
+});
+
 window.vpToast = function (matn, tur) {
     tur = tur || 'info';
     var div = document.createElement('div');
