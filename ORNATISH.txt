@@ -1,77 +1,72 @@
-═══════════════════════════════════════════════════════════════════════
-   VATANPARVAR YAYPAN — TEZKOR O'RNATISH QO'LLANMASI
-═══════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+   AvtoTest Pro — TEZKOR O'RNATISH QO'LLANMASI
+═══════════════════════════════════════════════════════════════
 
-1. FAYLLARNI SERVERGA YUKLAB OLISH
-   ───────────────────────────────────────────────────────────────────
-   public_html/  papkasi ICHIDAGI hammasini saytingizning
-   public_html/ papkasiga yuklang (FTP yoki cPanel File Manager).
-
-   Yuklangandan so'ng quyidagi struktura paydo bo'ladi:
-     public_html/
-     ├── index.php
-     ├── .htaccess
-     ├── config/
-     ├── admin/
-     └── ...
+1. FAYLLARNI SERVERGA YUKLASH
+   ───────────────────────────────────────────────────────────
+   public_html/ papkasi ichidagi hammasini saytingizning
+   public_html/ papkasiga yuklang (FTP yoki cPanel).
 
 2. MA'LUMOTLAR BAZASINI YARATISH
-   ───────────────────────────────────────────────────────────────────
-   • phpMyAdmin oching
-   • DB nomi: wbefkccz_avtomaktab (yaratib qo'yilgan bo'lsa o'zini tanlang)
-   • IMPORT tugmasi → database/schema.sql faylni tanlang → Bajarish
+   ───────────────────────────────────────────────────────────
+   • phpMyAdmin → yangi DB yarating
+   • IMPORT → database/schema.sql → Bajarish
 
-3. DEFAULT AKKAUNT
-   ───────────────────────────────────────────────────────────────────
+3. DB ULANISHINI SOZLASH
+   ───────────────────────────────────────────────────────────
+   config/database.php ichida o'zgartiring:
+     DB_HOST = 'localhost'
+     DB_NAME = 'sizning_db_nomingiz'
+     DB_USER = 'sizning_db_useringiz'
+     DB_PASS = 'sizning_parolingiz'
+
+4. DEFAULT AKKAUNT
+   ───────────────────────────────────────────────────────────
    Telefon: +998900000000
    Parol:   admin12345
+   ⚠️ Birinchi kirishda PAROLNI O'ZGARTIRING!
 
-   !!!  Birinchi kirgandan so'ng parolni o'zgartiring  !!!
+5. ADMIN PANEL SOZLAMALARI
+   ───────────────────────────────────────────────────────────
+   https://saytingiz.uz/login → Admin panel → Sozlamalar
+   Kiriting:
+     • sayt_nomi, sayt_shior
+     • aloqa_telefon, aloqa_email
+     • telegram_bot_token    (BotFather'dan)
+     • telegram_bot_username (botning @username'i)
+     • telegram_admin_id     (sizning Telegram ID)
+     • click_merchant_id     (Click kabinetidan)
+     • click_service_id      (Click kabinetidan)
+     • click_secret          (Click kabinetidan)
+     • payme_merchant_id     (Payme kabinetidan)
+     • payme_key             (Payme test/prod kaliti)
+     • cron_kalit            (tasodifiy 32+ belgi)
 
-4. ASOSIY SOZLAMALAR
-   ───────────────────────────────────────────────────────────────────
-   Saytga kiring → Admin panel → Sozlamalar
-   Quyidagilarni kiriting:
+6. TELEGRAM WEBHOOK O'RNATISH
+   ───────────────────────────────────────────────────────────
+   Sozlamalar saqlanganidan so'ng:
+   https://saytingiz.uz/cron/sozlash.php?kalit=CRON_KALIT&harakat=webhook_set
 
-   • sayt_nomi               = VatanParvar Yaypan
-   • aloqa_telefon           = +998 90 ...
-   • aloqa_email             = info@vatanparvaryaypan.uz
-   • telegram_bot_token      = (BotFather dan)
-   • telegram_bot_username   = vatanparvaryaypan_bot
-   • telegram_admin_id       = (sizning Telegram ID)
-   • click_merchant_id       = (Click kabinetidan)
-   • click_secret            = (Click kabinetidan)
-   • payme_merchant_id       = (Payme kabinetidan)
-   • payme_key               = (Payme kabinetidan)
-   • cron_kalit              = (tasodifiy 32 ta belgi)
+7. TO'LOV TIZIMI WEBHOOK URL'LARI
+   ───────────────────────────────────────────────────────────
+   Click:  https://saytingiz.uz/api/click_webhook.php
+   Payme:  https://saytingiz.uz/api/payme_webhook.php
+   Bu URL'larni to'lov tizimlari merchant kabinetiga kiriting.
 
-5. TELEGRAM BOT VEBHUKINI O'RNATISH
-   ───────────────────────────────────────────────────────────────────
-   Sozlamalar saqlangach:
-   https://SIZNINGSAYT.uz/cron/sozlash.php?kalit=CRON_KALIT&harakat=webhook_set
-
-6. TO'LOV TIZIMLARI URL'lari
-   ───────────────────────────────────────────────────────────────────
-   Click vebhuk:  https://SIZNINGSAYT.uz/api/click_webhook.php
-   Payme vebhuk:  https://SIZNINGSAYT.uz/api/payme_webhook.php
-
-   Bu URL'larni Click va Payme merchant kabinetlariga kiriting.
-
-7. CRON ISHLAR (cPanel → Cron Jobs)
-   ───────────────────────────────────────────────────────────────────
-   Tungi backup (03:00):
+8. CRON SOZLASH (cPanel → Cron Jobs)
+   ───────────────────────────────────────────────────────────
+   Backup (03:00):
    0 3 * * * /usr/bin/php /home/USER/public_html/cron/backup.php
 
    Obuna eslatma (09:00):
    0 9 * * * /usr/bin/php /home/USER/public_html/cron/obuna_eslatma.php
 
-8. PAPKA RUXSATLARI (agar kerak bo'lsa)
-   ───────────────────────────────────────────────────────────────────
-   chmod 755 kesh/  uploads/  zaxira_nusxalari/
+9. PAPKA RUXSATLARI
+   ───────────────────────────────────────────────────────────
+   chmod 755 kesh/
+   chmod 755 uploads/
+   chmod 750 zaxira_nusxalari/
 
-═══════════════════════════════════════════════════════════════════════
-
-YORDAM: README.md fayliga qarang
-
-VATANPARVAR YAYPAN © 2026
-═══════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+   AvtoTest Pro © 2026 — avtotestpro.uz
+═══════════════════════════════════════════════════════════════

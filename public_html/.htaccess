@@ -1,67 +1,82 @@
 # ============================================================
-# VatanParvar Yaypan — Apache konfiguratsiya
+# AvtoTest Pro — Apache konfiguratsiya
 # ============================================================
 
-# PHP versiyasi (Xost-1000 da PHP 8.x)
+# PHP versiyasi
 AddHandler application/x-httpd-php82 .php
 
-# UTF-8 standart kodlash
+# UTF-8 kodlash
 AddDefaultCharset UTF-8
 
-# ----- HTTPS ga majburiy yo'naltirish -----
+# ---- HTTPS ga majburiy yo'naltirish ----
 RewriteEngine On
+
 RewriteCond %{HTTPS} !=on
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# www. prefiksini olib tashlash
-RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+# www prefiksini olib tashlash
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 
-# ----- Chiroyli URL'lar -----
-# /login -> /auth/login.php
-RewriteRule ^login/?$ auth/login.php [L]
-RewriteRule ^register/?$ auth/register.php [L]
-RewriteRule ^forgot-password/?$ auth/forgot-password.php [L]
-RewriteRule ^logout/?$ auth/logout.php [L]
-RewriteRule ^dashboard/?$ user/index.php [L]
-RewriteRule ^test/?$ user/test.php [L]
-RewriteRule ^profil/?$ user/profil.php [L]
-RewriteRule ^tolov/?$ user/payment.php [L]
-RewriteRule ^referal/?$ user/referal.php [L]
+# ---- Chiroyli URL'lar ----
+RewriteRule ^login/?$            auth/login.php       [L]
+RewriteRule ^register/?$         auth/register.php    [L]
+RewriteRule ^forgot-password/?$  auth/forgot-password.php [L]
+RewriteRule ^logout/?$           auth/logout.php      [L]
+RewriteRule ^dashboard/?$        user/index.php       [L]
+RewriteRule ^test/?$             user/test.php        [L]
+RewriteRule ^profil/?$           user/profil.php      [L]
+RewriteRule ^tolov/?$            user/payment.php     [L]
+RewriteRule ^referal/?$          user/referal.php     [L]
 
-# ----- Maxfiy fayllarni himoyalash -----
-<FilesMatch "\.(env|sql|md|log|gitignore|json)$">
+# ---- Maxfiy fayllarni himoyalash ----
+<FilesMatch "\.(env|sql|log|bak|swp|gitignore|json)$">
     Require all denied
 </FilesMatch>
 
-# config/, cron/, zaxira_nusxalari/ papkalarini bloklash
-RedirectMatch 403 ^/config/.*$
-RedirectMatch 403 ^/cron/.*$
-RedirectMatch 403 ^/zaxira_nusxalari/.*$
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
 
-# ----- Xavfsizlik sarlavhalari -----
+# config/, cron/, zaxira_nusxalari/ papkalari
+RedirectMatch 403 ^/config/
+RedirectMatch 403 ^/cron/
+RedirectMatch 403 ^/zaxira_nusxalari/
+RedirectMatch 403 ^/lang/
+
+# ---- Xavfsizlik sarlavhalari ----
 <IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # Clickjacking himoya
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # MIME sniffing himoya
+    Header always set X-Content-Type-Options "nosniff"
+    # XSS filtr
+    Header always set X-XSS-Protection "1; mode=block"
+    # Referrer
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Ruxsatlar
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    # HSTS (faqat HTTPS uchun, 1 yil)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
-# ----- Brauzer keshi (statik fayllar uchun) -----
+# ---- Brauzer keshi ----
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType image/webp "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/svg+xml "access plus 1 month"
-    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType image/webp        "access plus 1 month"
+    ExpiresByType image/png         "access plus 1 month"
+    ExpiresByType image/jpeg        "access plus 1 month"
+    ExpiresByType image/svg+xml     "access plus 1 month"
+    ExpiresByType text/css          "access plus 1 week"
     ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType application/json  "access plus 0 seconds"
 </IfModule>
 
-# ----- Gzip siqish -----
+# ---- Gzip siqish ----
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
 # Standart fayl
@@ -70,3 +85,6 @@ DirectoryIndex index.php
 # Xato sahifalari
 ErrorDocument 404 /404.php
 ErrorDocument 403 /403.php
+
+# Directory listing o'chirish
+Options -Indexes

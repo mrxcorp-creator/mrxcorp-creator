@@ -1,18 +1,16 @@
 <?php
 /**
- * VatanParvar Yaypan — Obuna tugashidan oldin eslatma
+ * AvtoTest Pro — Obuna tugashidan oldin eslatma
  *
- * Har kuni cron orqali ishga tushiriladi (masalan 09:00):
+ * Cron (har kuni 09:00 da):
  *   0 9 * * * /usr/bin/php /home/USER/public_html/cron/obuna_eslatma.php
- *
- * - 3 kun qolganda: ogohlantirish
- * - Tugagan obunalarni "tugagan" holatiga o'tkazish
  */
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
 if (php_sapi_name() !== 'cli') {
-    $kalit = sozlama('cron_kalit', '');
+    $kalit  = sozlama('cron_kalit', '');
     $kelgan = $_GET['kalit'] ?? '';
     if (!$kalit || !hash_equals($kalit, $kelgan)) {
         http_response_code(403);
@@ -20,12 +18,15 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
-// ----- Tugagan obunalarni yopish -----
-$tugagan = db_bajar('UPDATE obunalar SET holat = "tugagan" WHERE holat = "faol" AND tugash <= NOW()');
+// 1. Muddati o'tgan obunalarni "tugagan" ga o'tkazish
+$tugangan = db_bajar(
+    'UPDATE obunalar SET holat = "tugagan"
+     WHERE holat = "faol" AND tugash <= NOW()'
+);
 
-// ----- 3 kun qolganlarga eslatma -----
-$obunalar = db_barcha(
-    'SELECT o.*, fo.telegram_id, fo.ism, t.nomi
+// 2. 3 kun qolganlarga Telegram eslatma
+$yaqin = db_barcha(
+    'SELECT o.*, fo.telegram_id, fo.ism, t.nomi AS tarif_nomi
      FROM obunalar o
      JOIN foydalanuvchilar fo ON o.foydalanuvchi_id = fo.id
      JOIN tariflar t ON o.tarif_id = t.id
@@ -35,19 +36,22 @@ $obunalar = db_barcha(
        AND fo.telegram_id IS NOT NULL'
 );
 
-$jonatildi = 0;
-foreach ($obunalar as $o) {
-    $kun = (int) ((strtotime($o['tugash']) - time()) / 86400);
-    if ($kun < 0) continue;
+$yuborildi = 0;
+foreach ($yaqin as $o) {
+    $kun = max(0, (int) ((strtotime($o['tugash']) - time()) / 86400));
+    $ism = htmlspecialchars($o['ism'], ENT_QUOTES, 'UTF-8');
 
-    telegram_yubor($o['telegram_id'],
-        "⏰ <b>Obuna tugayapti!</b>\n\n" .
-        "Salom, " . htmlspecialchars($o['ism'], ENT_QUOTES) . "!\n" .
-        "Tarifingiz <b>{$o['nomi']}</b> {$kun} kun ichida tugaydi (" . date('d.m.Y', strtotime($o['tugash'])) . ").\n\n" .
-        "Yangilash uchun: " . SAYT_URL . "/tolov"
-    );
-    $jonatildi++;
+    $xabar = "⏰ <b>Obuna tugayapti!</b>\n\n"
+           . "Salom, <b>{$ism}</b>!\n"
+           . "Tarifingiz <b>{$o['tarif_nomi']}</b> "
+           . ($kun === 0 ? "bugun tugaydi" : "{$kun} kun ichida tugaydi")
+           . " (" . date('d.m.Y', strtotime($o['tugash'])) . ").\n\n"
+           . "Yangilash uchun: " . SAYT_URL . "/tolov";
+
+    if (telegram_yubor((int)$o['telegram_id'], $xabar)) {
+        $yuborildi++;
+    }
 }
 
-echo "Tugatildi: {$tugagan} ta obuna\n";
-echo "Yuborildi: {$jonatildi} ta eslatma\n";
+echo "✅ Tugagan obunalar: {$tugangan} ta\n";
+echo "📱 Yuborilgan eslatmalar: {$yuborildi} ta\n";
