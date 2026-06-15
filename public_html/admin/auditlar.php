@@ -18,21 +18,33 @@ if ($harakat_filt) {
 }
 $where = $shartlar ? ' WHERE ' . implode(' AND ', $shartlar) : '';
 
-$jami = (int) db_qiymat("SELECT COUNT(*) FROM auditlar a LEFT JOIN foydalanuvchilar fo ON a.foydalanuvchi_id = fo.id $where", $params);
+try {
+    $jami = (int) db_qiymat("SELECT COUNT(*) FROM auditlar a LEFT JOIN foydalanuvchilar fo ON a.foydalanuvchi_id = fo.id $where", $params);
+} catch (Throwable $e) {
+    $jami = 0;
+}
 $sahifa = max(1, (int) olish('p'));
 $limit = 50;
 $offset = ($sahifa - 1) * $limit;
 
-$royxat = db_barcha(
-    "SELECT a.*, fo.ism, fo.familiya, fo.telefon, fo.rol
-     FROM auditlar a
-     LEFT JOIN foydalanuvchilar fo ON a.foydalanuvchi_id = fo.id
-     $where
-     ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
-    $params
-);
+try {
+    $royxat = db_barcha(
+        "SELECT a.*, fo.ism, fo.familiya, fo.telefon, fo.rol
+         FROM auditlar a
+         LEFT JOIN foydalanuvchilar fo ON a.foydalanuvchi_id = fo.id
+         $where
+         ORDER BY a.id DESC LIMIT $limit OFFSET $offset",
+        $params
+    );
+} catch (Throwable $e) {
+    $royxat = [];
+}
 
-$harakatlar = db_barcha('SELECT DISTINCT harakat FROM auditlar ORDER BY harakat');
+try {
+    $harakatlar = db_barcha('SELECT DISTINCT harakat FROM auditlar ORDER BY harakat');
+} catch (Throwable $e) {
+    $harakatlar = [];
+}
 
 $admin_sahifa = 'auditlar';
 $sahifa_sarlavha = 'Audit log';

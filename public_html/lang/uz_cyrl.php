@@ -212,4 +212,23 @@ return [
     'admin_audit'            => 'Аудит лог',
     'admin_diagnostika'      => 'Диагностика',
     'admin_xatolar'          => 'Хато логлари',
+
+    'bonus_tarix'            => 'Бонус тарих',
+    'bonus_tarix_tavsif'     => "Сизнинг бонус ҳаракатларингизнинг тўлиқ тарихи",
+    'joriy_balans'           => 'Жорий баланс',
+    'jami_olingan'           => 'Жами олинган',
+    'ishlatilgan'            => 'Ишлатилган',
+    'harakatlar_tarixi'      => 'Ҳаракатлар тарихи',
+    'bonus_harakatlari_yoq'  => "Бонус ҳаракатлари йўқ",
+    'dostlarni_taklif'       => "Дўстларни таклиф қилиш",
+    'bonus_referal'          => 'Реферал бонуси',
+    'bonus_admin'            => "Админ совғаси",
+    'bonus_tolov'            => "Тўлов учун ишлатилди",
+    'bonus_xarid'            => 'Харид учун ишлатилди',
+
+    'marafon'                => 'Марафон',
+    'marafon_rejimi'         => 'Марафон режими',
+    'marafon_pro_kerak'      => 'Марафон режими PRO обуна талаб қилади',
+    'imtihon_simulatsiyasi'  => 'Имтиҳон симуляцияси',
+    'marafon_tavsif'         => "Реал имтиҳонга ўхшатилган режим. 50 та савол, 50 дақиқа, қатъий тартиб.",
 ];

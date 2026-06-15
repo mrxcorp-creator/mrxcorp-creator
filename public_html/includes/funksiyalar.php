@@ -97,32 +97,53 @@ function telegram_yubor_xom(int|string $chat_id, string $matn, array $qoshimcha 
     $token = maxfiy_qiymat('TELEGRAM_BOT_TOKEN', 'telegram_bot_token');
     if (!$token || !$chat_id) return false;
 
-    $data = array_merge([
-        'chat_id'    => $chat_id,
-        'text'       => $matn,
-        'parse_mode' => 'HTML',
-    ], $qoshimcha);
+    try {
+        $data = array_merge([
+            'chat_id'    => $chat_id,
+            'text'       => $matn,
+            'parse_mode' => 'HTML',
+        ], $qoshimcha);
 
-    $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => http_build_query($data),
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_CONNECTTIMEOUT => 5,
-    ]);
-    $javob = curl_exec($ch);
-    curl_close($ch);
-    $j = json_decode($javob, true);
-    return !empty($j['ok']);
+        $ch = curl_init("https://api.telegram.org/bot{$token}/sendMessage");
+        if (!$ch) return false;
+
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query($data),
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_FAILONERROR    => false,
+        ]);
+        $javob = curl_exec($ch);
+        $kod = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curl_xato = curl_error($ch);
+        curl_close($ch);
+
+        if ($curl_xato || $kod < 200 || $kod >= 400 || !$javob) {
+            error_log('telegram_yubor_xom xato: HTTP=' . $kod . ' err=' . $curl_xato);
+            return false;
+        }
+
+        $j = json_decode($javob, true);
+        return !empty($j['ok']);
+    } catch (Throwable $e) {
+        error_log('telegram_yubor_xom istisno: ' . $e->getMessage());
+        return false;
+    }
 }
 
 function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []): bool {
-    if (PHP_SAPI === 'cli' || (defined('TELEGRAM_SYNC') && TELEGRAM_SYNC)) {
-        return telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+    try {
+        if (PHP_SAPI === 'cli' || (defined('TELEGRAM_SYNC') && TELEGRAM_SYNC)) {
+            return telegram_yubor_xom($chat_id, $matn, $qoshimcha);
+        }
+        telegram_navbatga($chat_id, $matn, $qoshimcha);
+        return true;
+    } catch (Throwable $e) {
+        error_log('telegram_yubor xato: ' . $e->getMessage());
+        return false;
     }
-    telegram_navbatga($chat_id, $matn, $qoshimcha);
-    return true;
 }
 
 function telegram_navbatni_jonat(int $maks = 20): array {
@@ -178,6 +199,28 @@ function telegram_fayl_yubor(int|string $chat_id, string $fayl_yoli, string $izo
     curl_close($ch);
     $j = json_decode($javob, true);
     return !empty($j['ok']);
+}
+
+/**
+ * Bonus harakatini bonus_tarix jadvaliga yozish.
+ * Jadval mavjud bo'lmasa silently fail bo'ladi (try-catch).
+ *
+ * @param int    $foydalanuvchi_id  Foydalanuvchi ID
+ * @param float  $summa             Bonus summasi (musbat=qo'shish, manfiy=ishlatish)
+ * @param string $tur               'referal'|'admin'|'tolov'|'xarid'
+ * @param string $izoh              Qo'shimcha izoh
+ * @param ?int   $bog_lik_id        Bog'liq obyekt ID (tolov_id, referal_id, ...)
+ */
+function bonus_yoz(int $foydalanuvchi_id, float $summa, string $tur, string $izoh = '', ?int $bog_lik_id = null): void {
+    try {
+        db_bajar(
+            'INSERT INTO bonus_tarix (foydalanuvchi_id, summa, tur, izoh, bog_lik_id)
+             VALUES (?, ?, ?, ?, ?)',
+            [$foydalanuvchi_id, $summa, $tur, $izoh ?: null, $bog_lik_id]
+        );
+    } catch (Throwable $e) {
+        error_log('bonus_yoz xato: ' . $e->getMessage());
+    }
 }
 
 function audit_yoz(string $harakat, ?string $obyekt_turi = null, ?int $obyekt_id = null, array $tafsilot = []): void {

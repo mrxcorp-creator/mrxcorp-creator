@@ -121,6 +121,13 @@ if ($action === 1) {
                          [$bonus, $foydalanuvchi['referal_orqali']]);
                 db_bajar('UPDATE referallar SET holat = "tasdiq", bonus_summa = ? WHERE referal_id = ?',
                          [$bonus, $foydalanuvchi['id']]);
+                bonus_yoz(
+                    (int) $foydalanuvchi['referal_orqali'],
+                    $bonus,
+                    'referal',
+                    'Click: do\'st to\'lov qildi (#' . (int) $foydalanuvchi['id'] . ')',
+                    (int) $foydalanuvchi['id']
+                );
             }
         }
 
