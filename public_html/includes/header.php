@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../config/auth.php';
-require_once __DIR__ . '/funksiyalar.php';
 
 $sahifa_sarlavha = $sahifa_sarlavha ?? t('sayt_nomi');
 $sahifa_tavsif   = $sahifa_tavsif   ?? t('sayt_shior');
@@ -9,10 +8,41 @@ $f               = joriy_foydalanuvchi();
 $flash           = flash_ol();
 $til             = $_SESSION['til'] ?? 'uz_latn';
 
+$ip_hozirgi = ip_olish();
+try {
+    $bloklangan = db_qator(
+        'SELECT * FROM bloklangan_iplar
+         WHERE ip = ? AND (tugash IS NULL OR tugash > NOW())
+         LIMIT 1',
+        [$ip_hozirgi]
+    );
+} catch (Throwable $e) {
+    $bloklangan = null;
+}
+if ($bloklangan && (!$f || !in_array($f['rol'], ['admin', 'developer'], true))) {
+    http_response_code(403);
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>403</title>';
+    echo '<style>body{background:#070B14;color:#F1F5F9;font-family:system-ui;padding:4rem;text-align:center}</style>';
+    echo '</head><body><h1>403</h1><p>IP manzilingiz bloklangan.</p></body></html>';
+    exit;
+}
+
+$logo_yoli = sozlama('logo_yoli', '');
+$logo_url = $logo_yoli && is_file(UPLOAD_PATH . '/' . $logo_yoli)
+    ? SAYT_URL . '/uploads/' . $logo_yoli
+    : SAYT_URL . '/assets/img/logo-mark.svg';
+
+$banner_yoli = sozlama('banner_yoli', '');
+$banner_url = $banner_yoli && is_file(UPLOAD_PATH . '/' . $banner_yoli)
+    ? SAYT_URL . '/uploads/' . $banner_yoli
+    : SAYT_URL . '/assets/img/banner.svg';
+
 $css_versiya = is_file(__DIR__ . '/../assets/css/style.css')
     ? filemtime(__DIR__ . '/../assets/css/style.css') : time();
 $js_versiya = is_file(__DIR__ . '/../assets/js/app.js')
     ? filemtime(__DIR__ . '/../assets/js/app.js') : time();
+$himoya_versiya = is_file(__DIR__ . '/../assets/js/himoya.js')
+    ? filemtime(__DIR__ . '/../assets/js/himoya.js') : time();
 
 $csp_nonce = bin2hex(random_bytes(8));
 $csp = "default-src 'self'; "
@@ -25,6 +55,11 @@ $csp = "default-src 'self'; "
      . "base-uri 'self'; "
      . "form-action 'self'";
 header("Content-Security-Policy: {$csp}");
+
+$rol = $f ? $f['rol'] : 'guest';
+$himoya_anti_copy = (int) sozlama('himoya_anti_copy', 1);
+$himoya_devtools = (int) sozlama('himoya_devtools', 1);
+$himoya_yoq_attr = (!$himoya_anti_copy && !$himoya_devtools) || in_array($rol, ['admin', 'developer'], true);
 ?>
 <!DOCTYPE html>
 <html lang="uz" data-theme="dark">
@@ -42,23 +77,27 @@ header("Content-Security-Policy: {$csp}");
     <meta property="og:title" content="<?= e($sahifa_sarlavha) ?>">
     <meta property="og:description" content="<?= e($sahifa_tavsif) ?>">
     <meta property="og:url" content="<?= e(SAYT_URL . $_SERVER['REQUEST_URI']) ?>">
-    <meta property="og:image" content="<?= e(SAYT_URL) ?>/assets/img/og-cover.svg">
+    <meta property="og:image" content="<?= e($banner_url) ?>">
 
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+    <meta name="vp-rol" content="<?= e($rol) ?>">
+    <meta name="vp-himoya" content="<?= $himoya_yoq_attr ? 'off' : 'on' ?>">
 
-    <link rel="icon" type="image/svg+xml" href="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg">
-    <link rel="apple-touch-icon" href="<?= e(SAYT_URL) ?>/assets/img/logo-mark.svg">
+    <link rel="icon" type="image/svg+xml" href="<?= e($logo_url) ?>">
+    <link rel="apple-touch-icon" href="<?= e($logo_url) ?>">
     <link rel="manifest" href="<?= e(SAYT_URL) ?>/manifest.webmanifest">
     <link rel="canonical" href="<?= e(SAYT_URL . ($_SERVER['REQUEST_URI'] ?? '/')) ?>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800;900&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="<?= e(SAYT_URL) ?>/assets/css/style.css?v=<?= $css_versiya ?>">
 
     <script nonce="<?= $csp_nonce ?>" src="<?= e(SAYT_URL) ?>/assets/js/app.js?v=<?= $js_versiya ?>"></script>
+    <?php if (!$himoya_yoq_attr): ?>
+    <script nonce="<?= $csp_nonce ?>" src="<?= e(SAYT_URL) ?>/assets/js/himoya.js?v=<?= $himoya_versiya ?>"></script>
+    <?php endif; ?>
     <script defer nonce="<?= $csp_nonce ?>" src="<?= e(SAYT_URL) ?>/assets/js/alpine.min.js?v=1"></script>
 </head>
 <body class="<?= e($body_class) ?> min-h-screen overflow-x-hidden bg-bg text-text">

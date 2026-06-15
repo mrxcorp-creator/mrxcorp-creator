@@ -44,10 +44,12 @@ require_once __DIR__ . '/../includes/header.php';
                 'tolovlar'        => ['💳', "To'lovlar",            'tolovlar.php', $kutilgan_tolov],
                 'fikrlar'         => ['💬', t('fikrlar'),           'fikrlar.php', $kutilgan_fikr],
                 'sozlamalar'      => ['⚙️', 'Sozlamalar',           'sozlamalar.php', 0],
+                'dizayn'          => ['🎨', 'Dizayn',                'dizayn.php', 0],
                 'auditlar'        => ['📜', 'Audit log',             'auditlar.php', 0],
             ];
             if ($f['rol'] === 'developer') {
                 $menyu['check'] = ['🔍', 'Diagnostika', '../check.php', 0];
+                $menyu['migrate'] = ['🗄️', 'Migrations', '../migrate.php', 0];
             }
             foreach ($menyu as $key => [$emoji, $nomi, $url, $badge]):
                 $aktiv = $admin_sahifa === $key;
