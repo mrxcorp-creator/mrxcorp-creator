@@ -30,11 +30,14 @@ RewriteRule ^login/?$ auth/login.php [L,QSA]
 RewriteRule ^register/?$ auth/register.php [L,QSA]
 RewriteRule ^forgot-password/?$ auth/forgot-password.php [L,QSA]
 RewriteRule ^logout/?$ auth/logout.php [L,QSA]
+RewriteRule ^tfa/?$ auth/tfa.php [L,QSA]
 RewriteRule ^dashboard/?$ user/index.php [L,QSA]
 RewriteRule ^test/?$ user/test.php [L,QSA]
 RewriteRule ^profil/?$ user/profil.php [L,QSA]
 RewriteRule ^tolov/?$ user/payment.php [L,QSA]
 RewriteRule ^referal/?$ user/referal.php [L,QSA]
+RewriteRule ^xatolar/?$ user/xatolar.php [L,QSA]
+RewriteRule ^statistika/?$ user/statistika.php [L,QSA]
 
 <FilesMatch "^(\.|composer\.|package\.|README|DEPLOYMENT|LICENSE|.*\.(env|sql|md|log|gitignore|json|yml|yaml|lock|local\.php))$">
     Require all denied

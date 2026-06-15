@@ -79,6 +79,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $f['kirish_bildirish'] = $yangi_holat;
             $muvaffaqiyat = t('malumot_saqlandi');
         }
+
+        if ($harakat === 'tfa') {
+            $yangi = post('tfa_yoq') === '1' ? 1 : 0;
+            if ($yangi && empty($f['telegram_id'])) {
+                $xato = '2FA uchun avval Telegram ulanishi kerak';
+            } else {
+                try {
+                    db_bajar('UPDATE foydalanuvchilar SET tfa_yoq = ? WHERE id = ?', [$yangi, $f['id']]);
+                    $f['tfa_yoq'] = $yangi;
+                    audit_yoz('tfa_' . ($yangi ? 'yoqildi' : 'ochirildi'), 'foydalanuvchi', (int) $f['id']);
+                    if ($yangi && !empty($f['telegram_id'])) {
+                        telegram_yubor($f['telegram_id'],
+                            "✅ <b>2FA yoqildi</b>\n\nEndi har kirganda Telegram'ga 6 raqamli kod yuboriladi.");
+                    }
+                    $muvaffaqiyat = t('malumot_saqlandi');
+                } catch (Throwable $e) {
+                    $xato = 'Server xatosi (migrationni bajaring)';
+                }
+            }
+        }
     }
 }
 
@@ -234,6 +254,30 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <span class="text-sm">Yangi kirishlar haqida Telegram'ga xabar yuborilsin</span>
                 </label>
                 <button type="submit" class="btn btn-primary mt-4 text-sm py-2 px-4"><?= e(t('saqlash')) ?></button>
+            </form>
+
+            <form method="POST" class="glass p-6 fade-up <?= !$f['telegram_id'] ? 'opacity-60' : '' ?>">
+                <?= csrf_input() ?>
+                <input type="hidden" name="harakat" value="tfa">
+
+                <h2 class="text-xl font-display font-bold mb-3 flex items-center gap-2">
+                    <span>🔐</span> 2FA — Ikki bosqichli tasdiqlash
+                </h2>
+                <p class="text-sm text-muted mb-4">
+                    <?php if (!$f['telegram_id']): ?>
+                        ⚠️ Avval Telegram'ni ulang. 2FA Telegram orqali ishlaydi.
+                    <?php else: ?>
+                        Har kirganda Telegram'ga 6 raqamli kod yuboriladi. Bu xavfsizlikni sezilarli oshiradi.
+                    <?php endif; ?>
+                </p>
+                <label class="flex items-center gap-3 cursor-pointer <?= !$f['telegram_id'] ? 'opacity-50 pointer-events-none' : '' ?>">
+                    <input type="checkbox" name="tfa_yoq" value="1" <?= !empty($f['tfa_yoq']) ? 'checked' : '' ?>
+                           class="w-5 h-5 rounded border-white/20 bg-white/5 text-violet focus:ring-violet">
+                    <span class="text-sm">2FA yoqilgan bo'lsin</span>
+                </label>
+                <button type="submit" class="btn btn-primary mt-4 text-sm py-2 px-4" <?= !$f['telegram_id'] ? 'disabled' : '' ?>>
+                    <?= e(t('saqlash')) ?>
+                </button>
             </form>
         </div>
     </div>
