@@ -1,16 +1,7 @@
 <?php
-/**
- * VatanParvar Yaypan — Tungi DB zahiralash + Telegram orqali yuborish
- *
- * Cron sozlanmasi (har kuni soat 03:00 da):
- *   0 3 * * * /usr/bin/php /home/USER/public_html/cron/backup.php
- *
- * Yoki saytdan: /cron/backup.php?kalit=...  (sozlamalardan o'qiladi)
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
-// ----- Web orqali kirilgan bo'lsa, kalit talab qilamiz -----
 if (php_sapi_name() !== 'cli') {
     $kalit = sozlama('cron_kalit', '');
     $kelgan = $_GET['kalit'] ?? '';
@@ -20,24 +11,24 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
-// ----- Backup faylini yaratish -----
 $sana = date('Y-m-d_H-i');
 $papka = BACKUP_PATH;
 if (!is_dir($papka)) mkdir($papka, 0755, true);
 $fayl = "$papka/db_$sana.sql";
 
-// mysqldump ishlatish (xost-1000'da bor)
+$cnf = $papka . '/.my.cnf';
+file_put_contents($cnf, "[client]\nuser=" . DB_USER . "\npassword=\"" . DB_PASS . "\"\nhost=" . DB_HOST . "\n");
+chmod($cnf, 0600);
+
 $cmd = sprintf(
-    'mysqldump --no-tablespaces -h%s -u%s -p%s %s > %s 2>&1',
-    escapeshellarg(DB_HOST),
-    escapeshellarg(DB_USER),
-    escapeshellarg(DB_PASS),
+    'mysqldump --defaults-extra-file=%s --no-tablespaces %s > %s 2>&1',
+    escapeshellarg($cnf),
     escapeshellarg(DB_NAME),
     escapeshellarg($fayl)
 );
 exec($cmd, $chiqish, $kod);
+@unlink($cnf);
 
-// Agar mysqldump ishlamasa — PHP orqali zaxiralash
 if ($kod !== 0 || !file_exists($fayl) || filesize($fayl) < 100) {
     @unlink($fayl);
     php_orqali_zahirala($fayl);
@@ -48,7 +39,6 @@ if (!file_exists($fayl) || filesize($fayl) < 100) {
     exit('Backup xato');
 }
 
-// ----- Gzip siqish -----
 $gz = $fayl . '.gz';
 $ko = fopen($fayl, 'rb');
 $go = gzopen($gz, 'wb9');
@@ -57,7 +47,6 @@ fclose($ko);
 gzclose($go);
 @unlink($fayl);
 
-// ----- Telegramga yuborish -----
 $admin_id = sozlama('telegram_admin_id');
 if ($admin_id) {
     $hajm = round(filesize($gz) / 1024, 2);
@@ -68,19 +57,17 @@ if ($admin_id) {
     );
 }
 
-// ----- Eskirgan zaxiralarni o'chirish (7 kundan eski) -----
-foreach (glob($papka . '/db_*.gz') as $f) {
-    if (filemtime($f) < time() - 60 * 60 * 24 * 7) {
-        @unlink($f);
+foreach (glob($papka . '/db_*.gz') as $eski) {
+    if (filemtime($eski) < time() - 60 * 60 * 24 * 7) {
+        @unlink($eski);
     }
 }
+
+db_bajar('DELETE FROM kirish_urinishlar WHERE yaratilgan < DATE_SUB(NOW(), INTERVAL 1 DAY)');
 
 echo "Backup tayyor: $gz\n";
 exit;
 
-// ============================================================
-// PHP orqali zahiralash (mysqldump bo'lmasa)
-// ============================================================
 function php_orqali_zahirala(string $fayl): void {
     $fp = fopen($fayl, 'w');
     fwrite($fp, "-- VatanParvar Yaypan zaxira\n-- Sana: " . date('Y-m-d H:i:s') . "\n\n");
@@ -89,12 +76,10 @@ function php_orqali_zahirala(string $fayl): void {
     $jadvallar = db_barcha("SHOW TABLES");
     foreach ($jadvallar as $j) {
         $jadval = reset($j);
-        // Tuzilma
         $tuzilma = db()->query("SHOW CREATE TABLE `$jadval`")->fetch();
         fwrite($fp, "DROP TABLE IF EXISTS `$jadval`;\n");
         fwrite($fp, $tuzilma['Create Table'] . ";\n\n");
 
-        // Ma'lumot
         $qatorlar = db()->query("SELECT * FROM `$jadval`");
         foreach ($qatorlar as $qator) {
             $qiymatlar = array_map(function ($v) {

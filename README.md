@@ -3,222 +3,184 @@
 > Avto maktab nazariyasiga onlayn tayyorgarlik platformasi
 > **vatanparvaryaypan.uz**
 
-PHP 8.x + MySQL + Tailwind CDN + Alpine.js bilan qurilgan, frameworksiz, chaqmoqdek tez ishlovchi mukammal platforma.
+PHP 8.x + MySQL + Tailwind + Alpine.js asosida qurilgan, frameworksiz, yengil va tezkor SaaS platforma.
 
 ---
 
-## 📦 Loyiha tuzilmasi
+## 🎨 Yangi yorqin dizayn
+
+- **Asosiy fon**: `#070B14` (chuqur cyber)
+- **Brand gradient**: `#06B6D4 → #8B5CF6 → #EC4899` (cyan → violet → pink)
+- **Glassmorphism** kartalar, **aurora** orqa fon, **ring-grad** ramkalar
+- **2 til**: O'zbek (Lotin) va Ўзбек (Кирилл)
+
+---
+
+## 📦 Tuzilma
 
 ```
-vatanparvar/
-├── public_html/                ← Web root (saytda ko'rinadigan papka)
-│   ├── index.php               ← Bosh sahifa (1 soatlik kesh)
-│   ├── 404.php / 403.php       ← Xato sahifalari
-│   ├── bot.php                 ← Telegram bot vebhuk
-│   ├── .htaccess               ← Apache (HTTPS, chiroyli URL'lar, xavfsizlik)
-│   ├── robots.txt / sitemap.xml
-│   │
-│   ├── config/                 ← (himoyalangan) Konfiguratsiya
-│   │   ├── database.php        ← PDO ulanish + db_qator/db_barcha/...
-│   │   ├── config.php          ← Global konstantalar
-│   │   └── auth.php            ← Sessiya middleware, t() tarjima
-│   │
-│   ├── includes/
-│   │   ├── header.php          ← Tailwind+Alpine CDN, glassmorphism
-│   │   ├── footer.php          ← Til tanlash, anti-copy JS
-│   │   ├── navbar.php          ← Univesal navbar
-│   │   ├── security.php        ← CSRF, rate-limit, telefon
-│   │   └── funksiyalar.php     ← pul(), sana(), telegram_yubor()
-│   │
-│   ├── lang/                   ← Tarjimalar (3 til)
-│   │   ├── uz_latn.php  uz_cyrl.php  ru.php
-│   │
-│   ├── auth/                   ← Login/register/forgot/logout
-│   ├── user/                   ← Dashboard, test, payment, profil, referal
-│   ├── admin/                  ← 8 ta admin sahifasi + sidebar layout
-│   ├── api/                    ← AJAX va to'lov vebhuklari
-│   ├── cron/                   ← (himoyalangan) Backup, eslatma
-│   ├── kesh/                   ← Bosh sahifa keshi
-│   ├── uploads/                ← WebP rasmlar va avatarlar
-│   └── zaxira_nusxalari/       ← (himoyalangan) DB backup
+public_html/
+├── index.php               Bosh sahifa (1 soatlik kesh)
+├── 404.php / 403.php       Xato sahifalari
+├── bot.php                 Telegram bot vebhuk
+├── .htaccess               Apache (HTTPS, chiroyli URL'lar, xavfsizlik)
+├── robots.txt / sitemap.xml
 │
-├── database/
-│   └── schema.sql              ← MySQL sxema + boshlang'ich ma'lumot
+├── assets/img/             Logo, banner, OG cover (SVG)
 │
-└── README.md                   ← Bu fayl
+├── config/
+│   ├── config.php          Global konstantalar (config.local.php avtomatik yuklanadi)
+│   ├── config.local.example.php  Lokal sirlarni saqlash uchun namuna
+│   ├── database.php        PDO + db_qator/db_barcha/db_bajar/db_qiymat
+│   └── auth.php            Sessiya, t() tarjima, joriy_foydalanuvchi
+│
+├── includes/
+│   ├── header.php          Tailwind + Alpine + dizayn tizimi
+│   ├── footer.php          Pastki panel + til tanlash
+│   ├── navbar.php          Universal navbar (logo bilan)
+│   ├── security.php        CSRF, rate-limit, telefon validatsiya
+│   └── funksiyalar.php     pul(), sana(), telegram_yubor(), rasm_saqla()
+│
+├── lang/                   uz_latn.php, uz_cyrl.php
+├── auth/                   login, register, forgot-password, logout (POST + CSRF)
+├── user/                   index, test, payment, profil, referal
+├── admin/                  Sidebar layout + 8 ta CRUD sahifa
+├── api/                    save_answer, fikr_qoshish, click_webhook, payme_webhook
+├── cron/                   backup (mysqldump --defaults-extra-file), obuna_eslatma, sozlash
+├── kesh/                   Bosh sahifa keshi (til-bo'yicha)
+├── uploads/                WebP rasmlar va avatarlar
+└── zaxira_nusxalari/       DB backup + error_log
 ```
 
 ---
 
-## 🚀 O'RNATISH (Xost-1000)
+## 🚀 O'rnatish
 
-### 1. Faylni serverga yuklash
+### 1. Fayllarni yuklash
 
-`public_html/` papkasi ichidagi BARCHA fayllarni saytingizning **public_html/** papkasiga yuklang (FTP yoki cPanel File Manager orqali).
+`public_html/` ichidagi barcha fayllarni saytingizning **public_html/** papkasiga yuklang.
 
-### 2. Ma'lumotlar bazasini yaratish
+### 2. Lokal sozlama
 
-**phpMyAdmin** orqali yangi DB yarating: `wbefkccz_avtomaktab`
+`public_html/config/` papkasiga `config.local.php` yarating (namuna: `config.local.example.php`):
 
-So'ngra `database/schema.sql` faylini import qiling.
-
-### 3. DB ulanishini tekshirish
-
-`config/database.php` ichida quyidagi qiymatlar to'g'ri ekanligini tekshiring:
 ```php
-DB_HOST = 'localhost'
-DB_NAME = 'wbefkccz_avtomaktab'
-DB_USER = 'wbefkccz_avtomaktab'
-DB_PASS = 'FrHCuXUP6RfY4XnzDGBw'
+<?php
+define('REJIM', 'production');
+define('SAYT_URL', 'https://vatanparvaryaypan.uz');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'wbefkccz_avtomaktab');
+define('DB_USER', 'wbefkccz_avtomaktab');
+define('DB_PASS', 'BU_YERGA_PAROLNI_QO_YING');
 ```
+
+> ⚠️ `config.local.php` **git'ga commit qilinmaydi** (`.gitignore`'da yopilgan). DB parolingizni hech qachon git'ga qo'ymang.
+
+### 3. Ma'lumotlar bazasi
+
+phpMyAdmin → DB nomi `wbefkccz_avtomaktab` → Import → `database/schema.sql`
 
 ### 4. Default akkaunt
 
-Default developer akkaunt:
-- **Telefon:** `+998900000000`
-- **Parol:** `admin12345`
+- **Telefon**: `+998900000000`
+- **Parol**: `admin12345`
 
-⚠️ **Birinchi kirgandan so'ng parolni o'zgartiring!**
+> ⚠️ Birinchi kirgandan so'ng Profil → Parolni o'zgartirish orqali parolni o'zgartiring.
 
-### 5. Sozlamalar (admin panel orqali)
+### 5. Sozlamalar (admin panel)
 
-Saytga kiring → **Admin panel → Sozlamalar** bo'limidan:
+Saytga kiring → **Admin panel → Sozlamalar**:
+
 - Sayt nomi va shiori
 - Aloqa telefoni va email
-- **Telegram bot tokeni** (BotFather'dan oling)
-- **Telegram admin ID** (admin uchun bildirishnoma)
-- Click va Payme parametrlari
-- Cron kalit (zaxira uchun)
+- Telegram bot tokeni va admin ID
+- Click `merchant_id` + `service_id` + `secret`
+- Payme `merchant_id` + `key`
+- Cron kalit (32+ belgi)
 
-### 6. Telegram bot vebhukini o'rnatish
+### 6. Telegram vebhuk
 
-Sozlamalardan token va kalit kiritgandan so'ng:
 ```
-https://vatanparvaryaypan.uz/cron/sozlash.php?kalit=KALIT&harakat=webhook_set
+https://SIZNINGSAYT.uz/cron/sozlash.php?kalit=CRON_KALIT&harakat=webhook_set
 ```
 
-### 7. Cron sozlash (cPanel Cron Jobs)
+### 7. Cron (cPanel → Cron Jobs)
 
 ```bash
-# Tungi backup (har kuni 03:00)
 0 3 * * * /usr/bin/php /home/USER/public_html/cron/backup.php
-
-# Obuna eslatma (har kuni 09:00)
 0 9 * * * /usr/bin/php /home/USER/public_html/cron/obuna_eslatma.php
 ```
 
-### 8. Papkalar ruxsatini berish
+---
 
-```
-chmod 755 kesh/
-chmod 755 uploads/
-chmod 755 zaxira_nusxalari/
-```
+## 🔐 Xavfsizlik
+
+| Mexanizm | Holat |
+|----------|-------|
+| PDO Prepared Statements | ✅ |
+| CSRF token (POST + AJAX) | ✅ |
+| XSS himoya (`e()`) | ✅ |
+| BCRYPT parol | ✅ |
+| Rate limit (15 daq / 5 ta urinish) | ✅ |
+| Sessiya regenerate kirgandan keyin | ✅ |
+| HTTPS majburiy + HSTS-ready headers | ✅ |
+| Cookie HttpOnly + Secure + SameSite | ✅ |
+| Logout endi POST + CSRF | ✅ |
+| Telefon validatsiyasi `9XXXXXXXX` aniq | ✅ |
+| `.htaccess` himoyasi (config, zaxira) | ✅ |
+| DB parol git'da YO'Q (config.local.php) | ✅ |
+| Admin sozlamalar allowlist | ✅ |
+| Mysqldump `--defaults-extra-file` (process list'da parol yo'q) | ✅ |
 
 ---
 
-## 🎨 DIZAYN TIZIMI
+## 💰 To'lov
 
-| Element | Qiymat |
-|---------|--------|
-| Asosiy fon | `#0A0F1E` (qora-ko'k) |
-| Aksent | `#3B82F6` (neon ko'k) |
-| Yashil (to'g'ri) | `#22C55E` |
-| Qizil (xato) | `#EF4444` |
-| Asosiy matn | `#F4F4FF` |
-| Sirpangan matn | `#8A99B8` |
-
-**Kartalar:** Glassmorphism (rgba(255,255,255,0.05) + blur(16px))
-**Shrift:** Manrope (sarlavhalar) + Inter (matn)
+- **Click webhook**: `https://SIZNINGSAYT.uz/api/click_webhook.php`
+- **Payme webhook**: `https://SIZNINGSAYT.uz/api/payme_webhook.php`
 
 ---
 
-## 🔐 XAVFSIZLIK
+## 🤖 Telegram bot
 
-- ✅ PDO Prepared Statements (SQL injection yo'q)
-- ✅ CSRF tokenlar barcha POST formalarda
-- ✅ XSS himoya — `htmlspecialchars()` va `e()` funksiyasi
-- ✅ Rate limit — 15 daqiqada 5 ta xato login → IP block
-- ✅ BCRYPT parol hashing
-- ✅ Sessiya regenerate (kirgandan so'ng)
-- ✅ `.htaccess` — config/cron/zaxira papkalari yopiq
-- ✅ Anti-copy + F12 himoya (test sahifasida)
+**Foydalanuvchilar**: `/start <hash>`, `/help`, `/obuna`, `/natijalar`
+**Admin**: `/admin`, `/stat`, `/backup`
 
 ---
 
-## 💰 TO'LOV TIZIMI
+## 🌍 Tillar
 
-### Click webhook URL:
-```
-https://vatanparvaryaypan.uz/api/click_webhook.php
-```
+| Til | Kalit |
+|-----|-------|
+| O'zbek (Lotin) | `uz_latn` |
+| Ўзбек (Кирилл) | `uz_cyrl` |
 
-### Payme webhook URL:
-```
-https://vatanparvaryaypan.uz/api/payme_webhook.php
-```
-
-Sozlamalardan **merchant_id** va **secret/key** kiritish kerak.
+`<?= t('kalit_nomi') ?>` orqali ishlatiladi.
 
 ---
 
-## 🤖 TELEGRAM BOT BUYRUQLARI
+## ⚡ Tezlik
 
-**Foydalanuvchilar uchun:**
-- `/start <hash>` — akkauntni botga ulash
-- `/help` — yordam
-- `/obuna` — obuna holati
-- `/natijalar` — oxirgi natijalar
-
-**Adminlar uchun:**
-- `/admin` — admin panel (inline tugmalar)
-- `/stat` — statistika
-- `/backup` — DB zaxirasini olish
+- Bosh sahifa **1 soatlik kesh** (til-bo'yicha)
+- Brauzer keshi (rasm 1 oy, CSS/JS 1 hafta)
+- Gzip siqish (HTML, CSS, JS, SVG)
+- Rasmlar avtomatik **WebP** + 800px gacha kichraytirish
+- DB indexlar barcha asosiy ustunlarda
+- Cron: `kirish_urinishlar` jadvali tunda tozalanadi
 
 ---
 
-## 🎯 ROL TIZIMI
+## 🎯 Rol tizimi
 
 | Huquq | Developer | Admin | User |
-|-------|:---------:|:-----:|:----:|
+|-------|:--:|:--:|:--:|
 | Server xususiyati | ✅ | ❌ | ❌ |
-| Admin qo'shish | ✅ | ❌ | ❌ |
+| Rol o'zgartirish | ✅ | ❌ | ❌ |
 | Sayt sozlamalari | ✅ | ✅ | ❌ |
 | Bilet/savol CRUD | ✅ | ✅ | ❌ |
-| To'lovlarni tasdiqlash | ✅ | ✅ | ❌ |
+| To'lov tasdiqlash | ✅ | ✅ | ❌ |
 | Test ishlash | ❌ | ❌ | ✅ |
-| Obuna olish | ❌ | ❌ | ✅ |
 
 ---
 
-## 📊 DB JADVALLAR
-
-12 ta jadval: `foydalanuvchilar`, `tariflar`, `obunalar`, `biletlar`, `savollar`, `natijalar`, `tolovlar`, `promo_kodlar`, `referallar`, `sozlamalar`, `fikrlar`, `kirish_urinishlar`
-
----
-
-## 🌍 KO'P TILLI TIZIM
-
-3 til qo'llab-quvvatlanadi:
-- 🇺🇿 O'zbek (Lotin) — `uz_latn`
-- 🇺🇿 Ўзбек (Кирилл) — `uz_cyrl`
-- 🇷🇺 Русский — `ru`
-
-Foydalanish: `<?= t('kalit_nomi') ?>`
-
----
-
-## 📈 ISHLASH TEZLIGI
-
-- Bosh sahifa **1 soatlik kesh** (faqat mehmonlar uchun)
-- Rasmlar avtomatik **WebP** + 800px gacha kichraytirish
-- Brauzer keshi (1 oy)
-- Gzip siqish
-- Tailwind va Alpine **CDN** orqali (parallel yuklanish)
-
----
-
-## 🛠️ FAYLLAR LISENZIYASI
-
-Faqat **VatanParvar Yaypan** loyihasi uchun yaratildi.
 © 2026 VatanParvar Yaypan

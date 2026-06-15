@@ -1,9 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /assets/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /config/
 Disallow: /cron/
+Disallow: /uploads/avatars/
 Disallow: /zaxira_nusxalari/
 
 Sitemap: https://vatanparvaryaypan.uz/sitemap.xml

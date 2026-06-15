@@ -1,13 +1,9 @@
 <?php
-/**
- * VatanParvar Yaypan — Referal dasturi sahifasi
- */
 require_once __DIR__ . '/../config/auth.php';
 $f = kirgan_bolish_kerak();
 
 $havola = SAYT_URL . '/register?ref=' . $f['referal_kod'];
 
-// Statistika
 $stat = db_qator(
     'SELECT
         COUNT(*) AS jami,
@@ -35,73 +31,74 @@ require_once __DIR__ . '/../includes/navbar.php';
 
 <main class="max-w-5xl mx-auto px-4 py-8">
     <div class="mb-8 fade-up">
-        <h1 class="text-3xl mb-1"><?= e(t('referal_sarlavha')) ?></h1>
-        <p class="text-brand-muted"><?= e(t('referal_tavsif')) ?></p>
+        <span class="chip chip-grad mb-3">🎁 <?= e(t('referal')) ?></span>
+        <h1 class="text-3xl md:text-4xl mb-1 font-display font-extrabold"><?= e(t('referal_sarlavha')) ?></h1>
+        <p class="text-muted"><?= e(t('referal_tavsif')) ?></p>
     </div>
 
-    <!-- Havola va kod -->
-    <div class="glass-card p-6 mb-6 fade-up">
-        <div class="flex items-center gap-3 mb-4">
-            <span class="text-3xl">🎁</span>
-            <div>
-                <div class="font-display text-lg">Har bir do'st uchun <span class="text-green-400 font-bold"><?= e(pul($bonus_summa)) ?></span></div>
-                <div class="text-sm text-brand-muted">Do'stingiz to'lov qilganda bonusingiz balansga qo'shiladi</div>
-            </div>
-        </div>
-
-        <div x-data="{nusxa: false}">
-            <label class="field-label"><?= e(t('sizning_havolangiz')) ?></label>
-            <div class="flex gap-2">
-                <input type="text" readonly value="<?= e($havola) ?>"
-                       class="field flex-1 font-mono text-sm" id="havola-input">
-                <button type="button"
-                        @click="navigator.clipboard.writeText('<?= e($havola) ?>'); nusxa=true; setTimeout(()=>nusxa=false, 2000)"
-                        class="btn-primary"
-                        :class="nusxa ? 'bg-green-600' : ''">
-                    <span x-show="!nusxa"><?= e(t('nusxa_olish')) ?></span>
-                    <span x-show="nusxa" x-cloak>✓ <?= e(t('nusxa_olindi')) ?></span>
-                </button>
+    <div class="ring-grad mb-6 fade-up">
+        <div class="p-6">
+            <div class="flex items-center gap-4 mb-5">
+                <div class="w-16 h-16 rounded-2xl grad-bg flex items-center justify-center text-3xl">🎁</div>
+                <div>
+                    <div class="font-display font-bold text-lg"><?= e(t('har_dost_uchun')) ?> <span class="grad-text"><?= e(pul($bonus_summa)) ?></span></div>
+                    <div class="text-sm text-muted"><?= e(t('dost_tolagach')) ?></div>
+                </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap gap-2">
-                <span class="text-brand-muted text-sm self-center">Yoki ulashing:</span>
-                <a target="_blank" href="https://t.me/share/url?url=<?= urlencode($havola) ?>&text=<?= urlencode("Avto maktab nazariyasiga onlayn tayyorgarlik!") ?>"
-                   class="btn-ghost text-sm py-2 px-3">📤 Telegram</a>
-                <a target="_blank" href="https://wa.me/?text=<?= urlencode($havola) ?>"
-                   class="btn-ghost text-sm py-2 px-3">💬 WhatsApp</a>
+            <div x-data="{nusxa: false}">
+                <label class="field-label"><?= e(t('sizning_havolangiz')) ?></label>
+                <div class="flex gap-2">
+                    <input type="text" readonly value="<?= e($havola) ?>"
+                           class="field flex-1 font-mono text-sm" id="havola-input"
+                           onclick="this.select()">
+                    <button type="button"
+                            @click="navigator.clipboard.writeText('<?= e($havola) ?>'); nusxa=true; setTimeout(()=>nusxa=false, 2000)"
+                            class="btn btn-primary"
+                            :class="nusxa ? '!bg-success' : ''">
+                        <span x-show="!nusxa"><?= e(t('nusxa_olish')) ?></span>
+                        <span x-show="nusxa" x-cloak>✓ <?= e(t('nusxa_olindi')) ?></span>
+                    </button>
+                </div>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="text-muted text-sm self-center">Yoki ulashing:</span>
+                    <a target="_blank" href="https://t.me/share/url?url=<?= urlencode($havola) ?>&text=<?= urlencode("Avto maktab nazariyasiga onlayn tayyorgarlik!") ?>"
+                       class="btn btn-ghost text-sm py-2 px-3">📤 Telegram</a>
+                    <a target="_blank" href="https://wa.me/?text=<?= urlencode($havola) ?>"
+                       class="btn btn-ghost text-sm py-2 px-3">💬 WhatsApp</a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Statistika -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <div class="glass-card p-5 fade-up">
-            <div class="text-xs text-brand-muted uppercase mb-2"><?= e(t('taklif_qilingan')) ?></div>
-            <div class="text-3xl font-display font-bold"><?= (int)$stat['jami'] ?></div>
+        <div class="glass p-5 fade-up">
+            <div class="text-xs text-muted uppercase mb-2"><?= e(t('taklif_qilingan')) ?></div>
+            <div class="text-3xl font-display font-extrabold"><?= (int)$stat['jami'] ?></div>
         </div>
-        <div class="glass-card p-5 fade-up">
-            <div class="text-xs text-brand-muted uppercase mb-2">Tasdiqlangan</div>
-            <div class="text-3xl font-display font-bold text-green-400"><?= (int)$stat['tasdiq_son'] ?></div>
+        <div class="glass p-5 fade-up">
+            <div class="text-xs text-muted uppercase mb-2"><?= e(t('tasdiqlangan')) ?></div>
+            <div class="text-3xl font-display font-extrabold text-success"><?= (int)$stat['tasdiq_son'] ?></div>
         </div>
-        <div class="glass-card p-5 fade-up col-span-2 md:col-span-1">
-            <div class="text-xs text-brand-muted uppercase mb-2"><?= e(t('bonus_balans')) ?></div>
-            <div class="text-3xl font-display font-bold text-yellow-400"><?= e(pul($f['bonus_balans'])) ?></div>
+        <div class="glass p-5 fade-up col-span-2 md:col-span-1">
+            <div class="text-xs text-muted uppercase mb-2"><?= e(t('bonus_balans')) ?></div>
+            <div class="text-3xl font-display font-extrabold grad-text"><?= e(pul($f['bonus_balans'])) ?></div>
         </div>
     </div>
 
-    <!-- Ro'yxat -->
-    <div class="glass-card p-6 fade-up">
-        <h2 class="font-display text-xl mb-4"><?= e(t('taklif_qilingan')) ?></h2>
+    <div class="glass p-6 fade-up">
+        <h2 class="font-display font-bold text-xl mb-4"><?= e(t('taklif_qilingan')) ?></h2>
 
         <?php if (empty($royxat)): ?>
-            <div class="py-12 text-center text-brand-muted text-sm">
-                Hali hech kim taklif qilinmagan. Havolani do'stlaringizga ulashing!
+            <div class="py-12 text-center text-muted text-sm">
+                <?= e(t('royxat_bosh')) ?>
             </div>
         <?php else: ?>
             <div class="overflow-x-auto -mx-6 px-6">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="text-left text-brand-muted text-xs uppercase">
+                        <tr class="text-left text-muted text-xs uppercase">
                             <th class="py-2 pr-3">Foydalanuvchi</th>
                             <th class="py-2 pr-3">Telefon</th>
                             <th class="py-2 pr-3">Bonus</th>
@@ -116,13 +113,13 @@ require_once __DIR__ . '/../includes/navbar.php';
                                 <td class="py-2.5 pr-3 font-mono text-xs"><?= e(substr($r['telefon'], 0, 7) . '****' . substr($r['telefon'], -2)) ?></td>
                                 <td class="py-2.5 pr-3 font-bold"><?= e(pul($r['bonus_summa'])) ?></td>
                                 <td class="py-2.5 pr-3">
-                                    <span class="text-xs px-2 py-0.5 rounded-full
-                                        <?= $r['holat'] === 'tasdiq' ? 'bg-green-500/20 text-green-400' :
-                                           ($r['holat'] === 'bekor' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400') ?>">
+                                    <span class="chip text-xs !py-0.5 !px-2
+                                        <?= $r['holat'] === 'tasdiq' ? 'bg-success/15 text-success border-success/30' :
+                                           ($r['holat'] === 'bekor' ? 'bg-danger/15 text-danger border-danger/30' : 'bg-amber/15 text-amber border-amber/30') ?>">
                                         <?= e($r['holat']) ?>
                                     </span>
                                 </td>
-                                <td class="py-2.5 text-brand-muted"><?= e(vaqt_oldin($r['yaratilgan'])) ?></td>
+                                <td class="py-2.5 text-muted"><?= e(vaqt_oldin($r['yaratilgan'])) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

@@ -1,9 +1,4 @@
 <?php
-/**
- * Telegram bot vebhukini o'rnatish (faqat developer ishga tushiradi)
- *
- * URL: https://vatanparvaryaypan.uz/cron/sozlash.php?kalit=...
- */
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
@@ -19,7 +14,6 @@ $token = sozlama('telegram_bot_token');
 
 if (!$token) exit('Telegram bot tokeni belgilanmagan');
 
-// ----- Vebhukni o'rnatish -----
 if ($harakat === 'webhook_set') {
     $url = SAYT_URL . '/bot.php';
     $j = file_get_contents("https://api.telegram.org/bot{$token}/setWebhook?url=" . urlencode($url));
@@ -27,14 +21,12 @@ if ($harakat === 'webhook_set') {
     exit;
 }
 
-// ----- Vebhukni o'chirish -----
 if ($harakat === 'webhook_del') {
     $j = file_get_contents("https://api.telegram.org/bot{$token}/deleteWebhook");
     echo "<pre>" . htmlspecialchars($j) . "</pre>";
     exit;
 }
 
-// ----- Bot info -----
 if ($harakat === 'me') {
     $j = file_get_contents("https://api.telegram.org/bot{$token}/getMe");
     echo "<pre>" . htmlspecialchars($j) . "</pre>";

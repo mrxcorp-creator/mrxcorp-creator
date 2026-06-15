@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none">
+    <defs>
+        <linearGradient id="og-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0B1024"/>
+            <stop offset="50%" stop-color="#1E0B36"/>
+            <stop offset="100%" stop-color="#3F0B30"/>
+        </linearGradient>
+        <linearGradient id="og-text" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#06B6D4"/>
+            <stop offset="50%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#EC4899"/>
+        </linearGradient>
+    </defs>
+    <rect width="1200" height="630" fill="url(#og-bg)"/>
+    <g transform="translate(80,200)">
+        <rect width="120" height="120" rx="28" fill="url(#og-text)"/>
+        <text x="60" y="92" text-anchor="middle" font-family="Arial Black" font-size="72" fill="#FFFFFF" font-weight="900">VP</text>
+    </g>
+    <text x="240" y="290" font-family="Arial Black" font-size="84" fill="url(#og-text)" font-weight="900">VatanParvar</text>
+    <text x="240" y="370" font-family="Arial Black" font-size="64" fill="#FFFFFF" font-weight="800">Yaypan</text>
+    <text x="80" y="470" font-family="Arial" font-size="32" fill="#94A3B8">Avto maktab nazariyasiga onlayn tayyorgarlik</text>
+    <text x="80" y="520" font-family="Arial" font-size="28" fill="#06B6D4" font-weight="700">vatanparvaryaypan.uz</text>
+</svg>

@@ -1,7 +1,4 @@
 <?php
-/**
- * Admin — Tariflar CRUD
- */
 require_once __DIR__ . '/../config/auth.php';
 $f = admin_bolish_kerak();
 
@@ -37,11 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 [$nomi, $tavsif, $tur, $qiymat, $narx, $eski, $mashhur, $tartib, $holat]
             );
         }
+        foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $kfayl) @unlink($kfayl);
         flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         yonaltir(SAYT_URL . '/admin/tariflar.php');
     }
     if ($harakat === 'ochirish') {
         db_bajar('DELETE FROM tariflar WHERE id = ?', [$id]);
+        foreach (glob(CACHE_PATH . '/indeks_*.html') ?: [] as $kfayl) @unlink($kfayl);
         flash_qoy('muvaffaqiyat', t('malumot_saqlandi'));
         yonaltir(SAYT_URL . '/admin/tariflar.php');
     }
@@ -55,13 +54,13 @@ $sahifa_sarlavha = t('tariflar');
 require_once __DIR__ . '/_layout.php';
 ?>
 
-<form method="POST" class="glass-card p-5 mb-6 fade-up" x-data="{open: <?= $tahrir ? 'true' : 'false' ?>}">
+<form method="POST" class="glass p-5 mb-6 fade-up" x-data="{open: <?= $tahrir ? 'true' : 'false' ?>}">
     <?= csrf_input() ?>
     <input type="hidden" name="harakat" value="<?= $tahrir ? 'tahrirlash' : 'yaratish' ?>">
     <input type="hidden" name="id" value="<?= (int) ($tahrir['id'] ?? 0) ?>">
 
     <div class="flex items-center justify-between cursor-pointer" @click="open = !open">
-        <h2 class="font-display text-lg">
+        <h2 class="font-display font-bold text-lg">
             <?= $tahrir ? '✏️ Tarif tahrirlash' : '➕ Yangi tarif' ?>
         </h2>
         <svg class="w-5 h-5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -100,45 +99,46 @@ require_once __DIR__ . '/_layout.php';
             <label class="field-label">Tavsif</label>
             <textarea name="tavsif" rows="2" class="field"><?= e($tahrir['tavsif'] ?? '') ?></textarea>
         </div>
-        <div class="flex items-center gap-4 sm:col-span-2">
-            <label class="flex items-center gap-2"><input type="checkbox" name="mashhur" value="1" <?= !empty($tahrir['mashhur']) ? 'checked' : '' ?>> Eng mashhur</label>
-            <label class="flex items-center gap-2">
-                <select name="holat" class="field text-sm">
+        <div class="flex items-center gap-4 sm:col-span-2 flex-wrap">
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="mashhur" value="1" <?= !empty($tahrir['mashhur']) ? 'checked' : '' ?>> Eng mashhur</label>
+            <label class="flex items-center gap-2 text-sm">
+                Holat:
+                <select name="holat" class="field !w-auto !py-1.5 text-sm">
                     <option value="faol" <?= ($tahrir['holat'] ?? 'faol') === 'faol' ? 'selected' : '' ?>>Faol</option>
                     <option value="nofaol" <?= ($tahrir['holat'] ?? '') === 'nofaol' ? 'selected' : '' ?>>Nofaol</option>
                 </select>
             </label>
         </div>
         <div class="sm:col-span-2 flex gap-3">
-            <button type="submit" class="btn-primary"><?= e(t('saqlash')) ?></button>
+            <button type="submit" class="btn btn-primary"><?= e(t('saqlash')) ?></button>
             <?php if ($tahrir): ?>
-                <a href="?" class="btn-ghost"><?= e(t('bekor_qilish')) ?></a>
+                <a href="?" class="btn btn-ghost"><?= e(t('bekor_qilish')) ?></a>
             <?php endif; ?>
         </div>
     </div>
 </form>
 
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <?php foreach ($tariflar as $t): ?>
-        <div class="glass-card p-5 fade-up <?= $t['holat'] === 'nofaol' ? 'opacity-50' : '' ?>">
+    <?php foreach ($tariflar as $tar): ?>
+        <div class="glass p-5 fade-up <?= $tar['holat'] === 'nofaol' ? 'opacity-50' : '' ?>">
             <div class="flex items-start justify-between">
-                <h3 class="font-display"><?= e($t['nomi']) ?></h3>
-                <?php if ($t['mashhur']): ?>
-                    <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">★</span>
+                <h3 class="font-display font-bold"><?= e($tar['nomi']) ?></h3>
+                <?php if ($tar['mashhur']): ?>
+                    <span class="text-xs px-2 py-0.5 rounded-full grad-bg text-white font-bold">★</span>
                 <?php endif; ?>
             </div>
-            <div class="text-2xl font-display font-bold text-blue-400 mt-2"><?= e(pul($t['narx'])) ?></div>
-            <?php if ($t['eski_narx']): ?>
-                <div class="line-through text-brand-muted text-xs"><?= e(pul($t['eski_narx'])) ?></div>
+            <div class="text-2xl font-display font-extrabold grad-text mt-2"><?= e(pul($tar['narx'])) ?></div>
+            <?php if ($tar['eski_narx']): ?>
+                <div class="line-through text-muted text-xs"><?= e(pul($tar['eski_narx'])) ?></div>
             <?php endif; ?>
-            <p class="text-xs text-brand-muted mt-2 line-clamp-2"><?= e($t['tavsif']) ?></p>
-            <div class="flex gap-2 mt-4">
-                <a href="?tahrir=<?= (int)$t['id'] ?>" class="text-yellow-400 text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
+            <p class="text-xs text-muted mt-2 line-clamp-2"><?= e($tar['tavsif']) ?></p>
+            <div class="flex gap-3 mt-4">
+                <a href="?tahrir=<?= (int)$tar['id'] ?>" class="text-amber text-xs hover:underline"><?= e(t('tahrirlash')) ?></a>
                 <form method="POST" class="inline" onsubmit="return confirm('O\'chirilsinmi?')">
                     <?= csrf_input() ?>
                     <input type="hidden" name="harakat" value="ochirish">
-                    <input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                    <button class="text-red-400 text-xs hover:underline"><?= e(t('ochirish')) ?></button>
+                    <input type="hidden" name="id" value="<?= (int)$tar['id'] ?>">
+                    <button class="text-danger text-xs hover:underline"><?= e(t('ochirish')) ?></button>
                 </form>
             </div>
         </div>

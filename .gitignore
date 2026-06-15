@@ -1,19 +1,15 @@
-# PHP
 *.log
 *.swp
 *.bak
 *.tmp
 
-# OS
 .DS_Store
 Thumbs.db
 
-# IDE
 .idea/
 .vscode/
 *.sublime-*
 
-# Sayt o'ziga xos
 public_html/kesh/*
 !public_html/kesh/.gitkeep
 !public_html/kesh/.htaccess
@@ -27,7 +23,7 @@ public_html/uploads/avatars/*
 public_html/uploads/savollar/*
 !public_html/uploads/savollar/.gitkeep
 
-# Sezgir ma'lumot (agar bo'lsa)
 .env
 .env.local
-config/secrets.php
+public_html/config/config.local.php
+public_html/config/secrets.php

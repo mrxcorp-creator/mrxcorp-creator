@@ -1,28 +1,19 @@
 <?php
-/**
- * VatanParvar Yaypan — Click webhook
- *
- * Click servisi quyidagi bosqichlarni chaqiradi:
- *   1) Prepare  — to'lovni tayyorlash (action=0)
- *   2) Complete — to'lovni yakunlash  (action=1)
- *
- * Rasmiy hujjat: https://docs.click.uz/
- */
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/funksiyalar.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ----- Click javob kodlari -----
 $KOD = [
-    'OK'                  => 0,
-    'SIGN_XATO'           => -1,
-    'INVALID_AMOUNT'      => -2,
+    'OK'                    => 0,
+    'SIGN_XATO'             => -1,
+    'INVALID_AMOUNT'        => -2,
     'ALLAQACHON_BAJARILGAN' => -4,
     'TRANSAKSIYA_TOPILMADI' => -5,
-    'TOPILMADI'           => -6,
-    'OLDIN_TOPILGAN'      => -7,
-    'XATO_PARAMETRLAR'    => -8,
-    'BEKOR_QILINGAN'      => -9,
+    'TOPILMADI'             => -6,
+    'OLDIN_TOPILGAN'        => -7,
+    'XATO_PARAMETRLAR'      => -8,
+    'BEKOR_QILINGAN'        => -9,
 ];
 
 function click_javob(int $kod, string $matn, array $qoshimcha = []): never {
@@ -33,11 +24,10 @@ function click_javob(int $kod, string $matn, array $qoshimcha = []): never {
     exit;
 }
 
-// ----- Parametrlarni o'qish -----
 $click_trans_id = $_POST['click_trans_id']    ?? '';
 $service_id     = $_POST['service_id']        ?? '';
 $click_paydoc_id= $_POST['click_paydoc_id']   ?? '';
-$merchant_trans = $_POST['merchant_trans_id'] ?? ''; // bu bizning tolovlar.id
+$merchant_trans = $_POST['merchant_trans_id'] ?? '';
 $amount         = (float) ($_POST['amount']   ?? 0);
 $action         = (int)   ($_POST['action']   ?? -1);
 $sign_time      = $_POST['sign_time']         ?? '';
@@ -45,7 +35,6 @@ $sign_string    = $_POST['sign_string']       ?? '';
 $error          = (int)   ($_POST['error']    ?? 0);
 $merchant_prep  = $_POST['merchant_prepare_id'] ?? '';
 
-// ----- Imzoni tekshirish -----
 $secret = sozlama('click_secret', '');
 $kutilgan = $action === 0
     ? md5("$click_trans_id$service_id$secret$merchant_trans$amount$action$sign_time")
@@ -55,20 +44,15 @@ if (!$secret || !hash_equals($kutilgan, $sign_string)) {
     click_javob($KOD['SIGN_XATO'], 'Imzo noto\'g\'ri');
 }
 
-// ----- To'lovni topish -----
 $tolov = db_qator('SELECT * FROM tolovlar WHERE id = ?', [$merchant_trans]);
 if (!$tolov) {
     click_javob($KOD['TRANSAKSIYA_TOPILMADI'], 'Tranzaksiya topilmadi');
 }
 
-// Summa to'g'rimi?
 if (abs((float) $tolov['summa'] - $amount) > 0.01) {
     click_javob($KOD['INVALID_AMOUNT'], 'Summa mos emas');
 }
 
-// ============================================================
-// 1) PREPARE
-// ============================================================
 if ($action === 0) {
     if ($tolov['holat'] === 'muvaffaqiyatli') {
         click_javob($KOD['ALLAQACHON_BAJARILGAN'], 'Allaqachon bajarilgan');
@@ -85,9 +69,6 @@ if ($action === 0) {
     ]);
 }
 
-// ============================================================
-// 2) COMPLETE
-// ============================================================
 if ($action === 1) {
     if ($tolov['holat'] === 'muvaffaqiyatli') {
         click_javob($KOD['ALLAQACHON_BAJARILGAN'], 'Allaqachon bajarilgan');
@@ -97,7 +78,6 @@ if ($action === 1) {
         click_javob($KOD['BEKOR_QILINGAN'], 'Bekor qilindi');
     }
 
-    // Obuna ochish
     $tarif = db_qator('SELECT * FROM tariflar WHERE id = ?', [$tolov['tarif_id']]);
     $kun = match ($tarif['tur']) {
         'kun' => $tarif['qiymat'],
@@ -115,7 +95,6 @@ if ($action === 1) {
             [$tolov['foydalanuvchi_id'], $tarif['id'], $kun]
         );
 
-        // Referal bonus
         $foydalanuvchi = db_qator('SELECT * FROM foydalanuvchilar WHERE id = ?', [$tolov['foydalanuvchi_id']]);
         if (!empty($foydalanuvchi['referal_orqali'])) {
             $bonus = (float) sozlama('referal_bonus', 5000);
@@ -125,9 +104,7 @@ if ($action === 1) {
                      [$bonus, $foydalanuvchi['id']]);
         }
 
-        // Telegram xabar
         if ($foydalanuvchi['telegram_id']) {
-            require_once __DIR__ . '/../includes/funksiyalar.php';
             telegram_yubor($foydalanuvchi['telegram_id'],
                 "✅ <b>To'lov muvaffaqiyatli!</b>\nTarif: <b>" . $tarif['nomi'] . "</b>\nSumma: <b>" . pul($amount) . "</b>");
         }

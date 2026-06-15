@@ -1,2 +1,5 @@
-# Cron fayllar faqat kalit bilan ishlasin
-# (PHP'da kalit tekshiruvi bor)
+Require all denied
+
+<FilesMatch "\.(php)$">
+    Require all granted
+</FilesMatch>

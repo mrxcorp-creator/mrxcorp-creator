@@ -1,22 +1,12 @@
 <?php
-/**
- * VatanParvar Yaypan — Ma'lumotlar bazasi (PDO)
- * ------------------------------------------------------------
- * Faqat tayyorlangan so'rovlar (Prepared Statements) ishlatiladi.
- */
-
 require_once __DIR__ . '/config.php';
 
-// ----- Ma'lumotlar bazasi parametrlari (Xost-1000) -----
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'wbefkccz_avtomaktab');
-define('DB_USER', 'wbefkccz_avtomaktab');
-define('DB_PASS', 'FrHCuXUP6RfY4XnzDGBw');
-define('DB_CHARSET', 'utf8mb4');
+if (!defined('DB_HOST')) define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_NAME') ?: 'wbefkccz_avtomaktab');
+if (!defined('DB_USER')) define('DB_USER', getenv('DB_USER') ?: 'wbefkccz_avtomaktab');
+if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASS') ?: '');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
-/**
- * PDO ulanishini bitta marta yaratuvchi singleton.
- */
 function db(): PDO {
     static $pdo = null;
     if ($pdo === null) {
@@ -30,7 +20,6 @@ function db(): PDO {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $variantlar);
         } catch (PDOException $e) {
-            // Xatoni yashirin holda qaydga olamiz
             error_log('DB ulanish xatosi: ' . $e->getMessage());
             http_response_code(500);
             exit('Server vaqtinchalik mavjud emas. Iltimos, keyinroq urinib ko\'ring.');
@@ -39,9 +28,6 @@ function db(): PDO {
     return $pdo;
 }
 
-/**
- * Bir qatorni qaytaruvchi yordamchi.
- */
 function db_qator(string $sql, array $params = []): ?array {
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -49,18 +35,12 @@ function db_qator(string $sql, array $params = []): ?array {
     return $natija ?: null;
 }
 
-/**
- * Bir nechta qatorni qaytaruvchi yordamchi.
- */
 function db_barcha(string $sql, array $params = []): array {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->fetchAll();
 }
 
-/**
- * INSERT/UPDATE/DELETE yordamchisi. Yangi ID yoki ta'sirlangan qator sonini qaytaradi.
- */
 function db_bajar(string $sql, array $params = []): int {
     $st = db()->prepare($sql);
     $st->execute($params);
@@ -70,18 +50,12 @@ function db_bajar(string $sql, array $params = []): int {
     return $st->rowCount();
 }
 
-/**
- * Bitta qiymatni qaytaruvchi yordamchi.
- */
 function db_qiymat(string $sql, array $params = []) {
     $st = db()->prepare($sql);
     $st->execute($params);
     return $st->fetchColumn();
 }
 
-/**
- * Sozlamalardan qiymat olish.
- */
 function sozlama(string $kalit, $standart = null) {
     static $kesh = null;
     if ($kesh === null) {
@@ -93,9 +67,6 @@ function sozlama(string $kalit, $standart = null) {
     return $kesh[$kalit] ?? $standart;
 }
 
-/**
- * Sozlamani saqlash.
- */
 function sozlama_saqla(string $kalit, $qiymat): void {
     db_bajar(
         'INSERT INTO sozlamalar (kalit, qiymat) VALUES (?, ?)

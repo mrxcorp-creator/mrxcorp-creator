@@ -1,7 +1,4 @@
 <?php
-/**
- * VatanParvar Yaypan — Foydalanuvchi fikr qoldirish API
- */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 
@@ -13,7 +10,7 @@ if (!csrf_tekshir(post('csrf_token'))) {
 }
 
 $f = joriy_foydalanuvchi();
-$ism = $f ? ($f['ism'] . ' ' . ($f['familiya'] ?? '')) : trim(post('ism'));
+$ism = $f ? trim($f['ism'] . ' ' . ($f['familiya'] ?? '')) : trim(post('ism'));
 $matn = trim(post('matn'));
 $baho = max(1, min(5, (int) post('baho') ?: 5));
 
@@ -23,7 +20,7 @@ if (!$ism || mb_strlen($matn) < 5) {
 
 db_bajar(
     'INSERT INTO fikrlar (foydalanuvchi_id, ism, matn, baho, tasdiq) VALUES (?, ?, ?, ?, 0)',
-    [$f['id'] ?? null, $ism, $matn, $baho]
+    [$f ? (int) $f['id'] : null, $ism, $matn, $baho]
 );
 
 json_javob([
