@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Bosh sahifa
+ * VatanParvar Yaypan — Bosh sahifa
  * Mehmon uchun 1 soatlik HTML kesh (til bo'yicha)
  */
 require_once __DIR__ . '/config/auth.php';

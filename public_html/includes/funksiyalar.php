@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Yordamchi funksiyalar
+ * VatanParvar Yaypan — Yordamchi funksiyalar
  *
  * YANGI: SVG/XML yuklash bloklandi (XSS vektori edi)
  */
@@ -135,7 +135,7 @@ function telegram_yubor(int|string $chat_id, string $matn, array $qoshimcha = []
     curl_close($ch);
 
     if ($curl_err) {
-        error_log("[AvtoTest] Telegram CURL xato: {$curl_err}");
+        error_log("[VPY] Telegram CURL xato: {$curl_err}");
         return false;
     }
 

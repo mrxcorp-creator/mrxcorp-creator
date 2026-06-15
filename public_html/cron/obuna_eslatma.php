@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Obuna eslatma + DB cleanup
+ * VatanParvar Yaypan — Obuna eslatma + DB cleanup
  *
  * YANGI: kirish_urinishlar jadvali 30 kunlik tozalash.
  * MySQL EVENT_SCHEDULER yoqilmagan hosting'lar uchun

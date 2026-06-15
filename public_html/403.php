@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — 403 Kirish taqiqlangan
+ * VatanParvar Yaypan — 403 Kirish taqiqlangan
  */
 require_once __DIR__ . '/config/auth.php';
 require_once __DIR__ . '/includes/funksiyalar.php';

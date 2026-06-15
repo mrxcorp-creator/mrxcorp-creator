@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Parolni tiklash
+ * VatanParvar Yaypan — Parolni tiklash
  *
  * BUG FIX: funksiyalar.php AVVAL yuklanadi
  * (telegram_yubor() header.php'dan oldin kerak)
@@ -79,7 +79,7 @@ require_once __DIR__ . '/../includes/header.php';
                              flex items-center justify-center font-display font-black text-white text-2xl
                              shadow-xl shadow-blue-500/30">A</span>
                 <span class="font-display font-bold text-white text-2xl">
-                    AvtoTest <span class="text-blue-400">Pro</span>
+                    VatanParvar <span class="text-blue-400">Yaypan</span>
                 </span>
             </a>
         </div>

@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — To'lovlarni boshqarish
+ * VatanParvar Yaypan — To'lovlarni boshqarish
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

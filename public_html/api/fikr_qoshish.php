@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Foydalanuvchi fikr qoldirish AJAX API
+ * VatanParvar Yaypan — Foydalanuvchi fikr qoldirish AJAX API
  * BUG FIX: fikr_ip ustuni mavjud bo'lmasa graceful fallback
  */
 

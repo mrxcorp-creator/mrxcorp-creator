@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Tizimdan chiqish
+ * VatanParvar Yaypan — Tizimdan chiqish
  */
 require_once __DIR__ . '/../config/auth.php';
 

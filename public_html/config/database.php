@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Ma'lumotlar bazasi (PDO singleton)
+ * VatanParvar Yaypan — Ma'lumotlar bazasi (PDO singleton)
  * Faqat Prepared Statements ishlatiladi — SQL injection yo'q.
  */
 
@@ -32,7 +32,7 @@ function db(): PDO
             PDO::ATTR_PERSISTENT         => false,
         ]);
     } catch (PDOException $e) {
-        error_log('[AvtoTest] DB xato: ' . $e->getMessage());
+        error_log('[VPY] DB xato: ' . $e->getMessage());
         http_response_code(503);
         exit('Server vaqtinchalik mavjud emas. Iltimos, keyinroq urinib ko\'ring.');
     }

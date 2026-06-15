@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Test ishlash sahifasi
+ * VatanParvar Yaypan — Test ishlash sahifasi
  *
  * BUG FIX: Barcha mantiq faqat PHP ichida.
  * Avvalgi versiyada "exit" dan keyin `?>` bilan PHP yopilgan va

@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Sessiya va auth middleware
+ * VatanParvar Yaypan — Sessiya va auth middleware
  * ------------------------------------------------------------
  * Har bir sahifa boshida require_once qilinadi.
  * Sessiyani ochadi, tilni yuklaydi, foydalanuvchini qaytaradi.

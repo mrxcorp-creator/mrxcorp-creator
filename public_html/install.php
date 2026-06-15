@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Veb o'rnatuvchi (Installer)
+ * VatanParvar Yaypan — Veb o'rnatuvchi (Installer)
  * ============================================
  * Foydalanish:
  *   1. Faylni serverga yuklang
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 2) {
     $db_user = trim($_POST['db_user']  ?? '');
     $db_pass = trim($_POST['db_pass']  ?? '');
     $sayt_url  = rtrim(trim($_POST['sayt_url']  ?? ''), '/');
-    $sayt_nomi = trim($_POST['sayt_nomi'] ?? 'AvtoTest Pro');
+    $sayt_nomi = trim($_POST['sayt_nomi'] ?? 'VatanParvar Yaypan');
     $admin_ism  = trim($_POST['admin_ism']  ?? '');
     $admin_tel  = trim($_POST['admin_tel']  ?? '');
     $admin_pass = trim($_POST['admin_pass'] ?? '');
@@ -246,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $step === 2) {
         $db_content = <<<PHP
 <?php
 /**
- * AvtoTest Pro — Ma'lumotlar bazasi (PDO)
+ * VatanParvar Yaypan — Ma'lumotlar bazasi (PDO)
  * O'rnatuvchi tomonidan yaratildi: <?= date('Y-m-d H:i:s') ?>
  */
 
@@ -271,7 +271,7 @@ function db(): PDO
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
         ]);
     } catch (PDOException \$e) {
-        error_log('[AvtoTest] DB xato: ' . \$e->getMessage());
+        error_log('[VPY] DB xato: ' . \$e->getMessage());
         http_response_code(503);
         exit('Server vaqtinchalik mavjud emas.');
     }
@@ -392,7 +392,7 @@ $talablar = tekshir_talablar();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>O'rnatish — AvtoTest Pro</title>
+    <title>O'rnatish — VatanParvar Yaypan</title>
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
@@ -508,7 +508,7 @@ $talablar = tekshir_talablar();
     <div class="logo">
         <div class="logo-icon">A</div>
         <div>
-            <div class="logo-text">AvtoTest <span>Pro</span></div>
+            <div class="logo-text">VatanParvar <span>Yaypan</span></div>
             <div style="font-size:.78rem;color:var(--muted)">Veb o'rnatuvchi</div>
         </div>
     </div>
@@ -616,13 +616,13 @@ $talablar = tekshir_talablar();
                     <label>DB nomi *</label>
                     <input type="text" name="db_name" required
                            value="<?= htmlspecialchars($form_data['db_name'] ?? '') ?>"
-                           placeholder="avtotestpro_db">
+                           placeholder="vatanparvar_db">
                 </div>
                 <div class="field-group">
                     <label>DB foydalanuvchisi *</label>
                     <input type="text" name="db_user" required
                            value="<?= htmlspecialchars($form_data['db_user'] ?? '') ?>"
-                           placeholder="avtotestpro_user">
+                           placeholder="vatanparvar_user">
                 </div>
                 <div class="field-group">
                     <label>DB paroli</label>
@@ -641,16 +641,16 @@ $talablar = tekshir_talablar();
                 <label>Sayt URL (oxirida / bo'lmasin) *</label>
                 <input type="url" name="sayt_url" required
                        value="<?= htmlspecialchars($form_data['sayt_url'] ?? 'https://') ?>"
-                       placeholder="https://avtotestpro.uz">
-                <div class="hint">Misol: https://avtotestpro.uz</div>
+                       placeholder="https://vatanparvaryaypan.uz">
+                <div class="hint">Misol: https://vatanparvaryaypan.uz</div>
             </div>
 
             <div class="grid-2">
                 <div class="field-group">
                     <label>Sayt nomi</label>
                     <input type="text" name="sayt_nomi"
-                           value="<?= htmlspecialchars($form_data['sayt_nomi'] ?? 'AvtoTest Pro') ?>"
-                           placeholder="AvtoTest Pro">
+                           value="<?= htmlspecialchars($form_data['sayt_nomi'] ?? 'VatanParvar Yaypan') ?>"
+                           placeholder="VatanParvar Yaypan">
                 </div>
                 <div class="field-group">
                     <label>Aloqa telefoni</label>
@@ -739,7 +739,7 @@ $talablar = tekshir_talablar();
         <div class="success-icon">🎉</div>
         <h2 style="font-size:1.5rem;margin-bottom:.5rem">O'rnatish yakunlandi!</h2>
         <p style="color:var(--muted);margin-bottom:1.5rem">
-            AvtoTest Pro muvaffaqiyatli o'rnatildi.
+            VatanParvar Yaypan muvaffaqiyatli o'rnatildi.
         </p>
 
         <?php if (!empty($ok_info)): ?>
@@ -795,7 +795,7 @@ $talablar = tekshir_talablar();
     <?php endif; ?>
 
     <div style="text-align:center;margin-top:2rem;font-size:.78rem;color:var(--muted)">
-        AvtoTest Pro © <?= date('Y') ?> — O'rnatuvchi
+        VatanParvar Yaypan © <?= date('Y') ?> — O'rnatuvchi
     </div>
 </div>
 </body>

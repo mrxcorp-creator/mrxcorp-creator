@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Referal dasturi
+ * VatanParvar Yaypan — Referal dasturi
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
@@ -91,7 +91,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         <!-- Ulashish tugmalari -->
         <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs text-white/35">Ulashing:</span>
-            <a href="https://t.me/share/url?url=<?= urlencode($havola) ?>&text=<?= urlencode('AvtoTest Pro — avto maktab imtihoniga tayyorgarlik! 🚗') ?>"
+            <a href="https://t.me/share/url?url=<?= urlencode($havola) ?>&text=<?= urlencode('VatanParvar Yaypan — avto maktab imtihoniga tayyorgarlik! 🚗') ?>"
                target="_blank" rel="noopener"
                class="btn btn-ghost btn-sm gap-1.5">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

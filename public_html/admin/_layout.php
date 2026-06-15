@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Admin panel layout (sidebar + topbar)
+ * VatanParvar Yaypan — Admin panel layout (sidebar + topbar)
  * Har bir admin sahifasi oldin o'z require_once'larini bajaradi,
  * so'ng $admin_sahifa + $sahifa_sarlavha ni o'rnatib _layout.php ni chaqiradi.
  */
@@ -23,7 +23,7 @@ $flash          = flash_ol();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <title><?= e($sahifa_sarlavha) ?> — AvtoTest Pro Admin</title>
+    <title><?= e($sahifa_sarlavha) ?> — VatanParvar Yaypan Admin</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -41,27 +41,31 @@ $flash          = flash_ol();
         }}
     };
     </script>
+    <!-- Google Fonts olib tashlandi — system fonts ishlatiladi (tezroq) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%233B82F6'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' text-anchor='middle' fill='white' font-family='Arial Black' font-size='34' font-weight='900'%3EA%3C/text%3E%3C/svg%3E">
 
     <style>
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        /* Admin panel — har doim dark tema */
         :root {
             --bg:       #070C1A;
             --bg2:      #0C1220;
             --surface:  rgba(255,255,255,0.04);
+            --surface2: rgba(255,255,255,0.07);
             --border:   rgba(255,255,255,0.08);
             --border2:  rgba(255,255,255,0.14);
             --blue:     #3B82F6;
             --muted:    #6B7CA8;
             --text:     #F1F5FF;
-            --radius:   12px;
-            --sidebar-w:240px;
+            --text2:    #CBD5E1;
+            --muted:    #6B7CA8;
+            --shadow:   rgba(0,0,0,0.4);
         }
-        html, body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; height:100%; }
-        h1,h2,h3,h4 { font-family:'Manrope',sans-serif; letter-spacing:-.02em; font-weight:700; }
+        html, body { background:var(--bg); color:var(--text);
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            -webkit-font-smoothing:antialiased; height:100%; }
+        h1,h2,h3,h4 { letter-spacing:-.02em; font-weight:700; color:var(--text); }
 
         /* Glass card */
         .glass-card {
@@ -166,7 +170,7 @@ $flash          = flash_ol();
                              flex items-center justify-center font-display font-black text-white text-sm flex-shrink-0
                              shadow-md shadow-blue-500/25">A</span>
                 <div class="min-w-0">
-                    <p class="font-display font-bold text-white text-sm leading-none">AvtoTest Pro</p>
+                    <p class="font-display font-bold text-white text-sm leading-none">VatanParvar Yaypan</p>
                     <p class="text-[10px] text-white/35 mt-0.5">Admin Panel</p>
                 </div>
             </a>

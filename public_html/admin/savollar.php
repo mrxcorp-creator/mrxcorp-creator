@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Savollar CRUD
+ * VatanParvar Yaypan — Savollar CRUD
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

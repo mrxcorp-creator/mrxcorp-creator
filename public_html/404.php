@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — 404 Sahifa topilmadi
+ * VatanParvar Yaypan — 404 Sahifa topilmadi
  */
 require_once __DIR__ . '/config/auth.php';
 require_once __DIR__ . '/includes/funksiyalar.php';

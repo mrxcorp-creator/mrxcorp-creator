@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Profil sozlamalari
+ * VatanParvar Yaypan — Profil sozlamalari
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Tariflar CRUD
+ * VatanParvar Yaypan — Tariflar CRUD
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

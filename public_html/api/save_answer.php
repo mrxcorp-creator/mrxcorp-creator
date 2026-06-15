@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Test javoblarini saqlash (AJAX API)
+ * VatanParvar Yaypan — Test javoblarini saqlash (AJAX API)
  *
  * BUG FIX (timer): qolgan_vaqt endi har bir javobda yangilanmaydi.
  * Qolgan vaqt her doim: max(0, natija.qolgan_vaqt - (time() - boshlangan))

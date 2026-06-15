@@ -1,9 +1,9 @@
 <?php
 /**
- * AvtoTest Pro — Русский перевод
+ * VatanParvar Yaypan — Русский перевод
  */
 return [
-    'sayt_nomi'            => 'AvtoTest Pro',
+    'sayt_nomi'            => 'VatanParvar Yaypan',
     'sayt_shior'           => 'Самая быстрая онлайн-подготовка к теории автошколы в Узбекистане',
     'barcha_huquqlar'      => 'Все права защищены.',
     'til_tanlash'          => 'Язык',

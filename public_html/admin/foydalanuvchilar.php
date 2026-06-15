@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Foydalanuvchilar boshqaruvi
+ * VatanParvar Yaypan — Foydalanuvchilar boshqaruvi
  * FIX: N+1 query → subquery bilan bitta so'rovga keltirildi
  */
 require_once __DIR__ . '/../config/auth.php';

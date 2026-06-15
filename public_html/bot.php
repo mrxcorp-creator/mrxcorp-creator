@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Telegram bot webhook
+ * VatanParvar Yaypan — Telegram bot webhook
  *
  * SECURITY FIX: Telegram "X-Telegram-Bot-Api-Secret-Token" header tekshiriladi.
  * Admin paneli → Sozlamalar → telegram_webhook_secret kalitiga
@@ -87,7 +87,7 @@ function bot_xabar(array $msg): void
     /* ── /start | /help ── */
     if ($matn === '/start' || $matn === '/help') {
         telegram_yubor($chat_id,
-            "👋 <b>AvtoTest Pro botiga xush kelibsiz!</b>\n\n"
+            "👋 <b>VatanParvar Yaypan botiga xush kelibsiz!</b>\n\n"
             . "Bu bot orqali siz:\n"
             . "• To'lov va obuna bildirishnomalarini olasiz\n"
             . "• Obuna tugashi haqida eslatma olasiz\n"
@@ -243,7 +243,7 @@ function bot_stat_matni(): string
     $test     = (int)   db_qiymat('SELECT COUNT(*) FROM natijalar WHERE holat = "tugagan"');
     $kutilmoqda = (int) db_qiymat('SELECT COUNT(*) FROM tolovlar WHERE holat = "kutilmoqda"');
 
-    return "<b>📊 AvtoTest Pro — Statistika</b>\n\n"
+    return "<b>📊 VatanParvar Yaypan — Statistika</b>\n\n"
          . "👥 Foydalanuvchilar: <b>{$foyd}</b> (+{$foyd_24} bugun)\n"
          . "⭐ Faol obunalar: <b>{$obuna}</b>\n"
          . "💳 Jami daromad: <b>" . pul($tolov) . "</b>\n"

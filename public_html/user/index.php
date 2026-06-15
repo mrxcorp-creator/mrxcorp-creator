@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Foydalanuvchi dashboard
+ * VatanParvar Yaypan — Foydalanuvchi dashboard
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

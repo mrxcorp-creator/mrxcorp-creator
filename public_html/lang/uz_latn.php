@@ -1,10 +1,10 @@
 <?php
 /**
- * AvtoTest Pro — O'zbek (lotin) tarjimalari
+ * VatanParvar Yaypan — O'zbek (lotin) tarjimalari
  */
 return [
-    'sayt_nomi'            => 'AvtoTest Pro',
-    'sayt_shior'           => "O'zbekistonda avto maktab nazariyasiga eng tezkor onlayn tayyorgarlik",
+    'sayt_nomi'            => 'VatanParvar Yaypan',
+    'sayt_shior'           => "Avto maktab nazariyasiga onlayn tayyorgarlik platformasi",
     'barcha_huquqlar'      => 'Barcha huquqlar himoyalangan.',
     'til_tanlash'          => 'Til',
     'havolalar'            => 'Havolalar',
@@ -48,7 +48,7 @@ return [
     'hero_tugma_demo'      => 'Demo testni yechish',
     'xususiyat_1_sarlavha' => '500+ real savol',
     'xususiyat_1_tavsif'   => "YHXBB imtihonidan eng so'nggi yangilangan savollar bazasi.",
-    'xususiyat_2_sarlavha' => 'Auto-save tizimi',
+    'xususiyat_2_sarlavha' => 'Auto-saqlash tizimi',
     'xususiyat_2_tavsif'   => "Internet uzilsa ham javoblaringiz yo'qolmaydi.",
     'xususiyat_3_sarlavha' => 'Telegram bot',
     'xususiyat_3_tavsif'   => "Bildirishnomalar va to'lovlar haqida real vaqtda xabardor bo'ling.",

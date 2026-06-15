@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Payme (Paycom) JSON-RPC 2.0 webhook
+ * VatanParvar Yaypan — Payme (Paycom) JSON-RPC 2.0 webhook
  *
  * Autentifikatsiya: Basic Auth (login=Paycom, password=payme_key)
  * Metodlar: CheckPerformTransaction, CreateTransaction,

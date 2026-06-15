@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Click to'lov tizimi webhook
+ * VatanParvar Yaypan — Click to'lov tizimi webhook
  *
  * Click Prepare (action=0) + Complete (action=1) protokoli.
  * Rasmiy hujjat: https://docs.click.uz/

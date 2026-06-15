@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Sozlamalar sahifasi
+ * VatanParvar Yaypan — Sozlamalar sahifasi
  * BUG FIX: kesh_tozala() — barcha til keshlari tozalanadi
  * YANGI: telegram_webhook_secret + click_service_id sozlamalari
  */

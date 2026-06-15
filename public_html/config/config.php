@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Global konstantalar
+ * VatanParvar Yaypan — Global konstantalar
  * ------------------------------------------------------------
  * Barcha global sozlamalar shu yerda joylashadi.
  */
@@ -9,9 +9,9 @@
 define('REJIM', 'production');
 
 // Sayt asosiy URL (oxirida / bo'lmasin)
-define('SAYT_URL',  'https://avtotestpro.uz');
-define('SAYT_NOMI', 'AvtoTest Pro');
-define('SAYT_TAVSIF', "O'zbekistonda avto maktab nazariyasiga eng tezkor onlayn tayyorgarlik platformasi");
+define('SAYT_URL',  'https://vatanparvaryaypan.uz');
+define('SAYT_NOMI', 'VatanParvar Yaypan');
+define('SAYT_TAVSIF', "O'zbekistonda avto maktab nazariyasiga onlayn tayyorgarlik platformasi");
 
 // Asosiy yo'llar
 define('ROOT_PATH',   dirname(__DIR__));
@@ -34,8 +34,8 @@ define('LIMIT_SON',  5);
 define('TEST_VAQT_DEFAULT', 25 * 60); // 25 daqiqa (soniyada)
 define('TEST_SAVOL_SONI',   20);
 
-// Qo'llab-quvvatlanadigan tillar
-define('TILLAR', ['uz_latn', 'uz_cyrl', 'ru']);
+// Qo'llab-quvvatlanadigan tillar (rus tili olib tashlandi)
+define('TILLAR', ['uz_latn', 'uz_cyrl']);
 define('TIL_DEFAULT', 'uz_latn');
 
 // Xato sozlamalari

@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Promo kodlar boshqaruvi (NEW)
+ * VatanParvar Yaypan — Promo kodlar boshqaruvi (NEW)
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';

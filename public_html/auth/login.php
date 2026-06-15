@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Kirish sahifasi
+ * VatanParvar Yaypan — Kirish sahifasi
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
@@ -69,7 +69,7 @@ require_once __DIR__ . '/../includes/header.php';
             <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
                          flex items-center justify-center font-display font-black text-white text-xl
                          shadow-lg shadow-blue-500/30">A</span>
-            <span class="font-display font-bold text-white text-xl">AvtoTest <span class="text-blue-400">Pro</span></span>
+            <span class="font-display font-bold text-white text-xl">VatanParvar <span class="text-blue-400">Yaypan</span></span>
         </a>
 
         <div class="relative">
@@ -98,7 +98,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
 
         <p class="relative text-xs text-white/30">
-            © <?= date('Y') ?> AvtoTest Pro. Barcha huquqlar himoyalangan.
+            © <?= date('Y') ?> VatanParvar Yaypan. Barcha huquqlar himoyalangan.
         </p>
     </div>
 
@@ -112,7 +112,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <span class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600
                                  flex items-center justify-center font-display font-black text-white text-2xl
                                  shadow-xl shadow-blue-500/30">A</span>
-                    <span class="font-display font-bold text-white text-2xl">AvtoTest <span class="text-blue-400">Pro</span></span>
+                    <span class="font-display font-bold text-white text-2xl">VatanParvar <span class="text-blue-400">Yaypan</span></span>
                 </a>
             </div>
 

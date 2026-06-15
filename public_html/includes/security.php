@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Xavfsizlik funksiyalari
+ * VatanParvar Yaypan — Xavfsizlik funksiyalari
  *
  * YANGI:
  *  - Per-phone rate limit (faqat IP emas)

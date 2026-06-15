@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Admin boshqaruv paneli
+ * VatanParvar Yaypan — Admin boshqaruv paneli
  * BUG FIX: auth.php va funksiyalar.php AVVAL yuklanadi
  */
 require_once __DIR__ . '/../config/auth.php';

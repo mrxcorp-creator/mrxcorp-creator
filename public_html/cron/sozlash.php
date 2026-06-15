@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Telegram bot webhook va xizmat sozlamalari
+ * VatanParvar Yaypan — Telegram bot webhook va xizmat sozlamalari
  * Faqat cron_kalit bilan kirishga ruxsat
  */
 
@@ -60,7 +60,7 @@ switch ($harakat) {
         break;
 
     default:
-        echo "<h2>🤖 AvtoTest Pro — Bot sozlash</h2>";
+        echo "<h2>🤖 VatanParvar Yaypan — Bot sozlash</h2>";
         echo "<ul>";
         $amallar = [
             'webhook_set'  => "Webhookni o'rnatish",

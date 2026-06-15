@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Tarif tanlash va to'lov sahifasi
+ * VatanParvar Yaypan — Tarif tanlash va to'lov sahifasi
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         yonaltir(SAYT_URL . '/dashboard');
                     } catch (Throwable $e) {
                         db()->rollBack();
-                        error_log('[AvtoTest] Bonus tolov: ' . $e->getMessage());
+                        error_log('[VPY] Bonus tolov: ' . $e->getMessage());
                         $xato = t('tolov_xato');
                     }
                 }

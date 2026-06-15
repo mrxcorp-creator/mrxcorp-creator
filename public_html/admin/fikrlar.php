@@ -1,6 +1,6 @@
 <?php
 /**
- * AvtoTest Pro — Foydalanuvchi fikrlarini boshqarish
+ * VatanParvar Yaypan — Foydalanuvchi fikrlarini boshqarish
  * BUG FIX: kesh_tozala() bilan barcha til keshlari tozalanadi
  */
 require_once __DIR__ . '/../config/auth.php';

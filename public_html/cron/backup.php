@@ -1,10 +1,10 @@
 <?php
 /**
- * AvtoTest Pro — Tungi DB zahiralash + Telegram orqali yuborish
+ * VatanParvar Yaypan — Tungi DB zahiralash + Telegram orqali yuborish
  *
  * CLI yoki veb orqali chaqirish:
  *   CLI: /usr/bin/php /home/USER/public_html/cron/backup.php
- *   Web: https://avtotestpro.uz/cron/backup.php?kalit=KALIT
+ *   Web: https://vatanparvaryaypan.uz/cron/backup.php?kalit=KALIT
  *
  * Cron (03:00 da):
  *   0 3 * * * /usr/bin/php /home/USER/public_html/cron/backup.php
@@ -78,7 +78,7 @@ function backup_ishga_tushir(): array
         $yuborildi = telegram_fayl_yubor(
             (int) $admin_id,
             $gz,
-            "💾 <b>AvtoTest Pro — DB Backup</b>\n📅 " . date('d.m.Y H:i') . "\n📦 Hajm: {$hajm} KB"
+            "💾 <b>VatanParvar Yaypan — DB Backup</b>\n📅 " . date('d.m.Y H:i') . "\n📦 Hajm: {$hajm} KB"
         );
     }
 
@@ -95,7 +95,7 @@ function backup_ishga_tushir(): array
 function _php_backup(string $fayl): void
 {
     $fp = fopen($fayl, 'w');
-    fwrite($fp, "-- AvtoTest Pro DB Backup\n-- Sana: " . date('Y-m-d H:i:s') . "\n\n");
+    fwrite($fp, "-- VatanParvar Yaypan DB Backup\n-- Sana: " . date('Y-m-d H:i:s') . "\n\n");
     fwrite($fp, "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
 
     foreach (db_barcha('SHOW TABLES') as $j) {
@@ -123,5 +123,5 @@ if ($natija['ok']) {
     echo "📱 Telegram: " . ($natija['telegram'] ? 'yuborildi' : 'yuborilmadi') . "\n";
 } else {
     echo "❌ Xato: {$natija['xato']}\n";
-    error_log('AvtoTest Pro backup xato: ' . $natija['xato']);
+    error_log('VatanParvar Yaypan backup xato: ' . $natija['xato']);
 }
