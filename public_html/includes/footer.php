@@ -1,74 +1,116 @@
 <?php
 /**
- * AvtoTest Pro — Sahifa oxiri (footer + global JS)
+ * AvtoTest Pro — Footer + global JS
+ * FIX: Barcha o'zgaruvchilar xavfsiz null-check bilan
  */
+
+// Sozlamalar oldindan yuklanishi kerak
+$_tel   = sozlama('aloqa_telefon', '');
+$_email = sozlama('aloqa_email', '');
+$_tg    = sozlama('telegram_kanal', '');
 ?>
 
-<footer class="mt-20 border-t border-white/[0.07] pt-12 pb-8">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="grid md:grid-cols-4 gap-8 mb-10">
+<footer class="relative mt-24 overflow-hidden">
+    <!-- Top separator -->
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-            <!-- Logo & tavsif -->
-            <div class="md:col-span-2">
-                <a href="<?= e(SAYT_URL) ?>" class="inline-flex items-center gap-2.5 mb-4">
-                    <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center font-display font-black text-white text-lg shadow-glow-sm">A</span>
+    <div class="max-w-7xl mx-auto px-4 pt-16 pb-8">
+        <div class="grid md:grid-cols-12 gap-10 mb-12">
+
+            <!-- Brand -->
+            <div class="md:col-span-5">
+                <a href="<?= e(SAYT_URL) ?>" class="inline-flex items-center gap-3 mb-5 group">
+                    <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center font-display font-black text-white text-lg flex-shrink-0 shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform">A</span>
                     <span class="font-display font-bold text-white text-xl">AvtoTest <span class="text-blue-400">Pro</span></span>
                 </a>
-                <p class="text-brand-muted text-sm leading-relaxed max-w-sm">
+                <p class="text-sm text-white/50 leading-relaxed max-w-xs mb-6">
                     <?= e(t('footer_haqida')) ?>
                 </p>
-                <div class="flex items-center gap-3 mt-4">
-                    <?php $tg_kanal = sozlama('telegram_kanal'); if ($tg_kanal): ?>
-                    <a href="<?= e($tg_kanal) ?>" target="_blank" rel="noopener noreferrer"
-                       class="w-9 h-9 rounded-lg bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 flex items-center justify-center transition"
+                <!-- Social links -->
+                <div class="flex items-center gap-2">
+                    <?php if ($_tg): ?>
+                    <a href="<?= e($_tg) ?>" target="_blank" rel="noopener noreferrer"
+                       class="w-9 h-9 rounded-lg bg-white/5 hover:bg-sky-500/15 hover:text-sky-400 text-white/40 flex items-center justify-center transition-all duration-200 hover:scale-105"
                        aria-label="Telegram">
-                        <svg class="w-4.5 h-4.5 w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.93 6.627-1.676 7.908c-.127.555-.46.69-.93.43l-2.57-1.895-1.24 1.195c-.138.137-.253.253-.52.253l.186-2.628 4.8-4.336c.21-.186-.044-.29-.323-.103l-5.934 3.736-2.557-.797c-.555-.172-.566-.555.117-.823l9.97-3.843c.464-.168.87.106.677.903z"/></svg>
+                        <svg class="w-[17px] h-[17px]" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.93 6.627-1.676 7.908c-.127.555-.46.69-.93.43l-2.57-1.895-1.24 1.195c-.138.137-.253.253-.52.253l.186-2.628 4.8-4.336c.21-.186-.044-.29-.323-.103l-5.934 3.736-2.557-.797c-.555-.172-.566-.555.117-.823l9.97-3.843c.464-.168.87.106.677.903z"/>
+                        </svg>
                     </a>
                     <?php endif; ?>
-                    <?php $email = sozlama('aloqa_email'); if ($email): ?>
-                    <a href="mailto:<?= e($email) ?>"
-                       class="w-9 h-9 rounded-lg bg-green-500/15 text-green-400 hover:bg-green-500/25 flex items-center justify-center transition"
+                    <?php if ($_email): ?>
+                    <a href="mailto:<?= e($_email) ?>"
+                       class="w-9 h-9 rounded-lg bg-white/5 hover:bg-emerald-500/15 hover:text-emerald-400 text-white/40 flex items-center justify-center transition-all duration-200 hover:scale-105"
                        aria-label="Email">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+                    <?php if ($_tel): ?>
+                    <a href="tel:<?= e($_tel) ?>"
+                       class="w-9 h-9 rounded-lg bg-white/5 hover:bg-blue-500/15 hover:text-blue-400 text-white/40 flex items-center justify-center transition-all duration-200 hover:scale-105"
+                       aria-label="Telefon">
+                        <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
                     </a>
                     <?php endif; ?>
                 </div>
             </div>
 
             <!-- Havolalar -->
-            <div>
-                <h4 class="text-white font-display font-semibold mb-4"><?= e(t('havolalar')) ?></h4>
-                <ul class="space-y-2.5 text-sm text-brand-muted">
-                    <li><a href="<?= e(SAYT_URL) ?>/" class="hover:text-white transition"><?= e(t('bosh_sahifa')) ?></a></li>
-                    <li><a href="<?= e(SAYT_URL) ?>/#tariflar" class="hover:text-white transition"><?= e(t('tariflar')) ?></a></li>
-                    <li><a href="<?= e(SAYT_URL) ?>/#fikrlar" class="hover:text-white transition"><?= e(t('fikrlar')) ?></a></li>
-                    <li><a href="<?= e(SAYT_URL) ?>/register" class="hover:text-white transition"><?= e(t('royxatdan_otish')) ?></a></li>
-                    <li><a href="<?= e(SAYT_URL) ?>/login" class="hover:text-white transition"><?= e(t('kirish')) ?></a></li>
+            <div class="md:col-span-3">
+                <h5 class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4"><?= e(t('havolalar')) ?></h5>
+                <ul class="space-y-2.5">
+                    <?php
+                    $links = [
+                        [SAYT_URL . '/', t('bosh_sahifa')],
+                        [SAYT_URL . '/#tariflar', t('tariflar')],
+                        [SAYT_URL . '/#fikrlar', t('fikrlar')],
+                        [SAYT_URL . '/register', t('royxatdan_otish')],
+                        [SAYT_URL . '/login', t('kirish')],
+                    ];
+                    foreach ($links as [$href, $nom]):
+                    ?>
+                    <li>
+                        <a href="<?= e($href) ?>"
+                           class="text-sm text-white/50 hover:text-white transition-colors duration-150 flex items-center gap-1.5 group">
+                            <span class="w-1 h-1 rounded-full bg-white/20 group-hover:bg-blue-400 transition-colors"></span>
+                            <?= e($nom) ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
                 </ul>
             </div>
 
             <!-- Aloqa -->
-            <div>
-                <h4 class="text-white font-display font-semibold mb-4"><?= e(t('aloqa')) ?></h4>
-                <ul class="space-y-2.5 text-sm text-brand-muted">
-                    <?php $tel = sozlama('aloqa_telefon'); if ($tel): ?>
+            <div class="md:col-span-4">
+                <h5 class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4"><?= e(t('aloqa')) ?></h5>
+                <ul class="space-y-3">
+                    <?php if ($_tel): ?>
                     <li>
-                        <a href="tel:<?= e($tel) ?>" class="hover:text-white transition flex items-center gap-2">
-                            <span>📞</span><?= e($tel) ?>
+                        <a href="tel:<?= e($_tel) ?>"
+                           class="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                            <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition">📞</span>
+                            <span><?= e($_tel) ?></span>
                         </a>
                     </li>
                     <?php endif; ?>
-                    <?php if ($email): ?>
+                    <?php if ($_email): ?>
                     <li>
-                        <a href="mailto:<?= e($email) ?>" class="hover:text-white transition flex items-center gap-2">
-                            <span>✉️</span><?= e($email) ?>
+                        <a href="mailto:<?= e($_email) ?>"
+                           class="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                            <span class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500/20 transition">✉️</span>
+                            <span class="truncate"><?= e($_email) ?></span>
                         </a>
                     </li>
                     <?php endif; ?>
-                    <?php if ($tg_kanal ?? false): ?>
+                    <?php if ($_tg): ?>
                     <li>
-                        <a href="<?= e($tg_kanal) ?>" target="_blank" rel="noopener" class="hover:text-white transition flex items-center gap-2">
-                            <span>📱</span>Telegram kanal
+                        <a href="<?= e($_tg) ?>" target="_blank" rel="noopener"
+                           class="flex items-center gap-3 text-sm text-white/50 hover:text-white transition-colors group">
+                            <span class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center flex-shrink-0 group-hover:bg-sky-500/20 transition">📱</span>
+                            <span>Telegram kanal</span>
                         </a>
                     </li>
                     <?php endif; ?>
@@ -76,87 +118,93 @@
             </div>
         </div>
 
-        <!-- Quyi qator -->
-        <div class="pt-6 border-t border-white/[0.07] flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-xs text-brand-muted">
-                © <?= date('Y') ?> <span class="text-white"><?= e(SAYT_NOMI) ?></span>. <?= e(t('barcha_huquqlar')) ?>
+        <!-- Bottom bar -->
+        <div class="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-xs text-white/30">
+                © <?= date('Y') ?> <span class="text-white/50"><?= e(SAYT_NOMI) ?></span>.
+                <?= e(t('barcha_huquqlar')) ?>
             </p>
+
             <!-- Til tanlash -->
-            <div class="flex items-center gap-1 text-xs">
-                <span class="text-brand-muted mr-1"><?= e(t('til_tanlash')) ?>:</span>
+            <div class="flex items-center gap-1 bg-white/[0.04] rounded-lg p-0.5">
                 <?php
-                $til_manzillari = ['uz_latn' => 'Lat', 'uz_cyrl' => 'Кир', 'ru' => 'Рус'];
                 $joriy_til = $_SESSION['til'] ?? TIL_DEFAULT;
-                foreach ($til_manzillari as $til_kod => $til_nom):
-                    $faol = $joriy_til === $til_kod;
+                $tillar    = ['uz_latn' => 'Lat', 'uz_cyrl' => 'Кир', 'ru' => 'Рус'];
+                foreach ($tillar as $kod => $nom):
+                    $faol = $joriy_til === $kod;
                 ?>
-                    <a href="?til=<?= $til_kod ?>"
-                       class="px-2 py-1 rounded-md transition <?= $faol ? 'bg-blue-500/20 text-blue-400 font-semibold' : 'text-brand-muted hover:text-white' ?>">
-                        <?= $til_nom ?>
-                    </a>
+                <a href="?til=<?= $kod ?>"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150
+                       <?= $faol ? 'bg-blue-500 text-white shadow-sm' : 'text-white/40 hover:text-white' ?>">
+                    <?= $nom ?>
+                </a>
                 <?php endforeach; ?>
             </div>
         </div>
     </div>
 </footer>
 
-<!-- ===== Global JavaScript ===== -->
+<!-- ═══════ GLOBAL JAVASCRIPT ═══════ -->
 <script>
-(function() {
+(function () {
     'use strict';
 
-    // CSRF token (AJAX uchun)
-    window.csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    /* CSRF tokeni — AJAX so'rovlar uchun */
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    window.csrfToken = meta ? meta.content : '';
 
     /**
-     * Universal AJAX POST yordamchisi.
+     * Universal POST yordamchisi (FormData bilan)
      * @param {string} url
      * @param {Object} data
      * @returns {Promise<Object>}
      */
-    window.apiPost = async function(url, data = {}) {
-        const formData = new FormData();
-        formData.append('csrf_token', window.csrfToken);
-        Object.entries(data).forEach(([k, v]) => formData.append(k, v));
+    window.apiPost = async function (url, data) {
+        data = data || {};
+        var fd = new FormData();
+        fd.append('csrf_token', window.csrfToken);
+        Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
         try {
-            const res = await fetch(url, {
+            var res = await fetch(url, {
                 method: 'POST',
-                body: formData,
+                body: fd,
                 credentials: 'same-origin',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return await res.json();
         } catch (err) {
-            console.error('apiPost xato:', err);
+            console.error('[AvtoTest] apiPost xato:', err);
             return { ok: false, xato: 'Tarmoq xatosi' };
         }
     };
 
-    // Test sahifasida anti-copy himoya
+    /* Test sahifasida copy-paste himoya */
     if (document.body.classList.contains('test-page')) {
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
+        document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'F12') { e.preventDefault(); return; }
-            if ((e.ctrlKey || e.metaKey) && 'usp'.includes(e.key.toLowerCase())) { e.preventDefault(); return; }
-            if (e.ctrlKey && e.shiftKey && 'IJC'.includes(e.key)) { e.preventDefault(); }
+            if ((e.ctrlKey || e.metaKey) && 'USPusp'.indexOf(e.key) > -1) { e.preventDefault(); return; }
+            if (e.ctrlKey && e.shiftKey && 'IJCijc'.indexOf(e.key) > -1) { e.preventDefault(); }
         });
+        document.addEventListener('copy', function (e) { e.preventDefault(); });
+        document.addEventListener('selectstart', function (e) { e.preventDefault(); });
     }
 
-    // Scroll animatsiyasi: IntersectionObserver bilan fade-up
+    /* IntersectionObserver: fade-up animatsiyalar */
     if ('IntersectionObserver' in window) {
-        const io = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
                     entry.target.style.animationPlayState = 'running';
-                    io.unobserve(entry.target);
+                    observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.1 });
+        }, { threshold: 0.08 });
 
-        document.querySelectorAll('.fade-up').forEach(el => {
+        document.querySelectorAll('.fade-up').forEach(function (el) {
             el.style.animationPlayState = 'paused';
-            io.observe(el);
+            observer.observe(el);
         });
     }
 })();

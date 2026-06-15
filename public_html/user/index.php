@@ -1,30 +1,28 @@
 <?php
 /**
- * AvtoTest Pro — Foydalanuvchi boshqaruv paneli (Dashboard)
+ * AvtoTest Pro — Foydalanuvchi dashboard
  */
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../includes/funksiyalar.php';
 $f = kirgan_bolish_kerak();
 
-// Umumiy statistika
+// ── Statistika ──────────────────────────────────────────────
 $stat = db_qator(
-    'SELECT
-        COUNT(*)                                          AS jami,
-        COALESCE(SUM(togri_son), 0)                      AS togri,
-        COALESCE(SUM(xato_son), 0)                       AS xato,
-        COALESCE(SUM(umumiy_son), 0)                     AS umumiy,
-        COALESCE(MAX(ROUND(togri_son/umumiy_son*100)),0)  AS eng_yaxshi
-     FROM natijalar
-     WHERE foydalanuvchi_id = ? AND holat = "tugagan"',
+    'SELECT COUNT(*) AS jami,
+            COALESCE(SUM(togri_son),0)   AS togri,
+            COALESCE(SUM(xato_son),0)    AS xato,
+            COALESCE(SUM(umumiy_son),0)  AS umumiy,
+            COALESCE(MAX(ROUND(togri_son/NULLIF(umumiy_son,0)*100)),0) AS eng_yaxshi
+     FROM natijalar WHERE foydalanuvchi_id = ? AND holat = "tugagan"',
     [$f['id']]
 );
-$jami_test      = (int)  ($stat['jami']      ?? 0);
-$togri_javoblar = (int)  ($stat['togri']     ?? 0);
-$umumiy         = max(1, (int) ($stat['umumiy'] ?? 1));
-$oz_natija      = round($togri_javoblar / $umumiy * 100);
-$eng_yaxshi     = (int)  ($stat['eng_yaxshi'] ?? 0);
+$jami_test   = (int)  ($stat['jami']       ?? 0);
+$togri       = (int)  ($stat['togri']      ?? 0);
+$umumiy      = max(1, (int)($stat['umumiy'] ?? 1));
+$oz_natija   = round($togri / $umumiy * 100);
+$eng_yaxshi  = (int)  ($stat['eng_yaxshi'] ?? 0);
 
-// Faol obuna
+// ── Faol obuna ──────────────────────────────────────────────
 $obuna = db_qator(
     'SELECT o.*, t.nomi AS tarif_nomi FROM obunalar o
      JOIN tariflar t ON o.tarif_id = t.id
@@ -33,7 +31,7 @@ $obuna = db_qator(
     [$f['id']]
 );
 
-// Davom etayotgan test
+// ── Davom etayotgan test ─────────────────────────────────────
 $davom = db_qator(
     'SELECT n.*, b.raqam, b.nomi FROM natijalar n
      JOIN biletlar b ON n.bilet_id = b.id
@@ -42,7 +40,7 @@ $davom = db_qator(
     [$f['id']]
 );
 
-// Oxirgi 5 natija
+// ── Oxirgi 5 natija ──────────────────────────────────────────
 $oxirgi = db_barcha(
     'SELECT n.*, b.raqam, b.nomi FROM natijalar n
      JOIN biletlar b ON n.bilet_id = b.id
@@ -51,234 +49,271 @@ $oxirgi = db_barcha(
     [$f['id']]
 );
 
-// 7 kunlik faollik (grafik uchun)
+// ── 7 kunlik grafik ──────────────────────────────────────────
 $grafik_raw = db_barcha(
-    'SELECT DATE(tugagan) AS sana, COUNT(*) AS son,
-            ROUND(AVG(togri_son/umumiy_son*100)) AS oz
+    'SELECT DATE(tugagan) AS sana,
+            COUNT(*) AS son,
+            ROUND(AVG(togri_son/NULLIF(umumiy_son,0)*100)) AS oz
      FROM natijalar
-     WHERE foydalanuvchi_id = ?
-       AND holat = "tugagan"
+     WHERE foydalanuvchi_id = ? AND holat = "tugagan"
        AND tugagan >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-     GROUP BY DATE(tugagan)
-     ORDER BY sana',
+     GROUP BY DATE(tugagan)',
     [$f['id']]
 );
-
-// Oxirgi 7 kun uchun to'liq ro'yxat (bo'sh kunlar ham)
-$grafik = [];
-for ($i = 6; $i >= 0; $i--) {
-    $sana = date('Y-m-d', strtotime("-{$i} days"));
-    $grafik[$sana] = ['sana' => $sana, 'son' => 0, 'oz' => 0];
-}
-foreach ($grafik_raw as $g) {
-    if (isset($grafik[$g['sana']])) {
-        $grafik[$g['sana']] = $g;
-    }
-}
-$grafik      = array_values($grafik);
-$grafik_maks = max(array_column($grafik, 'son')) ?: 1;
+$grafik_map  = array_column($grafik_raw, null, 'sana');
+$grafik_maks = max(array_map(fn($g) => (int)$g['son'], $grafik_raw ?: [['son'=>0]]) ?: [1]);
 
 $sahifa_sarlavha = t('boshqaruv_paneli');
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="max-w-7xl mx-auto px-4 py-8">
+<main class="max-w-7xl mx-auto px-4 py-8 pb-16">
 
-    <!-- Salomlashish -->
+    <!-- ── Salomlashish ────────────────────────────────────── -->
     <div class="mb-8 fade-up">
-        <h1 class="text-3xl font-display mb-1">
-            <?= e(t('salom')) ?>, <span class="text-blue-400"><?= e($f['ism']) ?></span> 👋
-        </h1>
-        <p class="text-brand-muted">Bugun ham mukammallikka bir qadam yaqinlashing!</p>
+        <div class="flex items-start justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl font-display font-black mb-1">
+                    <?= e(t('salom')) ?>,
+                    <span class="grad-text-blue"><?= e($f['ism']) ?></span> 👋
+                </h1>
+                <p class="text-white/45">Bugun ham bir narsalarni o'rganamiz!</p>
+            </div>
+            <a href="<?= e(SAYT_URL) ?>/test"
+               class="btn btn-primary flex-shrink-0">
+                📝 <?= e(t('yangi_test')) ?>
+            </a>
+        </div>
     </div>
 
-    <!-- Statistika kartalari -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- ── Statistika kartalari ────────────────────────────── -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <?php
         $cards = [
-            ['icon'=>'📝', 'qiymat'=>$jami_test,      'nom'=>t('umumiy_test'),   'rang'=>'blue',   'delay'=>'.05s'],
-            ['icon'=>'✅', 'qiymat'=>$togri_javoblar,  'nom'=>t('togri_javoblar'),'rang'=>'green',  'delay'=>'.10s'],
-            ['icon'=>'📊', 'qiymat'=>$oz_natija.'%',   'nom'=>t('oz_natija'),     'rang'=>'indigo', 'delay'=>'.15s'],
-            ['icon'=>'🏆', 'qiymat'=>$eng_yaxshi.'%',  'nom'=>'Eng yaxshi',       'rang'=>'yellow', 'delay'=>'.20s'],
+            ['📝', t('umumiy_test'),   $jami_test,          'blue',   ''],
+            ['✅', t('togri_javoblar'), $togri,              'emerald',''],
+            ['📊', t('oz_natija'),      $oz_natija . '%',    'violet', ''],
+            ['🏆', 'Eng yaxshi',        $eng_yaxshi . '%',   'amber',  ''],
         ];
-        foreach ($cards as $c):
+        foreach ($cards as $i => [$ico, $nom, $val, $rang, $sub]):
+            $colors = [
+                'blue'   => ['bg-blue-500/10',   'text-blue-400',   'border-blue-500/15'],
+                'emerald'=> ['bg-emerald-500/10', 'text-emerald-400','border-emerald-500/15'],
+                'violet' => ['bg-violet-500/10',  'text-violet-400', 'border-violet-500/15'],
+                'amber'  => ['bg-amber-500/10',   'text-amber-400',  'border-amber-500/15'],
+            ][$rang];
         ?>
-        <div class="glass-card glass-card-hover p-5 fade-up" style="animation-delay:<?= $c['delay'] ?>">
-            <div class="w-10 h-10 rounded-xl bg-<?= $c['rang'] ?>-500/15 text-<?= $c['rang'] ?>-400 flex items-center justify-center text-lg mb-3">
-                <?= $c['icon'] ?>
+        <div class="glass-card glass-card-hover p-5 border <?= $colors[2] ?> fade-up"
+             style="animation-delay:<?= 0.06*$i ?>s">
+            <div class="w-11 h-11 rounded-xl <?= $colors[0] ?> <?= $colors[1] ?>
+                        flex items-center justify-center text-2xl mb-4">
+                <?= $ico ?>
             </div>
-            <div class="text-2xl font-display font-bold tabnum"><?= $c['qiymat'] ?></div>
-            <div class="text-xs text-brand-muted mt-1 uppercase tracking-wide"><?= e($c['nom']) ?></div>
+            <div class="text-2xl font-display font-black tabnum"><?= e($val) ?></div>
+            <div class="text-xs text-white/45 uppercase tracking-wide mt-1"><?= e($nom) ?></div>
         </div>
         <?php endforeach; ?>
     </div>
 
-    <!-- Obuna + davom etayotgan test -->
-    <div class="grid md:grid-cols-2 gap-4 mb-8">
-        <!-- Obuna holati -->
-        <div class="glass-card p-5 fade-up <?= $obuna ? 'border-yellow-500/30 bg-yellow-500/[0.03]' : '' ?>">
-            <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <span class="w-11 h-11 rounded-xl <?= $obuna ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/8 text-white/30' ?> flex items-center justify-center text-2xl flex-shrink-0">
-                        <?= $obuna ? '⭐' : '🔒' ?>
-                    </span>
-                    <div>
-                        <p class="text-xs text-brand-muted uppercase tracking-wide mb-0.5"><?= e(t('obuna_holati')) ?></p>
-                        <?php if ($obuna): ?>
-                            <p class="font-display font-semibold text-yellow-400"><?= e($obuna['tarif_nomi']) ?></p>
-                            <p class="text-xs text-brand-muted">
-                                <?= e(t('tugaydigan_sana')) ?>:
-                                <?= e(sana($obuna['tugash'], 'd.m.Y')) ?>
-                                <?php
-                                $kun_qoldi = (int) ((strtotime($obuna['tugash']) - time()) / 86400);
-                                $rang = $kun_qoldi <= 3 ? 'text-red-400' : ($kun_qoldi <= 7 ? 'text-yellow-400' : 'text-green-400');
-                                ?>
-                                <span class="<?= $rang ?> font-medium">(<?= $kun_qoldi ?> kun)</span>
-                            </p>
-                        <?php else: ?>
-                            <p class="font-medium text-brand-muted"><?= e(t('obuna_yoq')) ?></p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php if (!$obuna): ?>
-                    <a href="<?= e(SAYT_URL) ?>/tolov" class="btn-primary text-sm py-2 px-4 flex-shrink-0">
-                        <?= e(t('tarif_olish')) ?>
-                    </a>
-                <?php else: ?>
-                    <a href="<?= e(SAYT_URL) ?>/tolov" class="btn-ghost text-xs py-1.5 px-3 flex-shrink-0">Yangilash</a>
-                <?php endif; ?>
-            </div>
-        </div>
+    <!-- ── Obuna + davom etayotgan test ───────────────────── -->
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
 
-        <!-- Davom etayotgan test -->
-        <?php if ($davom): ?>
-        <div class="glass-card p-5 fade-up border-blue-500/30 bg-blue-500/[0.03]">
-            <div class="flex items-center justify-between gap-3">
+        <!-- Obuna kartasi -->
+        <?php if ($obuna):
+            $kun_qoldi = max(0, (int)((strtotime($obuna['tugash']) - time()) / 86400));
+            $foiz_q = min(100, round($kun_qoldi / 30 * 100));
+            $rang = $kun_qoldi <= 3 ? 'red' : ($kun_qoldi <= 7 ? 'amber' : 'emerald');
+        ?>
+        <div class="glass-card p-5 border border-amber-500/20 bg-amber-500/[0.03] fade-up">
+            <div class="flex items-start justify-between gap-3 mb-4">
                 <div class="flex items-center gap-3">
-                    <span class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl flex-shrink-0 animate-pulse-slow">⏳</span>
+                    <div class="w-11 h-11 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-2xl flex-shrink-0">⭐</div>
                     <div>
-                        <p class="text-xs text-brand-muted uppercase tracking-wide mb-0.5">Davom etayotgan test</p>
-                        <p class="font-semibold">№<?= (int)$davom['raqam'] ?> — <?= e(mb_substr($davom['nomi'], 0, 25)) ?></p>
-                        <p class="text-xs text-brand-muted"><?= e(vaqt_oldin($davom['boshlangan'])) ?> boshlangan</p>
+                        <p class="text-xs text-white/45 uppercase tracking-wide mb-0.5"><?= e(t('obuna_holati')) ?></p>
+                        <p class="font-display font-bold text-amber-400"><?= e($obuna['tarif_nomi']) ?></p>
                     </div>
                 </div>
-                <a href="<?= e(SAYT_URL) ?>/test?bilet=<?= (int)$davom['bilet_id'] ?>" class="btn-primary text-sm py-2 px-4 flex-shrink-0">
-                    <?= e(t('davom_etish')) ?> →
-                </a>
+                <a href="<?= e(SAYT_URL) ?>/tolov" class="btn btn-ghost btn-sm flex-shrink-0">Yangilash</a>
+            </div>
+            <div class="flex items-center justify-between text-sm mb-2">
+                <span class="text-white/50"><?= e(t('tugaydigan_sana')) ?>: <?= e(sana($obuna['tugash'],'d.m.Y')) ?></span>
+                <span class="font-semibold text-<?= $rang ?>-400"><?= $kun_qoldi ?> kun</span>
+            </div>
+            <div class="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full bg-<?= $rang ?>-400 rounded-full transition-all duration-700"
+                     style="width:<?= $foiz_q ?>%"></div>
             </div>
         </div>
         <?php else: ?>
-        <div class="glass-card p-5 fade-up flex items-center gap-4">
-            <span class="w-11 h-11 rounded-xl bg-green-500/15 text-green-400 flex items-center justify-center text-2xl flex-shrink-0">🚀</span>
-            <div class="flex-1 min-w-0">
-                <p class="font-semibold mb-0.5">Yangi test boshlash</p>
-                <p class="text-xs text-brand-muted">Barcha biletlar va savollar sizni kutmoqda</p>
+        <div class="glass-card p-5 border border-white/[0.08] fade-up">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-white/[0.05] text-white/25 flex items-center justify-center text-2xl flex-shrink-0">🔒</div>
+                <div>
+                    <p class="text-xs text-white/45 uppercase tracking-wide mb-0.5"><?= e(t('obuna_holati')) ?></p>
+                    <p class="font-semibold text-white/60"><?= e(t('obuna_yoq')) ?></p>
+                </div>
             </div>
-            <a href="<?= e(SAYT_URL) ?>/test" class="btn-primary text-sm py-2 px-4 flex-shrink-0"><?= e(t('yangi_test')) ?></a>
+            <p class="text-sm text-white/40 mb-4">Pullik biletlarga kirish uchun tarif oling.</p>
+            <a href="<?= e(SAYT_URL) ?>/tolov" class="btn btn-primary btn-sm">
+                💎 <?= e(t('tarif_olish')) ?> →
+            </a>
+        </div>
+        <?php endif; ?>
+
+        <!-- Davom etayotgan test YOKI yangi test -->
+        <?php if ($davom): ?>
+        <div class="glass-card p-5 border border-blue-500/25 bg-blue-500/[0.03] fade-up" style="animation-delay:.07s">
+            <div class="flex items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-2xl flex-shrink-0 animate-pulse">⏳</div>
+                    <div>
+                        <p class="text-xs text-white/45 uppercase tracking-wide mb-0.5">Davom etayotgan</p>
+                        <p class="font-bold text-white/90">№<?= (int)$davom['raqam'] ?> — <?= e(mb_substr($davom['nomi'],0,20)) ?></p>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-white/40 mb-4">Boshlangan: <?= e(vaqt_oldin($davom['boshlangan'])) ?></p>
+            <a href="<?= e(SAYT_URL) ?>/test?bilet=<?= (int)$davom['bilet_id'] ?>"
+               class="btn btn-primary btn-sm w-full">
+                ▶ <?= e(t('davom_etish')) ?>
+            </a>
+        </div>
+        <?php else: ?>
+        <div class="glass-card p-5 border border-white/[0.08] fade-up" style="animation-delay:.07s">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl flex-shrink-0">🚀</div>
+                <div>
+                    <p class="text-xs text-white/45 uppercase tracking-wide mb-0.5">Tayyor</p>
+                    <p class="font-semibold text-white/80">Yangi testni boshlang</p>
+                </div>
+            </div>
+            <p class="text-sm text-white/40 mb-4">Barcha biletlar va haqiqiy savollar sizni kutmoqda.</p>
+            <a href="<?= e(SAYT_URL) ?>/test" class="btn btn-success btn-sm w-full">
+                📝 <?= e(t('biletlar_royxati')) ?> →
+            </a>
         </div>
         <?php endif; ?>
     </div>
 
-    <!-- Asosiy kontent -->
-    <div class="grid lg:grid-cols-3 gap-6">
+    <!-- ── Asosiy kontent: Natijalar + Grafik ─────────────── -->
+    <div class="grid lg:grid-cols-3 gap-5">
 
         <!-- Oxirgi natijalar -->
         <div class="lg:col-span-2 glass-card p-6 fade-up">
             <div class="flex items-center justify-between mb-5">
-                <h2 class="text-xl font-display"><?= e(t('oxirgi_natijalar')) ?></h2>
-                <a href="<?= e(SAYT_URL) ?>/test" class="btn-primary text-sm py-2 px-4">📝 <?= e(t('yangi_test')) ?></a>
+                <h2 class="font-display font-bold text-lg"><?= e(t('oxirgi_natijalar')) ?></h2>
+                <a href="<?= e(SAYT_URL) ?>/test" class="btn btn-ghost btn-sm">
+                    Barchasi →
+                </a>
             </div>
 
             <?php if (empty($oxirgi)): ?>
-                <div class="py-16 text-center text-brand-muted">
-                    <div class="text-5xl mb-4">📋</div>
-                    <p class="font-medium mb-1">Hali natijalar yo'q</p>
-                    <p class="text-sm"><?= e(t('natijalar_yoq')) ?></p>
-                    <a href="<?= e(SAYT_URL) ?>/test" class="btn-primary mt-4 text-sm">Birinchi testni boshlash →</a>
-                </div>
+            <div class="flex flex-col items-center justify-center py-16 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center text-4xl mb-4">📋</div>
+                <p class="font-semibold text-white/60 mb-1">Hali natijalar yo'q</p>
+                <p class="text-sm text-white/35 mb-5"><?= e(t('natijalar_yoq')) ?></p>
+                <a href="<?= e(SAYT_URL) ?>/test" class="btn btn-primary btn-sm">Birinchi testni boshlash →</a>
+            </div>
             <?php else: ?>
-                <div class="space-y-1">
-                    <?php foreach ($oxirgi as $r):
-                        $foiz = $r['umumiy_son'] > 0 ? round($r['togri_son'] / $r['umumiy_son'] * 100) : 0;
-                        $rang = natija_rang($foiz);
-                    ?>
-                        <a href="<?= e(SAYT_URL) ?>/test?natija=<?= (int)$r['id'] ?>"
-                           class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/[0.05] transition group">
-                            <div class="w-12 h-12 rounded-xl bg-<?= $rang ?>-500/15 text-<?= $rang ?>-400 flex items-center justify-center font-display font-bold text-sm flex-shrink-0 tabnum">
-                                <?= $foiz ?>%
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="font-medium truncate">№<?= (int)$r['raqam'] ?> — <?= e($r['nomi']) ?></p>
-                                <p class="text-xs text-brand-muted">
-                                    <?= (int)$r['togri_son'] ?>/<?= (int)$r['umumiy_son'] ?> to'g'ri · <?= e(vaqt_oldin($r['tugagan'])) ?>
-                                </p>
-                            </div>
+            <div class="space-y-2">
+                <?php foreach ($oxirgi as $r):
+                    $foiz = $r['umumiy_son'] > 0 ? round($r['togri_son'] / $r['umumiy_son'] * 100) : 0;
+                    $rang = natija_rang($foiz);
+                    $bar_colors = ['green'=>'bg-emerald-500','blue'=>'bg-blue-500','yellow'=>'bg-amber-500','red'=>'bg-red-500'][$rang];
+                ?>
+                <a href="<?= e(SAYT_URL) ?>/test?natija=<?= (int)$r['id'] ?>"
+                   class="flex items-center gap-4 p-3.5 rounded-xl hover:bg-white/[0.04] transition-all group">
+
+                    <!-- Foiz doirasi (oddiy) -->
+                    <div class="w-12 h-12 rounded-xl bg-<?= $rang ?>-500/12 text-<?= $rang ?>-400
+                                flex items-center justify-center font-display font-black text-sm tabnum
+                                flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <?= $foiz ?>%
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-sm text-white/90 truncate">
+                            №<?= (int)$r['raqam'] ?> — <?= e($r['nomi']) ?>
+                        </p>
+                        <div class="flex items-center gap-3 mt-1.5">
                             <!-- Progress bar -->
-                            <div class="w-16 hidden sm:block">
-                                <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div class="h-full bg-<?= $rang ?>-400 rounded-full" style="width:<?= $foiz ?>%"></div>
-                                </div>
+                            <div class="flex-1 h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
+                                <div class="h-full <?= $bar_colors ?> rounded-full" style="width:<?= $foiz ?>%"></div>
                             </div>
-                            <svg class="w-4 h-4 text-brand-muted group-hover:text-white transition flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-                <div class="mt-4 pt-4 border-t border-white/[0.07]">
-                    <a href="<?= e(SAYT_URL) ?>/test" class="text-sm text-blue-400 hover:underline">Barcha biletlarni ko'rish →</a>
-                </div>
+                            <span class="text-xs text-white/35 tabnum flex-shrink-0">
+                                <?= (int)$r['togri_son'] ?>/<?= (int)$r['umumiy_son'] ?>
+                            </span>
+                        </div>
+                        <p class="text-xs text-white/30 mt-1"><?= e(vaqt_oldin($r['tugagan'])) ?></p>
+                    </div>
+
+                    <svg class="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <?php endforeach; ?>
+            </div>
             <?php endif; ?>
         </div>
 
-        <!-- 7 kunlik faollik + tezkor harakatlar -->
+        <!-- O'ng ustun -->
         <div class="space-y-4">
-            <!-- Faollik grafigi -->
-            <div class="glass-card p-5 fade-up">
-                <h2 class="text-lg font-display mb-4">📅 7 kunlik faollik</h2>
+
+            <!-- 7 kunlik grafik -->
+            <div class="glass-card p-5 fade-up" style="animation-delay:.1s">
+                <h2 class="font-display font-bold text-sm uppercase tracking-wide text-white/50 mb-4">📅 7 kunlik faollik</h2>
                 <div class="space-y-2">
-                    <?php foreach ($grafik as $g): ?>
-                        <div class="flex items-center gap-2">
-                            <span class="w-14 text-xs text-brand-muted tabnum"><?= date('d.m', strtotime($g['sana'])) ?></span>
-                            <div class="flex-1 h-6 bg-white/[0.04] rounded-lg overflow-hidden relative">
-                                <?php if ($g['son'] > 0):
-                                    $w = round($g['son'] / $grafik_maks * 100);
-                                ?>
-                                    <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-lg flex items-center justify-end px-2"
-                                         style="width:<?= $w ?>%">
-                                        <span class="text-xs font-semibold tabnum"><?= $g['son'] ?></span>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="h-full flex items-center px-2">
-                                        <span class="text-xs text-white/20">—</span>
-                                    </div>
-                                <?php endif; ?>
+                    <?php for ($i = 6; $i >= 0; $i--):
+                        $sana = date('Y-m-d', strtotime("-{$i} days"));
+                        $g    = $grafik_map[$sana] ?? ['son' => 0, 'oz' => 0];
+                        $son  = (int)$g['son'];
+                        $w    = $son > 0 ? max(10, round($son / $grafik_maks * 100)) : 0;
+                    ?>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-10 text-xs text-white/35 tabnum flex-shrink-0">
+                            <?= date('d.m', strtotime($sana)) ?>
+                        </span>
+                        <div class="flex-1 h-6 bg-white/[0.04] rounded-lg overflow-hidden relative">
+                            <?php if ($son > 0): ?>
+                            <div class="h-full bg-gradient-to-r from-blue-600 to-violet-600 rounded-lg
+                                        flex items-center justify-end px-2 transition-all duration-700"
+                                 style="width:<?= $w ?>%">
+                                <span class="text-[10px] font-bold text-white"><?= $son ?></span>
                             </div>
+                            <?php else: ?>
+                            <div class="h-full flex items-center pl-2.5">
+                                <span class="text-xs text-white/20">—</span>
+                            </div>
+                            <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
+                    <?php endfor; ?>
                 </div>
             </div>
 
             <!-- Tezkor harakatlar -->
-            <div class="glass-card p-5 fade-up">
-                <h2 class="text-lg font-display mb-3">⚡ Tezkor harakatlar</h2>
+            <div class="glass-card p-5 fade-up" style="animation-delay:.15s">
+                <h2 class="font-display font-bold text-sm uppercase tracking-wide text-white/50 mb-3">⚡ Tezkor</h2>
                 <div class="space-y-1">
                     <?php
                     $shortcuts = [
-                        [SAYT_URL.'/test',    '📝', t('biletlar_royxati'),     'Testni boshlang'],
-                        [SAYT_URL.'/tolov',   '💎', t('tariflar'),             'Obuna yangilash'],
-                        [SAYT_URL.'/referal', '🎁', t('referal'),              'Do\'st taklif qiling'],
-                        [SAYT_URL.'/profil',  '👤', t('profil'),               'Sozlamalar'],
+                        [SAYT_URL.'/test',    '📝', t('biletlar_royxati')],
+                        [SAYT_URL.'/tolov',   '💎', t('tariflar')],
+                        [SAYT_URL.'/referal', '🎁', t('referal')],
+                        [SAYT_URL.'/profil',  '👤', t('profil')],
                     ];
-                    foreach ($shortcuts as [$href, $icon, $nom, $tavsif]):
+                    foreach ($shortcuts as [$href, $ico, $nom]):
                     ?>
                     <a href="<?= e($href) ?>"
-                       class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.05] transition group">
-                        <span class="text-lg"><?= $icon ?></span>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium"><?= e($nom) ?></p>
-                            <p class="text-xs text-brand-muted"><?= e($tavsif) ?></p>
-                        </div>
-                        <svg class="w-4 h-4 text-white/20 group-hover:text-white/60 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                       class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl
+                              text-sm text-white/60 hover:text-white hover:bg-white/[0.05]
+                              transition-all group">
+                        <span class="text-base w-5 text-center flex-shrink-0"><?= $ico ?></span>
+                        <span class="flex-1"><?= e($nom) ?></span>
+                        <svg class="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </a>
                     <?php endforeach; ?>
                 </div>
