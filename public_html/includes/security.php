@@ -1,14 +1,11 @@
 <?php
 /**
  * AvtoTest Pro — Xavfsizlik funksiyalari
- * ------------------------------------------------------------
- *  - CSRF token (per-session, rotate on login)
- *  - XSS himoya
- *  - Rate limiting (DB-based)
- *  - Telefon tozalash
- *  - Sessiya boshqaruvi
- *  - Flash xabarlar
- *  - Yo'naltirish
+ *
+ * YANGI:
+ *  - Per-phone rate limit (faqat IP emas)
+ *  - SVG/XML yuklash bloklash (XSS vektori)
+ *  - IP xavfsizligi yaxshilandi
  */
 
 require_once __DIR__ . '/../config/database.php';
@@ -21,7 +18,6 @@ function sessiya_boshla(): void
     if (session_status() !== PHP_SESSION_NONE) {
         return;
     }
-
     session_name(SESSION_NOMI);
     session_set_cookie_params([
         'lifetime' => SESSION_VAQTI,
@@ -32,7 +28,7 @@ function sessiya_boshla(): void
     ]);
     session_start();
 
-    // Sessiya hijacking oldini olish: ID ni 30 daqiqada regenerate qilamiz
+    // Session fixation oldini olish — 30 daqiqada ID regenerate
     if (!isset($_SESSION['_last_regen'])) {
         $_SESSION['_last_regen'] = time();
     } elseif (time() - $_SESSION['_last_regen'] > 1800) {
@@ -47,14 +43,14 @@ function sessiya_boshla(): void
 function csrf_token(): string
 {
     sessiya_boshla();
-    if (empty($_SESSION[CSRF_KALITI]) || strlen($_SESSION[CSRF_KALITI]) < 32) {
+    if (empty($_SESSION[CSRF_KALITI]) || strlen($_SESSION[CSRF_KALITI]) < 40) {
         $_SESSION[CSRF_KALITI] = bin2hex(random_bytes(32));
     }
     return $_SESSION[CSRF_KALITI];
 }
 
 /**
- * CSRF tokenni tekshirish.
+ * CSRF tokenni tekshirish (constant-time comparison).
  */
 function csrf_tekshir(?string $token): bool
 {
@@ -65,16 +61,16 @@ function csrf_tekshir(?string $token): bool
 }
 
 /**
- * HTML shaklidagi CSRF hidden input.
+ * Form uchun CSRF hidden input.
  */
 function csrf_input(): string
 {
-    return '<input type="hidden" name="' . CSRF_KALITI
-        . '" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+    return '<input type="hidden" name="' . CSRF_KALITI . '" value="'
+        . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
 }
 
 /**
- * XSS himoyasi — chiqish uchun.
+ * XSS himoya — HTML chiqishi uchun.
  */
 function e(mixed $matn): string
 {
@@ -82,7 +78,7 @@ function e(mixed $matn): string
 }
 
 /**
- * Telefon raqamini tozalab +998XXXXXXXXX formatiga o'tkazish.
+ * Telefon raqamini +998XXXXXXXXX formatiga tozalash.
  */
 function telefon_tozala(string $tel): string
 {
@@ -102,7 +98,8 @@ function telefon_tozala(string $tel): string
 }
 
 /**
- * Mijozning haqiqiy IP manzilini olish.
+ * Haqiqiy IP manzilni olish.
+ * Cloudflare va proxy'larni hisobga oladi.
  */
 function ip_olish(): string
 {
@@ -115,33 +112,59 @@ function ip_olish(): string
     foreach ($kalitlar as $k) {
         if (!empty($_SERVER[$k])) {
             $ip = trim(explode(',', $_SERVER[$k])[0]);
-            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
                 return $ip;
             }
         }
     }
-    return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    return '0.0.0.0';
 }
 
 /**
  * Rate limit tekshiruvi.
- * Oxirgi LIMIT_VAQT soniyada LIMIT_SON dan ortiq xato bo'lsa false.
+ *
+ * YANGI: IP + telefon kombinatsiyasi tekshiriladi.
+ * IP boshqa bo'lsa ham, bir telefon uchun xatolik hisoblanadi.
+ * Bu VPN orqali aylanib o'tishning oldini oladi.
+ *
+ * @param  string $telefon  Tozalangan telefon (+998...)
+ * @return bool   true → ruxsat bor, false → bloklangan
  */
-function rate_limit_tekshir(): bool
+function rate_limit_tekshir(string $telefon = ''): bool
 {
     $ip = ip_olish();
+
     try {
-        $son = (int) db_qiymat(
+        // IP bo'yicha tekshiruv
+        $ip_son = (int) db_qiymat(
             'SELECT COUNT(*) FROM kirish_urinishlar
              WHERE ip = ?
                AND muvaffaqiyat = 0
                AND yaratilgan > DATE_SUB(NOW(), INTERVAL ? SECOND)',
             [$ip, LIMIT_VAQT]
         );
-        return $son < LIMIT_SON;
+        if ($ip_son >= LIMIT_SON) {
+            return false;
+        }
+
+        // Telefon bo'yicha tekshiruv (telefon kiritilgan bo'lsa)
+        if ($telefon !== '') {
+            $tel_son = (int) db_qiymat(
+                'SELECT COUNT(*) FROM kirish_urinishlar
+                 WHERE telefon = ?
+                   AND muvaffaqiyat = 0
+                   AND yaratilgan > DATE_SUB(NOW(), INTERVAL ? SECOND)',
+                [$telefon, LIMIT_VAQT]
+            );
+            if ($tel_son >= LIMIT_SON) {
+                return false;
+            }
+        }
     } catch (Throwable) {
         return true; // DB xatosi bo'lsa ruxsat beramiz
     }
+
+    return true;
 }
 
 /**
@@ -151,11 +174,12 @@ function kirish_qayd(string $telefon, bool $muvaffaqiyat): void
 {
     try {
         db_bajar(
-            'INSERT INTO kirish_urinishlar (ip, telefon, muvaffaqiyat) VALUES (?, ?, ?)',
+            'INSERT INTO kirish_urinishlar (ip, telefon, muvaffaqiyat)
+             VALUES (?, ?, ?)',
             [ip_olish(), $telefon, $muvaffaqiyat ? 1 : 0]
         );
     } catch (Throwable) {
-        // Yozish muvaffaqiyatsiz bo'lsa jimgina o'tkazib yuboramiz
+        // Silent fail
     }
 }
 
@@ -165,12 +189,11 @@ function kirish_qayd(string $telefon, bool $muvaffaqiyat): void
 function referal_kod_unikal(): string
 {
     $belgilar = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-    $uzunlik  = 8;
     $urinish  = 0;
 
-    while ($urinish < 20) {
+    while ($urinish < 25) {
         $kod = '';
-        for ($i = 0; $i < $uzunlik; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $kod .= $belgilar[random_int(0, strlen($belgilar) - 1)];
         }
         if (!db_qiymat('SELECT 1 FROM foydalanuvchilar WHERE referal_kod = ?', [$kod])) {
@@ -179,7 +202,6 @@ function referal_kod_unikal(): string
         $urinish++;
     }
 
-    // Fallback: timestamp bilan
     return strtoupper(substr(md5(uniqid('', true)), 0, 8));
 }
 
@@ -217,14 +239,14 @@ function flash_ol(): ?array
 }
 
 /**
- * Barcha kesh fayllarini tozalash (3 til uchun).
+ * Barcha kesh fayllarini tozalash (barcha tillar uchun).
  */
 function kesh_tozala(string $naqsh = '*'): void
 {
     if (!is_dir(CACHE_PATH)) {
         return;
     }
-    foreach (glob(CACHE_PATH . '/' . $naqsh . '.html') ?: [] as $f) {
-        @unlink($f);
+    foreach (glob(CACHE_PATH . '/' . $naqsh . '.html') ?: [] as $fayl) {
+        @unlink($fayl);
     }
 }

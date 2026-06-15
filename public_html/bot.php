@@ -1,115 +1,140 @@
 <?php
 /**
  * AvtoTest Pro — Telegram bot webhook
- * BUG FIX: backup endi shell_exec orqali asinxron ishlatiladi
- * (require_once backup.php exit bilan tugashi muammoni hal qiladi)
+ *
+ * SECURITY FIX: Telegram "X-Telegram-Bot-Api-Secret-Token" header tekshiriladi.
+ * Admin paneli → Sozlamalar → telegram_webhook_secret kalitiga
+ * tasodifiy string kiriting va Telegram webhook'ni qayta o'rnating.
+ *
+ * BUG FIX: /backup endi shell_exec orqali asinxron ishlaydi
+ * (require_once backup.php edi, u exit bilan tugar va botga javob ketmas edi)
  */
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/funksiyalar.php';
 
-$tana       = file_get_contents('php://input');
+/* ── Telegram webhook secret token tekshiruvi ────────────── *
+ * Sozlamasida bo'sh bo'lsa — eski usulda ishlaydi.           *
+ * (xavfsizroq qilish uchun sozlamaga qiymat kiriting)         *
+ * ─────────────────────────────────────────────────────────── */
+$webhook_secret = sozlama('telegram_webhook_secret', '');
+if ($webhook_secret !== '') {
+    $gelen = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+    if (!hash_equals($webhook_secret, $gelen)) {
+        http_response_code(403);
+        exit('Forbidden');
+    }
+}
+
+/* ── So'rovni o'qish ─────────────────────────────────────── */
+$tana        = file_get_contents('php://input');
 $yangilanish = json_decode($tana, true);
 
-if (!$yangilanish) {
+if (!$yangilanish || !is_array($yangilanish)) {
     http_response_code(200);
     exit('OK');
 }
 
-$message  = $yangilanish['message'] ?? $yangilanish['edited_message'] ?? null;
-$callback = $yangilanish['callback_query'] ?? null;
+$message  = $yangilanish['message']          ?? $yangilanish['edited_message'] ?? null;
+$callback = $yangilanish['callback_query']   ?? null;
 
-if ($message) {
-    $chat_id = (int) $message['chat']['id'];
-    $matn    = trim($message['text'] ?? '');
-    $from_id = (int) $message['from']['id'];
-    bot_xabar_qayta_ishla($chat_id, $matn, $from_id);
-} elseif ($callback) {
-    bot_callback($callback);
-}
+if ($message)  { bot_xabar($message); }
+elseif ($callback) { bot_callback($callback); }
 
 http_response_code(200);
 exit('OK');
 
-// ============================================================
-function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void
+/* ═══════════════════════════════════════════════════════════ */
+function bot_xabar(array $msg): void
 {
+    $chat_id  = (int)   $msg['chat']['id'];
+    $from_id  = (int)   $msg['from']['id'];
+    $matn     = trim($msg['text'] ?? '');
+
     $admin_id = (int) sozlama('telegram_admin_id', 0);
-    $is_admin = $admin_id && $from_id === $admin_id;
+    $is_admin = ($admin_id > 0 && $from_id === $admin_id);
 
     $foydalanuvchi = db_qator(
         'SELECT * FROM foydalanuvchilar WHERE telegram_id = ?',
         [$from_id]
     );
 
-    // /start <hash>
+    /* ── /start <hash> — akkauntni ulash ── */
     if (preg_match('/^\/start\s+([a-f0-9]{32})$/', $matn, $m)) {
-        $hash = $m[1];
-        $fo   = db_qator('SELECT * FROM foydalanuvchilar WHERE telegram_hash = ?', [$hash]);
+        $fo = db_qator(
+            'SELECT * FROM foydalanuvchilar WHERE telegram_hash = ?',
+            [$m[1]]
+        );
         if ($fo) {
-            db_bajar('UPDATE foydalanuvchilar SET telegram_id = ? WHERE id = ?', [$from_id, $fo['id']]);
+            db_bajar(
+                'UPDATE foydalanuvchilar SET telegram_id = ? WHERE id = ?',
+                [$from_id, $fo['id']]
+            );
             telegram_yubor($chat_id,
                 "✅ <b>Akkauntingiz muvaffaqiyatli bog'landi!</b>\n\n"
                 . "Salom, <b>" . htmlspecialchars($fo['ism'], ENT_QUOTES) . "</b>! 🎉\n"
                 . "Endi to'lov va obuna bildirishnomalari shu yerga keladi.\n\n"
-                . "📱 Saytga o'tish: " . SAYT_URL
+                . "🌐 Sayt: " . SAYT_URL
             );
         } else {
-            telegram_yubor($chat_id, "❌ Noto'g'ri yoki muddati o'tgan havola.\nQayta urinish uchun saytdan profil sahifasiga kiring.");
+            telegram_yubor($chat_id,
+                "❌ Noto'g'ri yoki muddati o'tgan havola.\n"
+                . "Profilingizdan yangi havola oling: " . SAYT_URL . '/profil'
+            );
         }
         return;
     }
 
-    // /start yoki /help
+    /* ── /start | /help ── */
     if ($matn === '/start' || $matn === '/help') {
         telegram_yubor($chat_id,
             "👋 <b>AvtoTest Pro botiga xush kelibsiz!</b>\n\n"
-            . "Bu bot sizga:\n"
-            . "• To'lov bildirishnomalarini yetkazadi\n"
-            . "• Obuna tugashi haqida ogohlantiradi\n"
-            . "• Parolni tiklashga yordam beradi\n\n"
+            . "Bu bot orqali siz:\n"
+            . "• To'lov va obuna bildirishnomalarini olasiz\n"
+            . "• Obuna tugashi haqida eslatma olasiz\n"
+            . "• Parolni tiklashingiz mumkin\n\n"
             . "<b>Buyruqlar:</b>\n"
-            . "/obuna — obuna holati\n"
-            . "/natijalar — oxirgi test natijalari\n"
+            . "/obuna — joriy obuna holati\n"
+            . "/natijalar — oxirgi 5 test natijasi\n"
             . "/help — yordam\n\n"
-            . "🌐 Sayt: " . SAYT_URL
+            . "🌐 " . SAYT_URL
         );
         return;
     }
 
-    // /obuna
+    /* ── /obuna ── */
     if ($matn === '/obuna') {
         if (!$foydalanuvchi) {
             telegram_yubor($chat_id,
-                "❌ Akkauntingiz hali bog'lanmagan.\n"
-                . "Saytga kirib, profil sahifasidan bog'lang: " . SAYT_URL . "/profil"
+                "❌ Akkauntingiz bog'lanmagan.\n"
+                . "Bog'lash: " . SAYT_URL . '/profil'
             );
             return;
         }
-        $obuna = db_qator(
+        $ob = db_qator(
             'SELECT o.*, t.nomi FROM obunalar o
              JOIN tariflar t ON o.tarif_id = t.id
              WHERE o.foydalanuvchi_id = ? AND o.holat = "faol" AND o.tugash > NOW()
              ORDER BY o.tugash DESC LIMIT 1',
             [$foydalanuvchi['id']]
         );
-        if ($obuna) {
-            $kun = max(0, (int)((strtotime($obuna['tugash']) - time()) / 86400));
-            $rang = $kun <= 3 ? '🔴' : ($kun <= 7 ? '🟡' : '🟢');
+        if ($ob) {
+            $kun   = max(0, (int) ((strtotime($ob['tugash']) - time()) / 86400));
+            $emoji = $kun <= 3 ? '🔴' : ($kun <= 7 ? '🟡' : '🟢');
             telegram_yubor($chat_id,
-                "✅ <b>Faol obuna:</b> {$obuna['nomi']}\n"
-                . "📅 Tugash: " . date('d.m.Y', strtotime($obuna['tugash'])) . "\n"
-                . "⏳ Qolgan: {$rang} <b>{$kun} kun</b>"
+                "✅ <b>Faol obuna:</b> {$ob['nomi']}\n"
+                . "📅 Tugash: " . date('d.m.Y', strtotime($ob['tugash'])) . "\n"
+                . "⏳ Qolgan: {$emoji} <b>{$kun} kun</b>"
             );
         } else {
             telegram_yubor($chat_id,
                 "❌ Faol obuna mavjud emas.\n"
-                . "Sotib olish: " . SAYT_URL . "/tolov"
+                . "Sotib olish: " . SAYT_URL . '/tolov'
             );
         }
         return;
     }
 
-    // /natijalar
+    /* ── /natijalar ── */
     if ($matn === '/natijalar') {
         if (!$foydalanuvchi) {
             telegram_yubor($chat_id, "❌ Akkauntingiz bog'lanmagan.");
@@ -128,7 +153,8 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void
         }
         $m = "<b>📊 Oxirgi natijalar:</b>\n\n";
         foreach ($royxat as $r) {
-            $foiz  = $r['umumiy_son'] > 0 ? round($r['togri_son'] / $r['umumiy_son'] * 100) : 0;
+            $foiz  = $r['umumiy_son'] > 0
+                ? round($r['togri_son'] / $r['umumiy_son'] * 100) : 0;
             $emoji = natija_emoji($foiz);
             $m    .= "{$emoji} №{$r['raqam']} — {$r['togri_son']}/{$r['umumiy_son']} ({$foiz}%)\n";
             $m    .= "   <i>" . date('d.m.Y H:i', strtotime($r['tugagan'])) . "</i>\n\n";
@@ -137,20 +163,23 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void
         return;
     }
 
-    // ADMIN buyruqlari
+    /* ── ADMIN buyruqlari ── */
     if ($is_admin) {
         if ($matn === '/admin') {
-            $token = sozlama('telegram_bot_token', '');
+            $token     = sozlama('telegram_bot_token', '');
             $klaviatura = json_encode([
                 'inline_keyboard' => [
                     [
                         ['text' => '📊 Statistika', 'callback_data' => 'stat'],
                         ['text' => '💾 Backup',      'callback_data' => 'backup'],
                     ],
-                    [['text' => '🌐 Admin panelga', 'url' => SAYT_URL . '/admin/']],
+                    [
+                        ['text' => '🌐 Admin panelga', 'url' => SAYT_URL . '/admin/'],
+                    ],
                 ]
             ]);
-            telegram_yubor($chat_id, "⚙️ <b>Admin paneli</b>", ['reply_markup' => $klaviatura]);
+            telegram_yubor($chat_id, "⚙️ <b>Admin paneli</b>\nKerakli amalni tanlang:",
+                           ['reply_markup' => $klaviatura]);
             return;
         }
         if ($matn === '/stat') {
@@ -159,33 +188,34 @@ function bot_xabar_qayta_ishla(int $chat_id, string $matn, int $from_id): void
         }
         if ($matn === '/backup') {
             telegram_yubor($chat_id, "⏳ Backup boshlandi, bir oz kuting...");
-            // BUG FIX: asinxron ishlatish (exit muammosidan xalos bo'lish)
-            $php = PHP_BINARY ?: '/usr/bin/php';
-            $fayl = ROOT_PATH . '/cron/backup.php';
-            if (is_file($fayl)) {
-                shell_exec("{$php} {$fayl} > /dev/null 2>&1 &");
+            // ASINXRON: exit muammosini hal qiladi
+            $php  = PHP_BINARY ?: '/usr/bin/php';
+            $skript = ROOT_PATH . '/cron/backup.php';
+            if (is_file($skript)) {
+                shell_exec("{$php} " . escapeshellarg($skript) . " > /dev/null 2>&1 &");
             }
             return;
         }
     }
 
-    // Noma'lum buyruq
     telegram_yubor($chat_id, "❓ Buyruq tushunilmadi. /help yozing.");
 }
 
-// ============================================================
+/* ═══════════════════════════════════════════════════════════ */
 function bot_callback(array $cb): void
 {
     $admin_id = (int) sozlama('telegram_admin_id', 0);
     $from_id  = (int) $cb['from']['id'];
     $chat_id  = (int) $cb['message']['chat']['id'];
     $data     = $cb['data'] ?? '';
-    $cb_id    = $cb['id'];
     $token    = sozlama('telegram_bot_token', '');
 
-    // Callback javobi (loading indikatorini to'xtatish)
+    // Callback javob (spinner'ni o'chirish)
     if ($token) {
-        @file_get_contents("https://api.telegram.org/bot{$token}/answerCallbackQuery?callback_query_id={$cb_id}");
+        @file_get_contents(
+            "https://api.telegram.org/bot{$token}/answerCallbackQuery"
+            . "?callback_query_id=" . urlencode($cb['id'])
+        );
     }
 
     if ($from_id !== $admin_id) return;
@@ -194,24 +224,23 @@ function bot_callback(array $cb): void
         telegram_yubor($chat_id, bot_stat_matni());
     } elseif ($data === 'backup') {
         telegram_yubor($chat_id, "⏳ Backup boshlandi...");
-        // BUG FIX: asinxron ishlatish
-        $php  = PHP_BINARY ?: '/usr/bin/php';
-        $fayl = ROOT_PATH . '/cron/backup.php';
-        if (is_file($fayl)) {
-            shell_exec("{$php} {$fayl} > /dev/null 2>&1 &");
+        $php    = PHP_BINARY ?: '/usr/bin/php';
+        $skript = ROOT_PATH . '/cron/backup.php';
+        if (is_file($skript)) {
+            shell_exec("{$php} " . escapeshellarg($skript) . " > /dev/null 2>&1 &");
         }
     }
 }
 
-// ============================================================
+/* ═══════════════════════════════════════════════════════════ */
 function bot_stat_matni(): string
 {
-    $foyd    = (int)   db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar');
-    $foyd_24 = (int)   db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar WHERE yaratilgan > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
-    $tolov   = (float) db_qiymat('SELECT COALESCE(SUM(summa),0) FROM tolovlar WHERE holat = "muvaffaqiyatli"');
-    $tolov_24= (float) db_qiymat('SELECT COALESCE(SUM(summa),0) FROM tolovlar WHERE holat = "muvaffaqiyatli" AND yaratilgan > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
-    $obuna   = (int)   db_qiymat('SELECT COUNT(*) FROM obunalar WHERE holat = "faol" AND tugash > NOW()');
-    $test    = (int)   db_qiymat('SELECT COUNT(*) FROM natijalar WHERE holat = "tugagan"');
+    $foyd     = (int)   db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar');
+    $foyd_24  = (int)   db_qiymat('SELECT COUNT(*) FROM foydalanuvchilar WHERE yaratilgan > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
+    $tolov    = (float) db_qiymat('SELECT COALESCE(SUM(summa),0) FROM tolovlar WHERE holat = "muvaffaqiyatli"');
+    $tolov_24 = (float) db_qiymat('SELECT COALESCE(SUM(summa),0) FROM tolovlar WHERE holat = "muvaffaqiyatli" AND yaratilgan > DATE_SUB(NOW(), INTERVAL 24 HOUR)');
+    $obuna    = (int)   db_qiymat('SELECT COUNT(*) FROM obunalar WHERE holat = "faol" AND tugash > NOW()');
+    $test     = (int)   db_qiymat('SELECT COUNT(*) FROM natijalar WHERE holat = "tugagan"');
     $kutilmoqda = (int) db_qiymat('SELECT COUNT(*) FROM tolovlar WHERE holat = "kutilmoqda"');
 
     return "<b>📊 AvtoTest Pro — Statistika</b>\n\n"

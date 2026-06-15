@@ -8,7 +8,7 @@ AddHandler application/x-httpd-php82 .php
 # UTF-8 kodlash
 AddDefaultCharset UTF-8
 
-# ---- HTTPS ga majburiy yo'naltirish ----
+# ── HTTPS majburiy yo'naltirish ──────────────────────────────
 RewriteEngine On
 
 RewriteCond %{HTTPS} !=on
@@ -18,73 +18,102 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
 RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
 
-# ---- Chiroyli URL'lar ----
-RewriteRule ^login/?$            auth/login.php       [L]
-RewriteRule ^register/?$         auth/register.php    [L]
+# ── Chiroyli URL'lar ─────────────────────────────────────────
+RewriteRule ^login/?$            auth/login.php           [L]
+RewriteRule ^register/?$         auth/register.php        [L]
 RewriteRule ^forgot-password/?$  auth/forgot-password.php [L]
-RewriteRule ^logout/?$           auth/logout.php      [L]
-RewriteRule ^dashboard/?$        user/index.php       [L]
-RewriteRule ^test/?$             user/test.php        [L]
-RewriteRule ^profil/?$           user/profil.php      [L]
-RewriteRule ^tolov/?$            user/payment.php     [L]
-RewriteRule ^referal/?$          user/referal.php     [L]
+RewriteRule ^logout/?$           auth/logout.php          [L]
+RewriteRule ^dashboard/?$        user/index.php           [L]
+RewriteRule ^test/?$             user/test.php            [L]
+RewriteRule ^profil/?$           user/profil.php          [L]
+RewriteRule ^tolov/?$            user/payment.php         [L]
+RewriteRule ^referal/?$          user/referal.php         [L]
 
-# ---- Maxfiy fayllarni himoyalash ----
-<FilesMatch "\.(env|sql|log|bak|swp|gitignore|json)$">
+# ── Maxfiy fayllarni himoyalash ──────────────────────────────
+<FilesMatch "\.(env|sql|log|bak|swp|gitignore)$">
     Require all denied
 </FilesMatch>
 
+# Yashirin fayllar
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
 
-# config/, cron/, zaxira_nusxalari/ papkalari
+# Tizim papkalarini bloklash
 RedirectMatch 403 ^/config/
 RedirectMatch 403 ^/cron/
 RedirectMatch 403 ^/zaxira_nusxalari/
 RedirectMatch 403 ^/lang/
 
-# ---- Xavfsizlik sarlavhalari ----
+# ── Xavfsizlik sarlavhalari ──────────────────────────────────
 <IfModule mod_headers.c>
-    # Clickjacking himoya
+    # PHP versiyasini yashirish
+    Header always unset X-Powered-By
+    Header always unset Server
+
+    # Clickjacking himoyasi
     Header always set X-Frame-Options "SAMEORIGIN"
-    # MIME sniffing himoya
+
+    # MIME sniffing oldini olish
     Header always set X-Content-Type-Options "nosniff"
-    # XSS filtr
+
+    # XSS filtr (eski brauzerlar)
     Header always set X-XSS-Protection "1; mode=block"
-    # Referrer
+
+    # Referrer siyosati
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    # Ruxsatlar
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    # HSTS (faqat HTTPS uchun, 1 yil)
-    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Permissions
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+
+    # HSTS — 1 yil (faqat HTTPS uchun)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" env=HTTPS
+
+    # Content-Security-Policy
+    # 'unsafe-inline' va CDN manzillariga ruxsat (Tailwind CDN + Alpine.js + Google Fonts)
+    Header always set Content-Security-Policy "\
+        default-src 'self'; \
+        script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; \
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+        font-src 'self' https://fonts.gstatic.com; \
+        img-src 'self' data: blob: https:; \
+        connect-src 'self' https://api.telegram.org; \
+        frame-ancestors 'self'; \
+        base-uri 'self'; \
+        form-action 'self'"
 </IfModule>
 
-# ---- Brauzer keshi ----
+# ── Brauzer keshi ────────────────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType image/webp        "access plus 1 month"
-    ExpiresByType image/png         "access plus 1 month"
-    ExpiresByType image/jpeg        "access plus 1 month"
+    ExpiresByType image/webp        "access plus 3 months"
+    ExpiresByType image/png         "access plus 3 months"
+    ExpiresByType image/jpeg        "access plus 3 months"
     ExpiresByType image/svg+xml     "access plus 1 month"
     ExpiresByType text/css          "access plus 1 week"
     ExpiresByType application/javascript "access plus 1 week"
     ExpiresByType application/json  "access plus 0 seconds"
+    ExpiresByType text/html         "access plus 0 seconds"
 </IfModule>
 
-# ---- Gzip siqish ----
+# ── Gzip siqish ──────────────────────────────────────────────
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript
-    AddOutputFilterByType DEFLATE application/javascript application/json
-    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript
+    AddOutputFilterByType DEFLATE application/json image/svg+xml text/xml
 </IfModule>
 
-# Standart fayl
+# ── Boshqa ───────────────────────────────────────────────────
 DirectoryIndex index.php
+
+# Directory listing o'chirish
+Options -Indexes
 
 # Xato sahifalari
 ErrorDocument 404 /404.php
 ErrorDocument 403 /403.php
 
-# Directory listing o'chirish
-Options -Indexes
+# Katta fayllar yuklash limiti (PHP.ini ham o'zgartirilishi kerak)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 5M
+    php_value post_max_size 8M
+</IfModule>
