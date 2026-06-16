@@ -26,7 +26,23 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 define('BASE_DIR',   dirname(__DIR__));
-define('SCHEMA_SQL', BASE_DIR . '/database/schema.sql');
+
+// schema.sql ni bir necha joydan qidirish (server strukturasiga moslashish)
+function schema_yolini_top(): ?string {
+    $variantlar = [
+        dirname(__DIR__) . '/database/schema.sql',   // ~/database/schema.sql
+        __DIR__ . '/database/schema.sql',            // public_html/database/schema.sql
+        __DIR__ . '/../database/schema.sql',         // ../database/schema.sql
+        dirname(dirname(__DIR__)) . '/database/schema.sql',
+    ];
+    foreach ($variantlar as $yol) {
+        if (is_file($yol)) {
+            return $yol;
+        }
+    }
+    return null;
+}
+define('SCHEMA_SQL', schema_yolini_top() ?? (dirname(__DIR__) . '/database/schema.sql'));
 define('CONFIG_DB',  __DIR__ . '/config/database.php');
 define('CONFIG_APP', __DIR__ . '/config/config.php');
 
